@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["DnsLookup",""],["GetAddrInfoRequest","Triggered by the `mirrord-layer` hook of `getaddrinfo_detour`."],["GetAddrInfoResponse",""],["LookupRecord",""]]};

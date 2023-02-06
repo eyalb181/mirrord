@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["non_blocking","Convenience function for creating a non-blocking, off-thread writer."]],"mod":[["non_blocking","A non-blocking, off-thread writer."],["rolling","A rolling file appender."]],"struct":[["WorkerOptions",""]]};

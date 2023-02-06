@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["AdvancedFsUserConfig","Advanced user configuration for file operations."],["FsConfig","Advanced user configuration for file operations."]]};

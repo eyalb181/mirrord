@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["HttpVersion","Identifies a message as being HTTP or not."]],"mod":[["error",""],["filter",""],["hyper_handler",""],["reversible_stream",""]],"struct":[["HttpFilterManager","Created for every new port we want to filter HTTP traffic on."]],"type":[["DefaultReversibleStream",""]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["choose_container","Choose container logic:"],["get_agent_name",""],["is_ephemeral_container_running",""],["wait_for_agent_startup",""]],"static":[["SKIP_NAMES",""]],"struct":[["EphemeralContainer",""],["JobContainer",""]],"trait":[["ContainerApi",""]]};

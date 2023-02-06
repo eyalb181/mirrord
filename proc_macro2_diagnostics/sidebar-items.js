@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["Level","An enum representing a diagnostic level."]],"struct":[["Diagnostic","A structure representing a diagnostic message and associated children messages."]],"trait":[["SpanDiagnosticExt","Extension trait for `proc_macro2::Span` emulating the proc-macro diagnostic API on stable and nightly."]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Interceptor","Function hooking engine interface."]]};

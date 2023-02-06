@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":[["IGNORE_ERROR_CODES","Error codes from [`libc`] that are not hard errors, meaning the operation may progress."]],"fn":[["is_ignored_code","Checks if an error code from some [`libc`] function should be treated as a hard error, or not."]]};

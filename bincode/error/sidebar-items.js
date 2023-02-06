@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["AllowedEnumVariants","Indicates which enum variants are allowed"],["DecodeError","Errors that can be encountered by decoding a type"],["EncodeError","Errors that can be encountered by encoding a type"],["IntegerType","Integer types. Used by [DecodeError]. These types have no purpose other than being shown in errors."]]};

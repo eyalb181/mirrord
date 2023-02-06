@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["v1",""]],"struct":[["Descriptor","Descriptor describes a blob in a content store."],["Metric",""],["Mount","Mount describes mounts for a container."],["Platform","Platform follows the structure of the OCI platform specification, from descriptors."]]};

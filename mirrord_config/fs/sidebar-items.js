@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["FsUserConfig","Changes file operations behavior based on user configuration."]],"mod":[["advanced",""],["mode",""]]};

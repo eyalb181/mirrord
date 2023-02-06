@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["DockerCredentials","DockerCredentials credentials and server URI to push images using the Push Image API or the Build Image API."]]};

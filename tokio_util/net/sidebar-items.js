@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["unix","Unix domain socket helpers."]],"struct":[["ListenerAcceptFut","Future for accepting a new connection from a listener."]],"trait":[["Listener","A trait for a listener: `TcpListener` and `UnixListener`."]]};

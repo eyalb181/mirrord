@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["select_env_vars","Helper function that loads the process’ environment variables, and selects only those that were requested from `mirrord-layer` (ignores vars specified in `filter_env_vars`)."]],"struct":[["EnvFilter",""]]};

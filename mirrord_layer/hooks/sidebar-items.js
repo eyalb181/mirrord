@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["get_export_by_name","Wrapper function that maps it to our error for convinence."],["get_modules","Gets available modules in current process. NOTE: Gum must be initialized or it will crash."]],"static":[["GUM",""]],"struct":[["HookManager","Struct for managing the hooks using Frida."]]};

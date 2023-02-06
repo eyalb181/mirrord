@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["Error","Errors that can occur while parsing or generator your derive macro."]],"mod":[["generate","Code to help generate functions."],["parse","Module for parsing code. The main enum is [`Parse`]."],["prelude","Useful includes"],["utils","Utility functions"]],"type":[["Result","Result alias for virtue’s errors"]]};

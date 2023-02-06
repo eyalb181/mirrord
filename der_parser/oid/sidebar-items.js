@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Oid","Object ID (OID) representation which can be relative or non-relative. An example for an OID in string representation is `\"1.2.840.113549.1.1.5\"`."]]};

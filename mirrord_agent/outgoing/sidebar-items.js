@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["layer_recv",""]],"mod":[["udp",""]],"struct":[["TcpOutgoingApi","Handles (briefly) the `TcpOutgoingRequest` and `TcpOutgoingResponse` messages, mostly the passing of these messages to the `interceptor_task` thread."]],"type":[["Daemon",""],["Layer",""]]};

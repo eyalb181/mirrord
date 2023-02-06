@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["Error",""]],"fn":[["await_condition","Watch an object, and wait for some condition `cond` to return `true`."]],"mod":[["conditions","Common conditions to wait for"],["delete","Utilities for deleting objects"]],"trait":[["Condition","A trait for condition functions to be used by [`await_condition`]"]]};

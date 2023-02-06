@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["get_k8s_resource_api",""],["wrap_raw_connection",""]],"mod":[["container",""],["env_guard",""],["kubernetes",""],["runtime",""]],"static":[["CONNECTION_CHANNEL_SIZE",""]],"struct":[["Connection",""]],"trait":[["AgentManagment",""]]};

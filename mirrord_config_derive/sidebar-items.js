@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"derive":[["MirrordConfig","Mirrord Config Derive"]],"mod":[["config",""]]};

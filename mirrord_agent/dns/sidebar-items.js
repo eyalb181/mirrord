@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["dns_lookup","Uses `AsyncResolver:::lookup_ip` to resolve `host`."],["dns_worker","Task for the DNS resolving thread that runs in the `/proc/{pid}/ns` network namespace."]],"struct":[["DnsRequest",""]]};

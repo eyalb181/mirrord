@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"static":[["OPERATOR_STATUS_NAME",""]],"struct":[["MirrordOperatorCrd","Auto-generated derived type for MirrordOperatorSpec via `CustomResource`"],["MirrordOperatorSpec",""],["MirrordOperatorStatus",""],["Session",""],["TargetCrd","Auto-generated derived type for TargetSpec via `CustomResource`"],["TargetSpec",""]]};

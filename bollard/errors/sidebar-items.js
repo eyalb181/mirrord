@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["Error","The type of error embedded in an Error."]]};

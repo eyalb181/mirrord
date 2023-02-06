@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["AuthenticationError",""]],"struct":[["AUTH_FILE_DIR",""],["AuthConfig",""],["HOME_DIR",""]],"type":[["Result",""]]};

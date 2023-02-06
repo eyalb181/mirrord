@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["extract_library","Extract to given directory, or tmp by default. If prefix is true, add a random prefix to the file name that identifies the specific build of the layer. This is useful for debug purposes usually."]]};

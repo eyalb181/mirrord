@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["is_wsl","Test if the program is running under WSL"]]};

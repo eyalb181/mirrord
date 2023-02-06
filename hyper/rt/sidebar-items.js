@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"trait":[["Executor","An executor of futures."],["Sleep","A future returned by a `Timer`."],["Timer","A timer which provides timer-like functions."]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":[["INJECTION_ENV_VAR",""]],"struct":[["MirrordExecution","Struct for holding the execution information What agent to connect to, what environment variables to set"]]};

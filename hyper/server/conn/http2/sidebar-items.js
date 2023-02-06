@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Builder","A configuration builder for HTTP/2 server connections."],["Connection","A future binding an HTTP/2 connection with a Service."]]};

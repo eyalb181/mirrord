@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["PublicKey","Public Key value"]],"struct":[["ECPoint","Elliptic Curve point, as defined in RFC5480"],["RSAPublicKey","RSA public Key, defined in rfc3279"]]};

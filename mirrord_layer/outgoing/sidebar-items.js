@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["tcp",""],["udp",""]],"struct":[["Connect",""],["ConnectionMirror","Wrapper type around `tokio::Sender`, used to send messages from the `agent` to our interceptor socket, where they’ll be written back to the user’s socket."],["MirrorAddress","Wrapper type for the (layer) socket address that intercepts the user’s socket messages."],["Write",""]]};

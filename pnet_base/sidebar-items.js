@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":[["ETHER_ADDR_LEN","The number of bytes in an ethernet (MAC) address."]],"enum":[["ParseMacAddrErr","Represents an error which occurred whilst parsing a MAC address."]],"struct":[["MacAddr","A MAC address."]]};

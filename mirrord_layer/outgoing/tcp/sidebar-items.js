@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["TcpOutgoing","Hook messages handled by `TcpOutgoingHandler`."]],"struct":[["TcpOutgoingHandler","Responsible for handling hook and daemon messages for the outgoing traffic feature."]]};

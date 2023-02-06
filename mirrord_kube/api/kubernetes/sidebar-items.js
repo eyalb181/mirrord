@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["create_kube_api",""]],"struct":[["KubernetesAPI",""]]};

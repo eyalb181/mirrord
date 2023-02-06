@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["ClientMessage","`-layer` –> `-agent` messages."],["DaemonMessage","`-agent` –> `-layer` messages."],["FileRequest",""],["FileResponse",""]],"struct":[["ClientCodec",""],["DaemonCodec",""],["GetEnvVarsRequest",""],["LogMessage",""]],"type":[["RemoteResult","Type alias for `Result`s that should be returned from mirrord-agent to mirrord-layer."]]};

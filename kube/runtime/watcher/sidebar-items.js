@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["Error",""],["Event","Watch events returned from the [`watcher`]"]],"fn":[["default_backoff","Default watch [`Backoff`] inspired by Kubernetes’ client-go."],["watch_object","Watch a single named object for updates"],["watcher","Watches a Kubernetes Resource for changes continuously"]],"type":[["Result",""]]};

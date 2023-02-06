@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["packet","Packet helpers for `pnet_macros`."],["types","Provides type aliases for various primitive integer types"]]};

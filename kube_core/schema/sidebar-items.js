@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["StructuralSchemaRewriter","schemars [`Visitor`] that rewrites a [`Schema`] to conform to Kubernetes’ “structural schema” rules"]]};

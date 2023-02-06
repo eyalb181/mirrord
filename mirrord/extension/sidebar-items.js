@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["extension_exec","Facilitate the execution of a process using mirrord by an IDE extension"]]};

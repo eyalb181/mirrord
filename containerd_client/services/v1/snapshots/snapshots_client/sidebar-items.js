@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["SnapshotsClient","Snapshot service manages snapshots"]]};

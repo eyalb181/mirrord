@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["ContainersClient","Containers provides metadata storage for containers used in the execution service."]]};

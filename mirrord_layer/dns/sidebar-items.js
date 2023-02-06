@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["GetAddrInfo","Hook message for the `socket::getaddrinfo` operation."]]};

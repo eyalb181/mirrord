@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["delay_queue","A queue of delayed elements."]],"struct":[["DelayQueue","A queue of delayed elements."]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["reflector","Caches objects from `watcher::Event`s to a local `Store`"]],"mod":[["store",""]],"struct":[["ObjectRef","A typed and namedspaced (if relevant) reference to a Kubernetes object"],["ObjectRefExtra","Non-vital information about an object being referred to"]]};

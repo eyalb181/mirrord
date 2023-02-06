@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["DynamicObject","A dynamic representation of a kubernetes object"],["ParseDynamicObjectError","Failed to parse `DynamicObject` into `Resource`"]]};

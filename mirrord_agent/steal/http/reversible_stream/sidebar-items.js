@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["ReversibleStream","Wraps a [`TcpStream`] to allow a sort of peek functionality, by reading the first bytes, but then keeping them for later reads."]]};

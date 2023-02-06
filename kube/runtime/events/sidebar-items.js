@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["EventType","The event severity or type."]],"struct":[["Event","Minimal event type for publishing through [`Recorder::publish`]."],["Recorder","A publisher abstraction to emit Kubernetes’ events."],["Reporter","Information about the reporting controller."]]};

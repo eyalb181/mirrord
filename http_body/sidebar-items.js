@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Frame","A frame of any kind related to an HTTP stream (body)."],["SizeHint","A `Body` size hint"]],"trait":[["Body","Trait representing a streaming body of a Request or Response."]]};

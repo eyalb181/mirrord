@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["Error",""],["Event","A representation of an action that should be taken by a reconciler."]],"fn":[["finalizer","Reconcile an object in a way that requires cleanup before an object can be deleted."]]};
