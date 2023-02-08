@@ -546,7 +546,6 @@
 <a href="#546" id="546">546</a>
 <a href="#547" id="547">547</a>
 <a href="#548" id="548">548</a>
-<a href="#549" id="549">549</a>
 </pre><pre class="rust"><code><span class="attr">#![feature(result_option_inspect)]
 #![feature(hash_drain_filter)]
 #![feature(once_cell)]
@@ -935,9 +934,8 @@
     );
 
     <span class="comment">// WARNING: This exact string is expected to be read in `pod_api.rs`, more specifically in
-    // `wait_for_agent_startup`. If you change this, or if this is not logged (i.e. user disables
-    // `MIRRORD_AGENT_RUST_LOG`), then mirrord fails to initialize.
-    </span><span class="macro">info!</span>(<span class="string">&quot;agent ready&quot;</span>);
+    // `wait_for_agent_startup`. If you change this then mirrord fails to initialize.
+    </span><span class="macro">println!</span>(<span class="string">&quot;agent ready&quot;</span>);
 
     <span class="kw">let </span><span class="kw-2">mut </span>clients = FuturesUnordered::new();
     <span class="kw">loop </span>{

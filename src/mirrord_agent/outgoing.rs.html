@@ -257,7 +257,7 @@
     </span>daemon_rx: Receiver&lt;Daemon&gt;,
 }
 
-<span class="attr">#[tracing::instrument(skip(allocator, writers, readers, daemon_tx))]
+<span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(allocator, writers, readers, daemon_tx))]
 </span><span class="kw">async fn </span>layer_recv(
     layer_message: LayerTcpOutgoing,
     allocator: <span class="kw-2">&amp;mut </span>IndexAllocator&lt;ConnectionId&gt;,
