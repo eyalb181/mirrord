@@ -824,12 +824,6 @@
 <a href="#824" id="824">824</a>
 <a href="#825" id="825">825</a>
 <a href="#826" id="826">826</a>
-<a href="#827" id="827">827</a>
-<a href="#828" id="828">828</a>
-<a href="#829" id="829">829</a>
-<a href="#830" id="830">830</a>
-<a href="#831" id="831">831</a>
-<a href="#832" id="832">832</a>
 </pre><pre class="rust"><code><span class="attr">#![feature(stmt_expr_attributes)]
 </span><span class="kw">mod </span>env;
 <span class="kw">mod </span>file_ops;
@@ -930,9 +924,6 @@
     <span class="attr">#[derive(Debug)]
     </span><span class="kw">pub enum </span>FileOps {
         Python,
-        Go18,
-        Go19,
-        Go20,
         Rust,
         GoDir18,
         GoDir19,
@@ -1101,9 +1092,6 @@
                 FileOps::Python =&gt; {
                     <span class="macro">vec!</span>[<span class="string">&quot;python3&quot;</span>, <span class="string">&quot;-B&quot;</span>, <span class="string">&quot;-m&quot;</span>, <span class="string">&quot;unittest&quot;</span>, <span class="string">&quot;-f&quot;</span>, <span class="string">&quot;python-e2e/ops.py&quot;</span>]
                 }
-                FileOps::Go18 =&gt; <span class="macro">vec!</span>[<span class="string">&quot;go-e2e-fileops/18&quot;</span>],
-                FileOps::Go19 =&gt; <span class="macro">vec!</span>[<span class="string">&quot;go-e2e-fileops/19&quot;</span>],
-                FileOps::Go20 =&gt; <span class="macro">vec!</span>[<span class="string">&quot;go-e2e-fileops/20&quot;</span>],
                 FileOps::Rust =&gt; <span class="macro">vec!</span>[<span class="string">&quot;../target/debug/rust-e2e-fileops&quot;</span>],
                 FileOps::GoDir18 =&gt; <span class="macro">vec!</span>[<span class="string">&quot;go-e2e-dir/18&quot;</span>],
                 FileOps::GoDir19 =&gt; <span class="macro">vec!</span>[<span class="string">&quot;go-e2e-dir/19&quot;</span>],

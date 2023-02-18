@@ -25,6 +25,7 @@
 <a href="#25" id="25">25</a>
 <a href="#26" id="26">26</a>
 <a href="#27" id="27">27</a>
+<a href="#28" id="28">28</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::config::{source::MirrordConfigSource, <span class="prelude-ty">Result</span>};
 
 <span class="attr">#[derive(Clone)]
@@ -44,9 +45,10 @@
 
     <span class="kw">fn </span>source_value(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value&gt;&gt; {
         <span class="self">self</span>.<span class="number">2</span>.source_value().map(|result| {
-            <span class="macro">println!</span>(
+            <span class="macro">tracing::warn!</span>(
                 <span class="string">&quot;Warning: field {}.{} is marked as unstable. Please note API may change&quot;</span>,
-                <span class="self">self</span>.<span class="number">0</span>, <span class="self">self</span>.<span class="number">1
+                <span class="self">self</span>.<span class="number">0</span>,
+                <span class="self">self</span>.<span class="number">1
             </span>);
             result
         })

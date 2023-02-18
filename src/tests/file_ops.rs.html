@@ -190,11 +190,6 @@
 <a href="#190" id="190">190</a>
 <a href="#191" id="191">191</a>
 <a href="#192" id="192">192</a>
-<a href="#193" id="193">193</a>
-<a href="#194" id="194">194</a>
-<a href="#195" id="195">195</a>
-<a href="#196" id="196">196</a>
-<a href="#197" id="197">197</a>
 </pre><pre class="rust"><code><span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>file_ops {
 
@@ -214,14 +209,7 @@
         #[notrace]
         </span>service: KubeService,
         <span class="attr">#[values(Agent::Ephemeral, Agent::Job)] </span>agent: Agent,
-        <span class="attr">#[values(
-            FileOps::Python,
-            FileOps::Go18,
-            FileOps::Go19,
-            FileOps::Go20,
-            FileOps::Rust
-        )]
-        </span>ops: FileOps,
+        <span class="attr">#[values(FileOps::Python, FileOps::Rust)] </span>ops: FileOps,
     ) {
         <span class="kw">let </span>service = service.<span class="kw">await</span>;
         <span class="kw">let _ </span>= std::fs::create_dir(std::path::Path::new(<span class="string">&quot;/tmp/fs&quot;</span>));
@@ -359,6 +347,8 @@
     }
 
     <span class="doccomment">/// On Linux: Test our getdents64 Go syscall hook, for `os.ReadDir` on go.
+    /// This is an E2E test and not an integration test in order to test the agent side of the
+    /// detour.
     </span><span class="attr">#[rstest]
     #[trace]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
