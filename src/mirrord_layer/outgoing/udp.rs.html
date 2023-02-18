@@ -323,6 +323,10 @@
 <a href="#323" id="323">323</a>
 <a href="#324" id="324">324</a>
 <a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     collections::HashMap,
     future::Future,
@@ -365,7 +369,7 @@
 
     <span class="doccomment">/// Holds the connection requests from the `connect` hook. It&#39;s main use is to reply back with
     /// the `SocketAddr` of the socket that&#39;ll be used to intercept the user&#39;s socket operations.
-    </span>connect_queue: ResponseDeque&lt;MirrorAddress&gt;,
+    </span>connect_queue: ResponseDeque&lt;RemoteConnection&gt;,
 
     <span class="doccomment">/// Channel used to pass messages (currently only `Write`) from an intercepted socket to the
     /// main `layer` loop.
@@ -573,6 +577,7 @@
                         |DaemonConnect {
                              connection_id,
                              remote_address,
+                             local_address,
                          }| <span class="kw">async move </span>{
                             <span class="kw">let _ </span>= DetourGuard::new();
 
@@ -588,15 +593,15 @@
                             }
                             .<span class="kw">await</span><span class="question-mark">?</span>;
 
-                            <span class="prelude-val">Ok</span>((connection_id, mirror_socket))
+                            <span class="prelude-val">Ok</span>((connection_id, mirror_socket, local_address))
                         },
                     )
                     .<span class="kw">await
-                    </span>.and_then(|(connection_id, socket)| {
+                    </span>.and_then(|(connection_id, socket, local_address)| {
                         <span class="kw">let </span>(remote_tx, remote_rx) = channel::&lt;Vec&lt;u8&gt;&gt;(<span class="number">1000</span>);
 
                         <span class="kw">let _ </span>= DetourGuard::new();
-                        <span class="kw">let </span>mirror_address = MirrorAddress(socket.local_addr()<span class="question-mark">?</span>);
+                        <span class="kw">let </span>mirror_address = socket.local_addr()<span class="question-mark">?</span>;
 
                         <span class="comment">// user and interceptor sockets are connected to each other, so now we spawn
                         // a new task to pair their reads/writes.
@@ -610,7 +615,10 @@
                         <span class="self">self</span>.mirrors
                             .insert(connection_id, ConnectionMirror(remote_tx));
 
-                        <span class="prelude-val">Ok</span>(mirror_address)
+                        <span class="prelude-val">Ok</span>(RemoteConnection {
+                            local_address,
+                            mirror_address,
+                        })
                     });
 
                 <span class="self">self</span>.connect_queue

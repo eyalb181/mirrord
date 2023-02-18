@@ -150,6 +150,46 @@
 <a href="#150" id="150">150</a>
 <a href="#151" id="151">151</a>
 <a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::path::PathBuf;
 
 <span class="kw">use </span>miette::Diagnostic;
@@ -171,6 +211,26 @@
 &quot;#</span>;
 
 <span class="attr">#[derive(Debug, Error, Diagnostic)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>InternalProxyError {
+    <span class="attr">#[error(<span class="string">&quot;Couldn&#39;t listen for connections {0:#?}&quot;</span>)]
+    </span>ListenError(std::io::Error),
+    <span class="attr">#[error(<span class="string">&quot;Couldn&#39;t get local port{0:#?}&quot;</span>)]
+    </span>LocalPortError(std::io::Error),
+    <span class="attr">#[error(<span class="string">&quot;Couldn&#39;t accept connection before timeout&quot;</span>)]
+    </span>FirstConnectionTimeout,
+    <span class="attr">#[error(<span class="string">&quot;Couldn&#39;t accept connection {0:#?}&quot;</span>)]
+    </span>AcceptError(std::io::Error),
+    <span class="attr">#[error(<span class="string">&quot;Couldn&#39;t connect to operator &quot;</span>)]
+    </span>OperatorConnectionError,
+    <span class="attr">#[error(<span class="string">&quot;Couldn&#39;t connect to agent via TCP {0:#?}&quot;</span>)]
+    </span>TcpConnectError(std::io::Error),
+    <span class="attr">#[error(<span class="string">&quot;Agent closed connection on ping/pong, image version/arch mismatch?&quot;</span>)]
+    </span>AgentClosedConnection,
+    <span class="attr">#[error(<span class="string">&quot;Ping error {0:#?} - image version/arch mismatch?&quot;</span>)]
+    </span>PingError(<span class="attr">#[from] </span>tokio::sync::mpsc::error::SendError&lt;mirrord_protocol::ClientMessage&gt;),
+}
+
+<span class="attr">#[derive(Debug, Error, Diagnostic)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>CliError {
     <span class="attr">#[error(<span class="string">&quot;Failed to connect to the operator. We have found the operator and unable to connect to it. {0:#?}&quot;</span>)]
     #[diagnostic(help(
@@ -180,7 +240,7 @@
     2. You have sufficient permissions to port forward to the operator.
     {GENERAL_HELP}&quot;#
     </span>))]
-    </span>OperatorConnectionFailed(OperatorApiError),
+    </span>OperatorConnectionFailed(<span class="attr">#[from] </span>OperatorApiError),
     <span class="attr">#[error(<span class="string">&quot;Failed to create Kubernetes API. {0:#?}&quot;</span>)]
     #[diagnostic(help(
         <span class="string">r#&quot;
@@ -188,7 +248,7 @@
     Test your connection with `kubectl get pods`.
     {GENERAL_HELP}&quot;#
     </span>))]
-    </span>KubernetesApiFailed(KubeApiError),
+    </span>KubernetesApiFailed(<span class="attr">#[from] </span>KubeApiError),
     <span class="attr">#[error(<span class="string">&quot;Agent wasn&#39;t ready in time&quot;</span>)]
     #[diagnostic(help(
         <span class="string">r#&quot;
@@ -301,6 +361,26 @@
     </span>JsonSerializeError(<span class="attr">#[from] </span>serde_json::Error),
     <span class="attr">#[error(<span class="string">&quot;Failed connecting to mirrord console for logging {0:#?}&quot;</span>)]
     </span>ConsoleConnectError(<span class="attr">#[from] </span>ConsoleError),
+    <span class="attr">#[error(<span class="string">&quot;Couldn&#39;t get stdout of internal proxy&quot;</span>)]
+    #[diagnostic(help(
+        <span class="string">r#&quot;This is a bug. Please report it in our Discord or GitHub repository. {GENERAL_HELP}&quot;#
+    </span>))]
+    </span>InternalProxyStdoutError,
+    <span class="attr">#[error(<span class="string">&quot;Couldn&#39;t get port of internal proxy&quot;</span>)]
+    #[diagnostic(help(
+        <span class="string">r#&quot;This is a bug. Please report it in our Discord or GitHub repository. {GENERAL_HELP}&quot;#
+    </span>))]
+    </span>InternalProxyPortReadError,
+    <span class="attr">#[error(<span class="string">&quot;Internal proxy read error: {0:#?}&quot;</span>)]
+    </span>InternalProxyReadError(std::io::Error),
+    <span class="attr">#[error(<span class="string">&quot;Internal proxy error: {0:#?}&quot;</span>)]
+    </span>InternalProxyError(<span class="attr">#[from] </span>InternalProxyError),
+    <span class="attr">#[error(<span class="string">&quot;Getting cli path failed {0:#?}&quot;</span>)]
+    </span>CliPathError(std::io::Error),
+    <span class="attr">#[error(<span class="string">&quot;Executing internal proxy failed {0:#?}&quot;</span>)]
+    </span>InternalProxyExecutionFailed(std::io::Error),
+    <span class="attr">#[error(<span class="string">&quot;Internal proxy port parse error: {0:#?}&quot;</span>)]
+    </span>InternalProxyPortParseError(std::num::ParseIntError),
 }
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="mirrord" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (001a77fac 2023-01-30)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-7c23ac01f615ce90.css" ></div></body></html>

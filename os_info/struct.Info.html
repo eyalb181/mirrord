@@ -5,7 +5,7 @@
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>os_info;
 
 <span class="kw">let </span>info = os_info::get();
-<span class="macro">println!</span>(<span class="string">&quot;OS information: {}&quot;</span>, info);</code></pre></div>
+<span class="macro">println!</span>(<span class="string">&quot;OS information: {info}&quot;</span>);</code></pre></div>
 </div></details><h2 id="implementations" class="small-section-header">Implementations<a href="#implementations" class="anchor">§</a></h2><div id="implementations-list"><details class="toggle implementors-toggle" open><summary><section id="impl-Info" class="impl"><a class="srclink rightside" href="../src/os_info/info.rs.html#36-150">source</a><a href="#impl-Info" class="anchor">§</a><h3 class="code-header">impl <a class="struct" href="struct.Info.html" title="struct os_info::Info">Info</a></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.unknown" class="method"><a class="srclink rightside" href="../src/os_info/info.rs.html#51-59">source</a><h4 class="code-header">pub fn <a href="#method.unknown" class="fn">unknown</a>() -&gt; Self</h4></section></summary><div class="docblock"><p>Constructs a new <code>Info</code> instance with unknown type, version and bitness.</p>
 <h5 id="examples-1"><a href="#examples-1">Examples</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>os_info::{Info, Type, Version, Bitness};

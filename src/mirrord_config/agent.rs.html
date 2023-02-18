@@ -128,6 +128,17 @@
 <a href="#128" id="128">128</a>
 <a href="#129" id="129">129</a>
 <a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
 </pre><pre class="rust"><code><span class="kw">use </span>mirrord_config_derive::MirrordConfig;
 <span class="kw">use </span>schemars::JsonSchema;
 
@@ -203,6 +214,17 @@
     /// the agent.
     </span><span class="attr">#[config(env = <span class="string">&quot;MIRRORD_PAUSE&quot;</span>, default = <span class="bool-val">false</span>, unstable)]
     </span><span class="kw">pub </span>pause: bool,
+
+    <span class="doccomment">/// Flushes existing connections when starting to steal, might fix issues where connections
+    /// aren&#39;t stolen (due to being already established)
+    ///
+    /// Temporary fix for issue [#1029](https://github.com/metalbear-co/mirrord/issues/1029).
+    </span><span class="attr">#[config(
+        env = <span class="string">&quot;MIRRORD_AGENT_STEALER_FLUSH_CONNECTIONS&quot;</span>,
+        default = <span class="bool-val">false</span>,
+        unstable
+    )]
+    </span><span class="kw">pub </span>flush_connections: bool,
 }
 
 <span class="attr">#[cfg(test)]

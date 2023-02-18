@@ -117,6 +117,35 @@
 <a href="#117" id="117">117</a>
 <a href="#118" id="118">118</a>
 <a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     collections::{HashMap, HashSet},
     time::Duration,
@@ -126,6 +155,10 @@
 <span class="kw">use </span>mirrord_progress::Progress;
 <span class="kw">use </span>mirrord_protocol::{ClientMessage, DaemonMessage, EnvVars, GetEnvVarsRequest};
 <span class="kw">use </span>serde::Serialize;
+<span class="kw">use </span>tokio::{
+    io::{AsyncBufReadExt, BufReader},
+    process::Command,
+};
 <span class="kw">use </span>tracing::trace;
 
 <span class="kw">use crate</span>::{
@@ -216,20 +249,45 @@
             env_vars.insert(INJECTION_ENV_VAR.to_string(), lib_path)
         };
 
-        <span class="comment">// Depending on how we plan to connect to the agent, we do different things.
-        // 1. if no operator, then we provide name and port so layer can port forward to
-        // 2. if operator, then we provide nothing as layer will find it on its own.
-        </span><span class="kw">match </span><span class="kw-2">&amp;</span>connect_info {
+        <span class="comment">// stderr is inherited so we can see logs/errors.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>proxy_command =
+            Command::new(std::env::current_exe().map_err(CliError::CliPathError)<span class="question-mark">?</span>);
+
+        proxy_command
+            .arg(<span class="string">&quot;intproxy&quot;</span>)
+            .stdout(std::process::Stdio::piped())
+            .stdin(std::process::Stdio::null());
+
+        <span class="kw">match </span><span class="kw-2">&amp;</span>connect_info {
             AgentConnectInfo::DirectKubernetes(name, port) =&gt; {
-                env_vars.insert(<span class="string">&quot;MIRRORD_CONNECT_AGENT&quot;</span>.to_string(), name.to_string());
-                env_vars.insert(<span class="string">&quot;MIRRORD_CONNECT_PORT&quot;</span>.to_string(), port.to_string());
+                proxy_command.env(<span class="string">&quot;MIRRORD_CONNECT_AGENT&quot;</span>, name);
+                proxy_command.env(<span class="string">&quot;MIRRORD_CONNECT_PORT&quot;</span>, port.to_string());
             }
             AgentConnectInfo::Operator =&gt; {}
         };
 
-        <span class="comment">// Let layer know we already brought env var for it. Remove after removing that part from
-        // there.
-        </span>env_vars.insert(<span class="string">&quot;MIRRORD_EXTERNAL_ENV&quot;</span>.to_string(), <span class="string">&quot;true&quot;</span>.to_string());
+        <span class="kw">let </span>proxy_process = proxy_command
+            .spawn()
+            .map_err(CliError::InternalProxyExecutionFailed)<span class="question-mark">?</span>;
+
+        <span class="kw">let </span>stdout = proxy_process
+            .stdout
+            .ok_or(CliError::InternalProxyStdoutError)<span class="question-mark">?</span>;
+
+        <span class="kw">let </span>port: u16 = BufReader::new(stdout)
+            .lines()
+            .next_line()
+            .<span class="kw">await
+            </span>.map_err(CliError::InternalProxyReadError)<span class="question-mark">?
+            </span>.ok_or(CliError::InternalProxyPortReadError)<span class="question-mark">?
+            </span>.parse()
+            .map_err(CliError::InternalProxyPortParseError)<span class="question-mark">?</span>;
+
+        <span class="comment">// Provide details for layer to connect to agent via internal proxy
+        </span>env_vars.insert(
+            <span class="string">&quot;MIRRORD_CONNECT_TCP&quot;</span>.to_string(),
+            <span class="macro">format!</span>(<span class="string">&quot;127.0.0.1:{port}&quot;</span>),
+        );
 
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
             environment: env_vars,

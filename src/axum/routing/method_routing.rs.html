@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/axum-0.6.2/src/routing/method_routing.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>method_routing.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-f2fc7b5fd698d27d.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-5f7299aa2b503fb1.css"><link rel="stylesheet" disabled href="../../../static.files/dark-dfb18ef8114bb428.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-4047a6aaddd3789d.css"><script id="default-settings" ></script><script src="../../../static.files/storage-ff4706381ddb2707.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-02cbe07fc548e88c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../axum/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/axum-0.6.4/src/routing/method_routing.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>method_routing.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-f2fc7b5fd698d27d.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-5f7299aa2b503fb1.css"><link rel="stylesheet" disabled href="../../../static.files/dark-dfb18ef8114bb428.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-4047a6aaddd3789d.css"><script id="default-settings" ></script><script src="../../../static.files/storage-ff4706381ddb2707.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-02cbe07fc548e88c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../axum/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2854,7 +2854,7 @@
     <span class="kw">use </span>tower::{timeout::TimeoutLayer, Service, ServiceBuilder, ServiceExt};
     <span class="kw">use </span>tower_http::{auth::RequireAuthorizationLayer, services::fs::ServeDir};
 
-    <span class="attr">#[tokio::test]
+    <span class="attr">#[<span class="kw">crate</span>::test]
     </span><span class="kw">async fn </span>method_not_allowed_by_default() {
         <span class="kw">let </span><span class="kw-2">mut </span>svc = MethodRouter::new();
         <span class="kw">let </span>(status, <span class="kw">_</span>, body) = call(Method::GET, <span class="kw-2">&amp;mut </span>svc).<span class="kw">await</span>;
@@ -2862,7 +2862,7 @@
         <span class="macro">assert!</span>(body.is_empty());
     }
 
-    <span class="attr">#[tokio::test]
+    <span class="attr">#[<span class="kw">crate</span>::test]
     </span><span class="kw">async fn </span>get_service_fn() {
         <span class="kw">async fn </span>handle(_req: Request&lt;Body&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Response&lt;Body&gt;, Infallible&gt; {
             <span class="prelude-val">Ok</span>(Response::new(Body::from(<span class="string">&quot;ok&quot;</span>)))
@@ -2875,7 +2875,7 @@
         <span class="macro">assert_eq!</span>(body, <span class="string">&quot;ok&quot;</span>);
     }
 
-    <span class="attr">#[tokio::test]
+    <span class="attr">#[<span class="kw">crate</span>::test]
     </span><span class="kw">async fn </span>get_handler() {
         <span class="kw">let </span><span class="kw-2">mut </span>svc = MethodRouter::new().get(ok);
         <span class="kw">let </span>(status, <span class="kw">_</span>, body) = call(Method::GET, <span class="kw-2">&amp;mut </span>svc).<span class="kw">await</span>;
@@ -2883,7 +2883,7 @@
         <span class="macro">assert_eq!</span>(body, <span class="string">&quot;ok&quot;</span>);
     }
 
-    <span class="attr">#[tokio::test]
+    <span class="attr">#[<span class="kw">crate</span>::test]
     </span><span class="kw">async fn </span>get_accepts_head() {
         <span class="kw">let </span><span class="kw-2">mut </span>svc = MethodRouter::new().get(ok);
         <span class="kw">let </span>(status, <span class="kw">_</span>, body) = call(Method::HEAD, <span class="kw-2">&amp;mut </span>svc).<span class="kw">await</span>;
@@ -2891,7 +2891,7 @@
         <span class="macro">assert!</span>(body.is_empty());
     }
 
-    <span class="attr">#[tokio::test]
+    <span class="attr">#[<span class="kw">crate</span>::test]
     </span><span class="kw">async fn </span>head_takes_precedence_over_get() {
         <span class="kw">let </span><span class="kw-2">mut </span>svc = MethodRouter::new().head(created).get(ok);
         <span class="kw">let </span>(status, <span class="kw">_</span>, body) = call(Method::HEAD, <span class="kw-2">&amp;mut </span>svc).<span class="kw">await</span>;
@@ -2899,7 +2899,7 @@
         <span class="macro">assert!</span>(body.is_empty());
     }
 
-    <span class="attr">#[tokio::test]
+    <span class="attr">#[<span class="kw">crate</span>::test]
     </span><span class="kw">async fn </span>merge() {
         <span class="kw">let </span><span class="kw-2">mut </span>svc = get(ok).merge(post(ok));
 
@@ -2910,7 +2910,7 @@
         <span class="macro">assert_eq!</span>(status, StatusCode::OK);
     }
 
-    <span class="attr">#[tokio::test]
+    <span class="attr">#[<span class="kw">crate</span>::test]
     </span><span class="kw">async fn </span>layer() {
         <span class="kw">let </span><span class="kw-2">mut </span>svc = MethodRouter::new()
             .get(|| <span class="kw">async </span>{ std::future::pending::&lt;()&gt;().<span class="kw">await </span>})
@@ -2925,7 +2925,7 @@
         <span class="macro">assert_eq!</span>(status, StatusCode::UNAUTHORIZED);
     }
 
-    <span class="attr">#[tokio::test]
+    <span class="attr">#[<span class="kw">crate</span>::test]
     </span><span class="kw">async fn </span>route_layer() {
         <span class="kw">let </span><span class="kw-2">mut </span>svc = MethodRouter::new()
             .get(|| <span class="kw">async </span>{ std::future::pending::&lt;()&gt;().<span class="kw">await </span>})
@@ -2966,7 +2966,7 @@
         <span class="kw">crate</span>::Server::bind(<span class="kw-2">&amp;</span><span class="string">&quot;0.0.0.0:0&quot;</span>.parse().unwrap()).serve(app.into_make_service());
     }
 
-    <span class="attr">#[tokio::test]
+    <span class="attr">#[<span class="kw">crate</span>::test]
     </span><span class="kw">async fn </span>sets_allow_header() {
         <span class="kw">let </span><span class="kw-2">mut </span>svc = MethodRouter::new().put(ok).patch(ok);
         <span class="kw">let </span>(status, headers, <span class="kw">_</span>) = call(Method::GET, <span class="kw-2">&amp;mut </span>svc).<span class="kw">await</span>;
@@ -2974,7 +2974,7 @@
         <span class="macro">assert_eq!</span>(headers[ALLOW], <span class="string">&quot;PUT,PATCH&quot;</span>);
     }
 
-    <span class="attr">#[tokio::test]
+    <span class="attr">#[<span class="kw">crate</span>::test]
     </span><span class="kw">async fn </span>sets_allow_header_get_head() {
         <span class="kw">let </span><span class="kw-2">mut </span>svc = MethodRouter::new().get(ok).head(ok);
         <span class="kw">let </span>(status, headers, <span class="kw">_</span>) = call(Method::PUT, <span class="kw-2">&amp;mut </span>svc).<span class="kw">await</span>;
@@ -2982,7 +2982,7 @@
         <span class="macro">assert_eq!</span>(headers[ALLOW], <span class="string">&quot;GET,HEAD&quot;</span>);
     }
 
-    <span class="attr">#[tokio::test]
+    <span class="attr">#[<span class="kw">crate</span>::test]
     </span><span class="kw">async fn </span>empty_allow_header_by_default() {
         <span class="kw">let </span><span class="kw-2">mut </span>svc = MethodRouter::new();
         <span class="kw">let </span>(status, headers, <span class="kw">_</span>) = call(Method::PATCH, <span class="kw-2">&amp;mut </span>svc).<span class="kw">await</span>;
@@ -2990,7 +2990,7 @@
         <span class="macro">assert_eq!</span>(headers[ALLOW], <span class="string">&quot;&quot;</span>);
     }
 
-    <span class="attr">#[tokio::test]
+    <span class="attr">#[<span class="kw">crate</span>::test]
     </span><span class="kw">async fn </span>allow_header_when_merging() {
         <span class="kw">let </span>a = put(ok).patch(ok);
         <span class="kw">let </span>b = get(ok).head(ok);
@@ -3001,7 +3001,7 @@
         <span class="macro">assert_eq!</span>(headers[ALLOW], <span class="string">&quot;PUT,PATCH,GET,HEAD&quot;</span>);
     }
 
-    <span class="attr">#[tokio::test]
+    <span class="attr">#[<span class="kw">crate</span>::test]
     </span><span class="kw">async fn </span>allow_header_any() {
         <span class="kw">let </span><span class="kw-2">mut </span>svc = any(ok);
 
@@ -3010,7 +3010,7 @@
         <span class="macro">assert!</span>(!headers.contains_key(ALLOW));
     }
 
-    <span class="attr">#[tokio::test]
+    <span class="attr">#[<span class="kw">crate</span>::test]
     </span><span class="kw">async fn </span>allow_header_with_fallback() {
         <span class="kw">let </span><span class="kw-2">mut </span>svc = MethodRouter::new()
             .get(ok)
@@ -3021,7 +3021,7 @@
         <span class="macro">assert_eq!</span>(headers[ALLOW], <span class="string">&quot;GET,HEAD&quot;</span>);
     }
 
-    <span class="attr">#[tokio::test]
+    <span class="attr">#[<span class="kw">crate</span>::test]
     </span><span class="kw">async fn </span>allow_header_with_fallback_that_sets_allow() {
         <span class="kw">async fn </span>fallback(method: Method) -&gt; Response {
             <span class="kw">if </span>method == Method::POST {
@@ -3049,7 +3049,7 @@
         <span class="macro">assert_eq!</span>(headers[ALLOW], <span class="string">&quot;GET,POST&quot;</span>);
     }
 
-    <span class="attr">#[tokio::test]
+    <span class="attr">#[<span class="kw">crate</span>::test]
     #[should_panic(
         expected = <span class="string">&quot;Overlapping method route. Cannot add two method routes that both handle `GET`&quot;
     </span>)]
@@ -3057,7 +3057,7 @@
         <span class="kw">let _</span>: MethodRouter&lt;()&gt; = get(ok).get(ok);
     }
 
-    <span class="attr">#[tokio::test]
+    <span class="attr">#[<span class="kw">crate</span>::test]
     #[should_panic(
         expected = <span class="string">&quot;Overlapping method route. Cannot add two method routes that both handle `POST`&quot;
     </span>)]
@@ -3065,17 +3065,17 @@
         <span class="kw">let _</span>: MethodRouter&lt;()&gt; = post_service(ok.into_service()).post_service(ok.into_service());
     }
 
-    <span class="attr">#[tokio::test]
+    <span class="attr">#[<span class="kw">crate</span>::test]
     </span><span class="kw">async fn </span>get_head_does_not_overlap() {
         <span class="kw">let _</span>: MethodRouter&lt;()&gt; = get(ok).head(ok);
     }
 
-    <span class="attr">#[tokio::test]
+    <span class="attr">#[<span class="kw">crate</span>::test]
     </span><span class="kw">async fn </span>head_get_does_not_overlap() {
         <span class="kw">let _</span>: MethodRouter&lt;()&gt; = head(ok).get(ok);
     }
 
-    <span class="attr">#[tokio::test]
+    <span class="attr">#[<span class="kw">crate</span>::test]
     </span><span class="kw">async fn </span>accessing_state() {
         <span class="kw">let </span><span class="kw-2">mut </span>svc = MethodRouter::new()
             .get(|State(state): State&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;| <span class="kw">async move </span>{ state })
@@ -3087,7 +3087,7 @@
         <span class="macro">assert_eq!</span>(text, <span class="string">&quot;state&quot;</span>);
     }
 
-    <span class="attr">#[tokio::test]
+    <span class="attr">#[<span class="kw">crate</span>::test]
     </span><span class="kw">async fn </span>fallback_accessing_state() {
         <span class="kw">let </span><span class="kw-2">mut </span>svc = MethodRouter::new()
             .fallback(|State(state): State&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;| <span class="kw">async move </span>{ state })
@@ -3099,7 +3099,7 @@
         <span class="macro">assert_eq!</span>(text, <span class="string">&quot;state&quot;</span>);
     }
 
-    <span class="attr">#[tokio::test]
+    <span class="attr">#[<span class="kw">crate</span>::test]
     </span><span class="kw">async fn </span>merge_accessing_state() {
         <span class="kw">let </span>one = get(|State(state): State&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;| <span class="kw">async move </span>{ state });
         <span class="kw">let </span>two = post(|State(state): State&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;| <span class="kw">async move </span>{ state });

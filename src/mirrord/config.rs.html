@@ -246,6 +246,10 @@
 <a href="#246" id="246">246</a>
 <a href="#247" id="247">247</a>
 <a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
 </pre><pre class="rust"><code><span class="attr">#![deny(missing_docs)]
 
 </span><span class="kw">use </span>std::path::PathBuf;
@@ -280,6 +284,10 @@
     <span class="doccomment">/// Extension execution - used by extension to execute binaries.
     </span><span class="attr">#[command(hide = <span class="bool-val">true</span>, name = <span class="string">&quot;ext&quot;</span>)]
     </span>ExtensionExec(Box&lt;ExtensionExecArgs&gt;),
+
+    <span class="doccomment">/// Internal proxy - used to aggregate connections from multiple layers
+    </span><span class="attr">#[command(hide = <span class="bool-val">true</span>, name = <span class="string">&quot;intproxy&quot;</span>)]
+    </span>InternalProxy,
 }
 
 <span class="attr">#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]

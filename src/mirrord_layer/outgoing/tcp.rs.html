@@ -306,6 +306,10 @@
 <a href="#306" id="306">306</a>
 <a href="#307" id="307">307</a>
 <a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     collections::HashMap,
     future::Future,
@@ -348,7 +352,7 @@
 
     <span class="doccomment">/// Holds the connection requests from the `connect` hook. It&#39;s main use is to reply back with
     /// the `SocketAddr` of the socket that&#39;ll be used to intercept the user&#39;s socket operations.
-    </span>connect_queue: ResponseDeque&lt;MirrorAddress&gt;,
+    </span>connect_queue: ResponseDeque&lt;RemoteConnection&gt;,
 
     <span class="doccomment">/// Channel used to pass messages (currently only `Write`) from an intercepted socket to the
     /// main `layer` loop.
@@ -517,6 +521,7 @@
                         |DaemonConnect {
                              connection_id,
                              remote_address,
+                             local_address,
                          }| <span class="kw">async move </span>{
                             <span class="kw">let _ </span>= DetourGuard::new();
 
@@ -539,11 +544,11 @@
                                 </span>}
                             };
 
-                            <span class="prelude-val">Ok</span>((connection_id, mirror_listener))
+                            <span class="prelude-val">Ok</span>((connection_id, mirror_listener, local_address))
                         },
                     )
                     .<span class="kw">await
-                    </span>.and_then(|(connection_id, listener)| {
+                    </span>.and_then(|(connection_id, listener, local_address)| {
                         <span class="comment">// Incoming remote channel (in the direction of agent -&gt; layer).
                         // When the layer gets data from the agent, it writes it in via the
                         // remote_tx end. the interceptor_task then reads
@@ -554,7 +559,7 @@
                         </span><span class="kw">let </span>(remote_tx, remote_rx) = channel::&lt;Vec&lt;u8&gt;&gt;(<span class="number">1000</span>);
 
                         <span class="kw">let _ </span>= DetourGuard::new();
-                        <span class="kw">let </span>mirror_address = MirrorAddress(listener.local_addr()<span class="question-mark">?</span>);
+                        <span class="kw">let </span>mirror_address = listener.local_addr()<span class="question-mark">?</span>;
 
                         <span class="self">self</span>.mirrors
                             .insert(connection_id, ConnectionMirror(remote_tx));
@@ -568,7 +573,10 @@
                             remote_rx,
                         ));
 
-                        <span class="prelude-val">Ok</span>(mirror_address)
+                        <span class="prelude-val">Ok</span>(RemoteConnection {
+                            local_address,
+                            mirror_address,
+                        })
                     });
 
                 <span class="self">self</span>.connect_queue

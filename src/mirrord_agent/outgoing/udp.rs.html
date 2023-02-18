@@ -265,6 +265,7 @@
 <a href="#265" id="265">265</a>
 <a href="#266" id="266">266</a>
 <a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     collections::HashMap,
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
@@ -415,15 +416,15 @@
                         </span>LayerUdpOutgoing::Connect(LayerConnect { remote_address }) =&gt; {
                             <span class="kw">let </span>daemon_connect = connect(remote_address)
                                     .<span class="kw">await
-                                    </span>.map(|mirror_socket| {
+                                    </span>.and_then(|mirror_socket| {
                                         <span class="kw">let </span>connection_id = allocator
                                             .next_index()
                                             .ok_or_else(|| ResponseError::AllocationFailure(<span class="string">&quot;interceptor_task&quot;</span>.to_string()))
                                             .unwrap() <span class="kw">as </span>ConnectionId;
 
                                         <span class="macro">debug!</span>(<span class="string">&quot;interceptor_task -&gt; mirror_socket {:#?}&quot;</span>, mirror_socket);
-                                        <span class="kw">let </span>peer_address = mirror_socket.peer_addr().unwrap();
-
+                                        <span class="kw">let </span>peer_address = mirror_socket.peer_addr()<span class="question-mark">?</span>;
+                                        <span class="kw">let </span>local_address = mirror_socket.local_addr()<span class="question-mark">?</span>;
                                         <span class="kw">let </span>framed = UdpFramed::new(mirror_socket, BytesCodec::new());
                                         <span class="macro">debug!</span>(<span class="string">&quot;interceptor_task -&gt; framed {:#?}&quot;</span>, framed);
                                         <span class="kw">let </span>(sink, stream): (
@@ -434,10 +435,11 @@
                                         writers.insert(connection_id, (sink, peer_address));
                                         readers.insert(connection_id, stream);
 
-                                        DaemonConnect {
+                                        <span class="prelude-val">Ok</span>(DaemonConnect {
                                             connection_id,
                                             remote_address,
-                                        }
+                                            local_address
+                                        })
                                     });
 
                             <span class="kw">let </span>daemon_message = DaemonUdpOutgoing::Connect(daemon_connect);

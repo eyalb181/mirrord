@@ -842,9 +842,6 @@
 <a href="#842" id="842">842</a>
 <a href="#843" id="843">843</a>
 <a href="#844" id="844">844</a>
-<a href="#845" id="845">845</a>
-<a href="#846" id="846">846</a>
-<a href="#847" id="847">847</a>
 </pre><pre class="rust"><code><span class="attr">#![feature(c_variadic)]
 #![feature(once_cell)]
 #![feature(result_option_inspect)]
@@ -1205,7 +1202,14 @@
         std::env::args()
     );
 
-    <span class="kw">let </span>(tx, rx) = RUNTIME.block_on(connection::connect(<span class="kw-2">&amp;</span>config));
+    <span class="kw">let </span>address = config
+        .connect_tcp
+        .as_ref()
+        .expect(<span class="string">&quot;layer loaded without proxy address to connect to&quot;</span>)
+        .parse()
+        .expect(<span class="string">&quot;couldn&#39;t parse proxy address&quot;</span>);
+
+    <span class="kw">let </span>(tx, rx) = RUNTIME.block_on(connection::connect_to_proxy(address));
 
     <span class="kw">let </span>(sender, receiver) = channel::&lt;HookMessage&gt;(<span class="number">1000</span>);
     HOOK_SENDER
@@ -1682,15 +1686,5 @@
     </span>close_layer_fd(fd);
     FN_UV_FS_CLOSE(a, b, fd, c)
 }
-
-<span class="doccomment">/// Message presented to the user as a sort of footer when mirrord crashes.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>FAIL_STILL_STUCK: <span class="kw-2">&amp;</span>str = <span class="string">r#&quot;
-- If you&#39;re still stuck and everything looks fine:
-
-&gt;&gt; Please open a new bug report at https://github.com/metalbear-co/mirrord/issues/new/choose
-
-&gt;&gt; Or join our discord https://discord.com/invite/J5YSrStDKD and request help in #mirrord-help.
-
-&quot;#</span>;
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="mirrord_layer" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (001a77fac 2023-01-30)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-7c23ac01f615ce90.css" ></div></body></html>

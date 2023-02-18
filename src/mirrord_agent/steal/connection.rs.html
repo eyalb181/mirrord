@@ -646,6 +646,17 @@
 <a href="#646" id="646">646</a>
 <a href="#647" id="647">647</a>
 <a href="#648" id="648">648</a>
+<a href="#649" id="649">649</a>
+<a href="#650" id="650">650</a>
+<a href="#651" id="651">651</a>
+<a href="#652" id="652">652</a>
+<a href="#653" id="653">653</a>
+<a href="#654" id="654">654</a>
+<a href="#655" id="655">655</a>
+<a href="#656" id="656">656</a>
+<a href="#657" id="657">657</a>
+<a href="#658" id="658">658</a>
+<a href="#659" id="659">659</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     collections::HashSet,
     io,
@@ -951,6 +962,8 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span>connection_id = <span class="self">self</span>.index_allocator.next_index().unwrap();
 
+        <span class="kw">let </span>local_address = stream.local_addr()<span class="question-mark">?</span>.ip();
+
         <span class="kw">let </span>(read_half, write_half) = tokio::io::split(stream);
         <span class="self">self</span>.write_streams.insert(connection_id, write_half);
         <span class="self">self</span>.read_streams
@@ -966,7 +979,8 @@
             connection_id,
             destination_port: port,
             source_port: address.port(),
-            address: address.ip(),
+            remote_address: address.ip(),
+            local_address,
         });
 
         <span class="comment">// Send new connection to subscribed layer.
@@ -1037,7 +1051,15 @@
 
     <span class="doccomment">/// Initialize iptables member, which creates an iptables chain for our rules.
     </span><span class="kw">fn </span>init_iptables(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="self">self</span>.iptables = <span class="prelude-val">Some</span>(SafeIpTables::new(iptables::new(<span class="bool-val">false</span>).unwrap())<span class="question-mark">?</span>);
+        <span class="kw">let </span>flush_connections = std::env::var(<span class="string">&quot;MIRRORD_AGENT_STEALER_FLUSH_CONNECTIONS&quot;</span>)
+            .ok()
+            .and_then(|var| var.parse::&lt;bool&gt;().ok())
+            .unwrap_or_default();
+
+        <span class="self">self</span>.iptables = <span class="prelude-val">Some</span>(SafeIpTables::new(
+            iptables::new(<span class="bool-val">false</span>).unwrap(),
+            flush_connections,
+        )<span class="question-mark">?</span>);
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -1097,7 +1119,7 @@
 
         <span class="kw">if </span>first_subscriber &amp;&amp; <span class="kw">let </span><span class="prelude-val">Ok</span>(port) = steal_port {
             <span class="self">self</span>.iptables()<span class="question-mark">?
-                </span>.add_stealer_iptables_rules(port, <span class="self">self</span>.stealer.local_addr()<span class="question-mark">?</span>.port())<span class="question-mark">?</span>;
+                </span>.add_stealer_iptables_rules(port, <span class="self">self</span>.stealer.local_addr()<span class="question-mark">?</span>.port()).<span class="kw">await</span><span class="question-mark">?</span>;
         }
 
         <span class="self">self</span>.send_message_to_single_client(<span class="kw-2">&amp;</span>client_id, DaemonTcp::SubscribeResult(steal_port))

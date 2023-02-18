@@ -52,6 +52,12 @@
 <a href="#52" id="52">52</a>
 <a href="#53" id="53">53</a>
 <a href="#54" id="54">54</a>
+<a href="#55" id="55">55</a>
+<a href="#56" id="56">56</a>
+<a href="#57" id="57">57</a>
+<a href="#58" id="58">58</a>
+<a href="#59" id="59">59</a>
+<a href="#60" id="60">60</a>
 </pre><pre class="rust"><code><span class="kw">use </span>thiserror::Error;
 
 <span class="kw">pub type </span><span class="prelude-ty">Result</span>&lt;T, E = KubeApiError&gt; = std::result::Result&lt;T, E&gt;;
@@ -66,6 +72,9 @@
 
     <span class="attr">#[error(<span class="string">&quot;mirrord-layer: Failed to get `KubeConfig`!&quot;</span>)]
     </span>KubeConfigError(<span class="attr">#[from] </span>kube::config::InferConfigError),
+
+    <span class="attr">#[error(<span class="string">&quot;mirrord-layer: Failed to get the custom path for `KubeConfig`!&quot;</span>)]
+    </span>KubeConfigPathError(<span class="attr">#[from] </span>kube::config::KubeconfigError),
 
     <span class="attr">#[error(<span class="string">&quot;mirrord-layer: JSON convert error&quot;</span>)]
     </span>JSONConvertError(<span class="attr">#[from] </span>serde_json::Error),
@@ -105,6 +114,9 @@
 
     <span class="attr">#[error(<span class="string">&quot;mirrord-layer: Timeout waiting for agent to be ready&quot;</span>)]
     </span>AgentReadyTimeout,
+
+    <span class="attr">#[error(<span class="string">&quot;Port not found in port forward&quot;</span>)]
+    </span>PortForwardFailed,
 }
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="mirrord_kube" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (001a77fac 2023-01-30)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-7c23ac01f615ce90.css" ></div></body></html>

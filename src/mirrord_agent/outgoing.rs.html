@@ -213,6 +213,8 @@
 <a href="#213" id="213">213</a>
 <a href="#214" id="214">214</a>
 <a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{collections::HashMap, thread, time::Duration};
 
 <span class="kw">use </span>mirrord_protocol::{
@@ -283,6 +285,7 @@
             .map_err(From::from)
             .and_then(|remote_stream| {
                 <span class="kw">let </span>remote_stream = remote_stream<span class="question-mark">?</span>;
+                <span class="kw">let </span>local_address = remote_stream.local_addr()<span class="question-mark">?</span>;
                 <span class="kw">let </span>connection_id = allocator
                     .next_index()
                     .ok_or_else(|| ResponseError::AllocationFailure(<span class="string">&quot;layer_recv&quot;</span>.to_string()))
@@ -297,6 +300,7 @@
                 <span class="prelude-val">Ok</span>(DaemonConnect {
                     connection_id,
                     remote_address,
+                    local_address,
                 })
             });
 

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"constant":[["MIRRORD_GUARDED_ENVS",""]],"struct":[["EnvVarGuard",""]]};

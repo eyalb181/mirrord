@@ -56,6 +56,7 @@
 <a href="#56" id="56">56</a>
 <a href="#57" id="57">57</a>
 <a href="#58" id="58">58</a>
+<a href="#59" id="59">59</a>
 </pre><pre class="rust"><code><span class="kw">use </span>core::fmt;
 <span class="kw">use </span>std::net::SocketAddr;
 
@@ -98,6 +99,7 @@
 </span><span class="kw">pub struct </span>DaemonConnect {
     <span class="kw">pub </span>connection_id: ConnectionId,
     <span class="kw">pub </span>remote_address: SocketAddr,
+    <span class="kw">pub </span>local_address: SocketAddr,
 }
 
 <span class="attr">#[derive(Encode, Decode, PartialEq, Eq, Clone)]

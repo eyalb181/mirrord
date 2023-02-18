@@ -298,6 +298,18 @@
 <a href="#298" id="298">298</a>
 <a href="#299" id="299">299</a>
 <a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
 </pre><pre class="rust"><code><span class="kw">mod </span>steal;
 
 <span class="attr">#[cfg(test)]
@@ -311,7 +323,8 @@
     <span class="kw">use </span>rstest::<span class="kw-2">*</span>;
 
     <span class="kw">use </span><span class="kw">crate</span>::utils::{
-        kube_client, run_exec, service, udp_logger_service, KubeService, CONTAINER_NAME,
+        hostname_service, kube_client, run_exec, service, udp_logger_service, KubeService,
+        CONTAINER_NAME,
     };
 
     <span class="attr">#[rstest]
@@ -594,6 +607,17 @@
         <span class="kw">let </span>service = service.<span class="kw">await</span>;
         <span class="kw">let </span>node_command = <span class="macro">vec!</span>[<span class="string">&quot;node&quot;</span>, <span class="string">&quot;node-e2e/listen/test_listen_localhost.mjs&quot;</span>];
         <span class="kw">let </span><span class="kw-2">mut </span>process = run_exec(node_command, <span class="kw-2">&amp;</span>service.target, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>).<span class="kw">await</span>;
+        <span class="kw">let </span>res = process.child.wait().<span class="kw">await</span>.unwrap();
+        <span class="macro">assert!</span>(res.success());
+    }
+
+    <span class="attr">#[rstest]
+    #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
+    </span><span class="kw">pub async fn </span>test_gethostname_remote_result(<span class="attr">#[future] </span>hostname_service: KubeService) {
+        <span class="kw">let </span>service = hostname_service.<span class="kw">await</span>;
+        <span class="kw">let </span>node_command = <span class="macro">vec!</span>[<span class="string">&quot;python3&quot;</span>, <span class="string">&quot;-u&quot;</span>, <span class="string">&quot;python-e2e/hostname.py&quot;</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>process = run_exec(node_command, <span class="kw-2">&amp;</span>service.target, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>).<span class="kw">await</span>;
+
         <span class="kw">let </span>res = process.child.wait().<span class="kw">await</span>.unwrap();
         <span class="macro">assert!</span>(res.success());
     }

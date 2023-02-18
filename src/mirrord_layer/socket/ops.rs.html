@@ -628,6 +628,45 @@
 <a href="#628" id="628">628</a>
 <a href="#629" id="629">629</a>
 <a href="#630" id="630">630</a>
+<a href="#631" id="631">631</a>
+<a href="#632" id="632">632</a>
+<a href="#633" id="633">633</a>
+<a href="#634" id="634">634</a>
+<a href="#635" id="635">635</a>
+<a href="#636" id="636">636</a>
+<a href="#637" id="637">637</a>
+<a href="#638" id="638">638</a>
+<a href="#639" id="639">639</a>
+<a href="#640" id="640">640</a>
+<a href="#641" id="641">641</a>
+<a href="#642" id="642">642</a>
+<a href="#643" id="643">643</a>
+<a href="#644" id="644">644</a>
+<a href="#645" id="645">645</a>
+<a href="#646" id="646">646</a>
+<a href="#647" id="647">647</a>
+<a href="#648" id="648">648</a>
+<a href="#649" id="649">649</a>
+<a href="#650" id="650">650</a>
+<a href="#651" id="651">651</a>
+<a href="#652" id="652">652</a>
+<a href="#653" id="653">653</a>
+<a href="#654" id="654">654</a>
+<a href="#655" id="655">655</a>
+<a href="#656" id="656">656</a>
+<a href="#657" id="657">657</a>
+<a href="#658" id="658">658</a>
+<a href="#659" id="659">659</a>
+<a href="#660" id="660">660</a>
+<a href="#661" id="661">661</a>
+<a href="#662" id="662">662</a>
+<a href="#663" id="663">663</a>
+<a href="#664" id="664">664</a>
+<a href="#665" id="665">665</a>
+<a href="#666" id="666">666</a>
+<a href="#667" id="667">667</a>
+<a href="#668" id="668">668</a>
+<a href="#669" id="669">669</a>
 </pre><pre class="rust"><code><span class="kw">use </span>alloc::ffi::CString;
 <span class="kw">use </span>core::{ffi::CStr, mem};
 <span class="kw">use </span>std::{
@@ -635,27 +674,31 @@
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
     os::unix::io::RawFd,
     ptr,
-    sync::Arc,
+    sync::{Arc, OnceLock},
 };
 
 <span class="kw">use </span>libc::{c_int, sockaddr, socklen_t};
-<span class="kw">use </span>mirrord_protocol::dns::LookupRecord;
+<span class="kw">use </span>mirrord_protocol::{dns::LookupRecord, file::OpenOptionsInternal};
 <span class="kw">use </span>socket2::SockAddr;
 <span class="kw">use </span>tokio::sync::oneshot;
 <span class="kw">use </span>tracing::{debug, error, trace};
 
 <span class="kw">use super</span>::{hooks::<span class="kw-2">*</span>, <span class="kw-2">*</span>};
 <span class="kw">use crate</span>::{
+    close_layer_fd,
     common::{blocking_send_hook_message, HookMessage},
-    detour::{Detour, OptionExt},
+    detour::{Detour, OnceLockExt, OptionExt},
     dns::GetAddrInfo,
     error::HookError,
-    file::OPEN_FILES,
-    outgoing::{tcp::TcpOutgoing, udp::UdpOutgoing, Connect, MirrorAddress},
+    file::{<span class="self">self</span>, OPEN_FILES},
+    outgoing::{tcp::TcpOutgoing, udp::UdpOutgoing, Connect, RemoteConnection},
     port_debug_patch,
     tcp::{Listen, TcpIncoming},
     ENABLED_TCP_OUTGOING, ENABLED_UDP_OUTGOING,
 };
+
+<span class="doccomment">/// Hostname initialized from the agent with [`gethostname`].
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>HOSTNAME: OnceLock&lt;CString&gt; = OnceLock::new();
 
 <span class="doccomment">/// Helper struct for connect results where we want to hold the original errno
 /// when result is -1 (error) because sometimes it&#39;s not a real error (EINPROGRESS/EINTR)
@@ -894,7 +937,10 @@
     };
 
     blocking_send_hook_message(hook_message)<span class="question-mark">?</span>;
-    <span class="kw">let </span>MirrorAddress(mirror_address) = mirror_rx.blocking_recv()<span class="question-mark">??</span>;
+    <span class="kw">let </span>RemoteConnection {
+        mirror_address,
+        local_address,
+    } = mirror_rx.blocking_recv()<span class="question-mark">??</span>;
 
     <span class="kw">let </span>connect_to = SockAddr::from(mirror_address);
 
@@ -912,7 +958,7 @@
 
     <span class="kw">let </span>connected = Connected {
         remote_address,
-        mirror_address,
+        local_address,
     };
 
     Arc::get_mut(<span class="kw-2">&amp;mut </span>user_socket_info).unwrap().state = SocketState::Connected(connected);
@@ -1063,7 +1109,7 @@
             </span>.get(<span class="kw-2">&amp;</span>sockfd)
             .bypass(Bypass::LocalFdNotFound(sockfd))
             .and_then(|socket| <span class="kw">match </span><span class="kw-2">&amp;</span>socket.state {
-                SocketState::Connected(connected) =&gt; Detour::Success(connected.mirror_address),
+                SocketState::Connected(connected) =&gt; Detour::Success(connected.local_address),
                 SocketState::Bound(bound) =&gt; Detour::Success(bound.address),
                 SocketState::Listening(bound) =&gt; Detour::Success(bound.address),
                 <span class="kw">_ </span>=&gt; Detour::Bypass(Bypass::InvalidState(sockfd)),
@@ -1085,25 +1131,25 @@
     address_len: <span class="kw-2">*mut </span>socklen_t,
     new_fd: RawFd,
 ) -&gt; Detour&lt;RawFd&gt; {
-    <span class="kw">let </span>(local_address, domain, protocol, type_) = {
+    <span class="kw">let </span>(domain, protocol, type_) = {
         SOCKETS
             .lock()<span class="question-mark">?
             </span>.get(<span class="kw-2">&amp;</span>sockfd)
             .bypass(Bypass::LocalFdNotFound(sockfd))
             .and_then(|socket| <span class="kw">match </span><span class="kw-2">&amp;</span>socket.state {
-                SocketState::Listening(bound) =&gt; {
-                    Detour::Success((bound.address, socket.domain, socket.protocol, socket.type_))
+                SocketState::Listening(<span class="kw">_</span>) =&gt; {
+                    Detour::Success((socket.domain, socket.protocol, socket.type_))
                 }
                 <span class="kw">_ </span>=&gt; Detour::Bypass(Bypass::InvalidState(sockfd)),
             })<span class="question-mark">?
     </span>};
 
-    <span class="kw">let </span>remote_address = {
+    <span class="kw">let </span>(local_address, remote_address) = {
         CONNECTION_QUEUE
             .lock()<span class="question-mark">?
             </span>.get(<span class="kw-2">&amp;</span>sockfd)
             .bypass(Bypass::LocalFdNotFound(sockfd))
-            .map(|socket| socket.address)<span class="question-mark">?
+            .map(|socket| (socket.local_address, socket.remote_address))<span class="question-mark">?
     </span>};
 
     <span class="kw">let </span>new_socket = UserSocket {
@@ -1112,7 +1158,7 @@
         type_,
         state: SocketState::Connected(Connected {
             remote_address,
-            mirror_address: local_address,
+            local_address,
         }),
         kind: type_.try_into()<span class="question-mark">?</span>,
     };
@@ -1257,6 +1303,38 @@
     <span class="macro">debug!</span>(<span class="string">&quot;getaddrinfo -&gt; result {:#?}&quot;</span>, result);
 
     Detour::Success(result)
+}
+
+<span class="doccomment">/// Retrieves the `hostname` from the agent&#39;s `/etc/hostname` to be used by [`gethostname`]
+</span><span class="kw">fn </span>remote_hostname_string() -&gt; Detour&lt;CString&gt; {
+    <span class="kw">let </span>hostname_path = CString::new(<span class="string">&quot;/etc/hostname&quot;</span>)<span class="question-mark">?</span>;
+
+    <span class="kw">let </span>hostname_fd = file::ops::open(
+        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>hostname_path),
+        OpenOptionsInternal {
+            read: <span class="bool-val">true</span>,
+            ..Default::default()
+        },
+    )<span class="question-mark">?</span>;
+
+    <span class="kw">let </span>hostname_file = file::ops::read(hostname_fd, <span class="number">256</span>)<span class="question-mark">?</span>;
+
+    close_layer_fd(hostname_fd);
+
+    CString::new(
+        hostname_file
+            .bytes
+            .into_iter()
+            .take(hostname_file.read_amount <span class="kw">as </span>usize - <span class="number">1</span>)
+            .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(),
+    )
+    .map(Detour::Success)<span class="question-mark">?
+</span>}
+
+<span class="doccomment">/// Resolve hostname from remote host with caching for the result
+</span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>gethostname() -&gt; Detour&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>CString&gt; {
+    HOSTNAME.get_or_detour_init(remote_hostname_string)
 }
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="mirrord_layer" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (001a77fac 2023-01-30)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-7c23ac01f615ce90.css" ></div></body></html>

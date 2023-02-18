@@ -95,168 +95,102 @@
 <a href="#95" id="95">95</a>
 <a href="#96" id="96">96</a>
 <a href="#97" id="97">97</a>
-<a href="#98" id="98">98</a>
-<a href="#99" id="99">99</a>
-<a href="#100" id="100">100</a>
-<a href="#101" id="101">101</a>
-<a href="#102" id="102">102</a>
-<a href="#103" id="103">103</a>
-<a href="#104" id="104">104</a>
-<a href="#105" id="105">105</a>
-<a href="#106" id="106">106</a>
-<a href="#107" id="107">107</a>
-<a href="#108" id="108">108</a>
-<a href="#109" id="109">109</a>
-<a href="#110" id="110">110</a>
-<a href="#111" id="111">111</a>
-<a href="#112" id="112">112</a>
-<a href="#113" id="113">113</a>
-<a href="#114" id="114">114</a>
-<a href="#115" id="115">115</a>
-<a href="#116" id="116">116</a>
-<a href="#117" id="117">117</a>
-<a href="#118" id="118">118</a>
-<a href="#119" id="119">119</a>
-<a href="#120" id="120">120</a>
-<a href="#121" id="121">121</a>
-<a href="#122" id="122">122</a>
-<a href="#123" id="123">123</a>
-<a href="#124" id="124">124</a>
-<a href="#125" id="125">125</a>
-<a href="#126" id="126">126</a>
-<a href="#127" id="127">127</a>
-<a href="#128" id="128">128</a>
-<a href="#129" id="129">129</a>
-<a href="#130" id="130">130</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Module for the mirrord-layer/mirrord-agent connection mechanism.
 //!
-//! The layer will either start a new agent pod with [`KubernetesAPI`], directly connect to an
-//! existing agent (currently only used for tests), or let the [`OperatorApi`] handle the
-//! connection.
-</span><span class="kw">use </span>std::time::Duration;
+//! The layer will connect to the internal proxy to communicate with the agent.
+</span><span class="kw">use </span>std::net::SocketAddr;
 
-<span class="kw">use </span>mirrord_config::LayerConfig;
-<span class="kw">use </span>mirrord_kube::{
-    api::{kubernetes::KubernetesAPI, AgentManagment, Connection},
-    error::KubeApiError,
+<span class="kw">use </span>futures::{SinkExt, StreamExt};
+<span class="kw">use </span>mirrord_protocol::{ClientCodec, ClientMessage, DaemonMessage};
+<span class="kw">use </span>tokio::{
+    net::TcpStream,
+    sync::mpsc::{<span class="self">self</span>, Receiver, Sender},
 };
-<span class="kw">use </span>mirrord_operator::client::{OperatorApi, OperatorApiError};
-<span class="kw">use </span>mirrord_progress::NoProgress;
-<span class="kw">use </span>mirrord_protocol::{ClientMessage, DaemonMessage};
-<span class="kw">use </span>tokio::sync::mpsc::{Receiver, Sender};
-<span class="kw">use </span>tracing::log::info;
+<span class="kw">use </span>tracing::log::{error, info};
 
-<span class="kw">use crate</span>::{graceful_exit, FAIL_STILL_STUCK};
+<span class="kw">use </span><span class="kw">crate</span>::graceful_exit;
 
-<span class="doccomment">/// Helpful message that we print to the user in a [`graceful_exit`] call, when we get a
-/// [`KubeApiError`], or an [`OperatorApiError].
-</span><span class="kw">const </span>FAIL_CREATE_AGENT: <span class="kw-2">&amp;</span>str = <span class="string">r#&quot;
-mirrord-layer failed while trying to establish connection with the agent pod!
+<span class="doccomment">/// Size of the channel used in [`wrap_raw_connection`] for [`ClientMessage`]s.
+</span><span class="kw">const </span>CONNECTION_CHANNEL_SIZE: usize = <span class="number">1000</span>;
 
-- Suggestions:
+<span class="kw">const </span>FAIL_STILL_STUCK: <span class="kw-2">&amp;</span>str = <span class="string">r#&quot;
+- If you&#39;re still stuck and everything looks fine:
 
-&gt;&gt; Check that the agent pod was created with `$ kubectl get pods`, it should look something like
-   &quot;mirrord-agent-qjys2dg9xk-rgnhr        1/1     Running   0              7s&quot;.
+&gt;&gt; Please open a new bug report at https://github.com/metalbear-co/mirrord/issues/new/choose
 
-&gt;&gt; Check that you&#39;re using the correct kubernetes credentials (and configuration).
+&gt;&gt; Or join our discord https://discord.com/invite/J5YSrStDKD and request help in #mirrord-help.
 
-&gt;&gt; Check your kubernetes&#39; context matches where the agent should be spawned.
 &quot;#</span>;
 
-<span class="doccomment">/// Handles a [`KubeApiError`] by printing what went wrong to the user, and closing the  program
-/// with [`graceful_exit`].
-///
-/// Used in [`connect`], as we treat every error there as fatal.
-</span><span class="kw">fn </span>handle_error(err: KubeApiError, config: <span class="kw-2">&amp;</span>LayerConfig) -&gt; ! {
-    <span class="kw">match </span>err {
-        KubeApiError::KubeError(kube::Error::HyperError(err)) =&gt; {
-            <span class="macro">eprintln!</span>(<span class="string">&quot;\nmirrord encountered an error accessing the Kubernetes API.\n&quot;</span>);
-            <span class="kw">if </span>!config.accept_invalid_certificates {
-                <span class="macro">eprintln!</span>(<span class="string">&quot;Consider passing --accept-invalid-certificates.\n&quot;</span>);
-            }
-
-            <span class="kw">match </span>err.into_cause() {
-                <span class="prelude-val">Some</span>(cause) =&gt; <span class="macro">graceful_exit!</span>(<span class="string">&quot;Exiting due to {}&quot;</span>, cause),
-                <span class="prelude-val">None </span>=&gt; <span class="macro">graceful_exit!</span>(<span class="string">&quot;mirrord got KubeError::HyperError&quot;</span>),
-            }
-        }
-        <span class="kw">_ </span>=&gt; <span class="macro">graceful_exit!</span>(<span class="string">&quot;{FAIL_CREATE_AGENT}{FAIL_STILL_STUCK} with error {err}&quot;</span>),
-    }
-}
-
-<span class="doccomment">/// Calls [`graceful_exit`] when we have an [`OperatorApiError`].
-///
-/// Used in [`connect`] (same as [`handle_error`]), but only when `LayerConfig::operator` is
-/// set to `true` and an operator is installed in the cluster.
-</span><span class="kw">fn </span>handle_operator_error(err: OperatorApiError) -&gt; ! {
-    <span class="macro">graceful_exit!</span>(<span class="string">&quot;{FAIL_CREATE_AGENT}{FAIL_STILL_STUCK} with error {err}&quot;</span>)
-}
-
-<span class="doccomment">/// Initializes the agent pod with [`KubernetesAPI`], and connects to it, returning an API that the
+<span class="doccomment">/// Connects to the internal proxy in given `SocketAddr`
 /// layer uses to communicate with it, in the form of a [`Sender`] for [`ClientMessage`]s, and a
 /// [`Receiver`] for [`DaemonMessage`]s.
-///
-/// ## Direct connection
-///
-/// There is support for connecting directly to an existing pod (instead of going through
-/// `KubernetesAPI::create`) by setting `LayerConfig::connect_tcp`.
-///
-/// This is used for mirrord tests only.
-///
-/// ## Operator
-///
-/// The [`OperatorApi`] takes over the connection procedure if `LayerConfig::operator` is
-/// set to `true` and an operator is installed in the cluster. We use `OperatorApi::discover`
-/// instead of [`KubernetesAPI`].
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>connect(
-    config: <span class="kw-2">&amp;</span>LayerConfig,
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>connect_to_proxy(
+    addr: SocketAddr,
 ) -&gt; (Sender&lt;ClientMessage&gt;, Receiver&lt;DaemonMessage&gt;) {
-    <span class="kw">let </span>progress = NoProgress;
+    <span class="kw">let </span>stream = <span class="kw">match </span>TcpStream::connect(addr).<span class="kw">await </span>{
+        <span class="prelude-val">Ok</span>(stream) =&gt; stream,
+        <span class="prelude-val">Err</span>(e) =&gt; {
+            <span class="macro">error!</span>(<span class="string">&quot;Couldn&#39;t connect to internal proxy: {e:?}&quot;</span>);
+            <span class="macro">graceful_exit!</span>(<span class="string">&quot;{FAIL_STILL_STUCK:?}&quot;</span>);
+        }
+    };
+    wrap_raw_connection(stream)
+}
 
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(address) = <span class="kw-2">&amp;</span>config.connect_tcp {
-        Connection(address)
-            .connect(<span class="kw-2">&amp;</span>progress)
-            .<span class="kw">await
-            </span>.unwrap_or_else(|err| handle_error(err, config))
-    } <span class="kw">else if </span>config.operator &amp;&amp; <span class="kw">let </span><span class="prelude-val">Some</span>(connection) = OperatorApi::discover(config).<span class="kw">await</span>.transpose() {
-        connection.unwrap_or_else(|err| handle_operator_error(err))
-    } <span class="kw">else </span>{
-        <span class="kw">let </span>k8s_api = KubernetesAPI::create(config)
-            .<span class="kw">await
-            </span>.unwrap_or_else(|err| handle_error(err, config));
+<span class="doccomment">/// Creates the task that handles the messaging between layer/agent.
+/// It does the encoding/decoding of protocol.
+</span><span class="kw">fn </span>wrap_raw_connection(
+    stream: TcpStream,
+) -&gt; (mpsc::Sender&lt;ClientMessage&gt;, mpsc::Receiver&lt;DaemonMessage&gt;) {
+    <span class="kw">let </span><span class="kw-2">mut </span>codec = actix_codec::Framed::new(stream, ClientCodec::new());
 
-        <span class="kw">let </span>agent_ref = {
-            <span class="kw">if let </span>(<span class="prelude-val">Some</span>(pod_agent_name), <span class="prelude-val">Some</span>(agent_port)) =
-                (<span class="kw-2">&amp;</span>config.connect_agent_name, config.connect_agent_port)
-            {
-                <span class="macro">info!</span>(
-                    <span class="string">&quot;Reusing existing agent {:?}, port {:?}&quot;</span>,
-                    pod_agent_name, agent_port
-                );
-                (pod_agent_name.to_owned(), agent_port)
-            } <span class="kw">else </span>{
-                <span class="kw">let </span>(pod_agent_name, agent_port) = tokio::time::timeout(
-                    Duration::from_secs(config.agent.startup_timeout),
-                    k8s_api.create_agent(<span class="kw-2">&amp;</span>progress),
-                )
-                .<span class="kw">await
-                </span>.unwrap_or(<span class="prelude-val">Err</span>(KubeApiError::AgentReadyTimeout))
-                .unwrap_or_else(|err| handle_error(err, config));
-                <span class="macro">info!</span>(<span class="string">&quot;Created new agent {pod_agent_name}, port {agent_port}&quot;</span>);
+    <span class="kw">let </span>(client_in_tx, <span class="kw-2">mut </span>client_in_rx) = mpsc::channel(CONNECTION_CHANNEL_SIZE);
+    <span class="kw">let </span>(daemon_out_tx, daemon_out_rx) = mpsc::channel(CONNECTION_CHANNEL_SIZE);
 
-                <span class="comment">// Set env var for children to re-use.
-                </span>std::env::set_var(<span class="string">&quot;MIRRORD_CONNECT_AGENT&quot;</span>, <span class="kw-2">&amp;</span>pod_agent_name);
-                std::env::set_var(<span class="string">&quot;MIRRORD_CONNECT_PORT&quot;</span>, agent_port.to_string());
+    tokio::spawn(<span class="kw">async move </span>{
+        <span class="kw">loop </span>{
+            <span class="macro">tokio::select! </span>{
+                msg = client_in_rx.recv() =&gt; {
+                    <span class="kw">match </span>msg {
+                        <span class="prelude-val">Some</span>(msg) =&gt; {
+                            <span class="kw">if let </span><span class="prelude-val">Err</span>(fail) = codec.send(msg).<span class="kw">await </span>{
+                                <span class="macro">error!</span>(<span class="string">&quot;Error sending client message: {:#?}&quot;</span>, fail);
+                                <span class="kw">break</span>;
+                            }
+                        }
+                        <span class="prelude-val">None </span>=&gt; {
+                            <span class="macro">info!</span>(<span class="string">&quot;mirrord-kube: initiated disconnect from agent&quot;</span>);
 
-                (pod_agent_name, agent_port)
+                            <span class="kw">break</span>;
+                        }
+                    }
+                }
+                daemon_message = codec.next() =&gt; {
+                    <span class="kw">match </span>daemon_message {
+                        <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(msg)) =&gt; {
+                            <span class="kw">if let </span><span class="prelude-val">Err</span>(fail) = daemon_out_tx.send(msg).<span class="kw">await </span>{
+                                <span class="macro">error!</span>(<span class="string">&quot;DaemonMessage dropped: {:#?}&quot;</span>, fail);
+
+                                <span class="kw">break</span>;
+                            }
+                        }
+                        <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(err)) =&gt; {
+                            <span class="macro">error!</span>(<span class="string">&quot;Error receiving daemon message: {:?}&quot;</span>, err);
+                            <span class="kw">break</span>;
+                        }
+                        <span class="prelude-val">None </span>=&gt; {
+                            <span class="macro">error!</span>(<span class="string">&quot;agent disconnected&quot;</span>);
+
+                            <span class="kw">break</span>;
+                        }
+                    }
+                }
             }
-        };
+        }
+    });
 
-        k8s_api
-            .create_connection(agent_ref)
-            .<span class="kw">await
-            </span>.unwrap_or_else(|err| handle_error(err, config))
-    }
+    (client_in_tx, daemon_out_rx)
 }
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="mirrord_layer" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (001a77fac 2023-01-30)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-7c23ac01f615ce90.css" ></div></body></html>

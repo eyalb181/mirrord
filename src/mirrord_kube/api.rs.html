@@ -156,12 +156,10 @@
 <span class="kw">use </span><span class="kw">crate</span>::error::{KubeApiError, <span class="prelude-ty">Result</span>};
 
 <span class="kw">pub mod </span>container;
-<span class="attr">#[cfg(feature = <span class="string">&quot;env_guard&quot;</span>)]
-</span><span class="kw">mod </span>env_guard;
 <span class="kw">pub mod </span>kubernetes;
 <span class="kw">mod </span>runtime;
 
-<span class="kw">static </span>CONNECTION_CHANNEL_SIZE: usize = <span class="number">1000</span>;
+<span class="kw">const </span>CONNECTION_CHANNEL_SIZE: usize = <span class="number">1000</span>;
 
 <span class="kw">pub fn </span>get_k8s_resource_api&lt;K&gt;(client: <span class="kw-2">&amp;</span>Client, namespace: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;) -&gt; Api&lt;K&gt;
 <span class="kw">where
@@ -175,9 +173,11 @@
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>wrap_raw_connection(
+<span class="doccomment">/// Creates the task that handles the messaging between layer/agent.
+/// It does the encoding/decoding of protocol.
+</span><span class="kw">pub fn </span>wrap_raw_connection(
     stream: <span class="kw">impl </span>AsyncRead + AsyncWrite + Unpin + Send + <span class="lifetime">&#39;static</span>,
-) -&gt; <span class="prelude-ty">Result</span>&lt;(mpsc::Sender&lt;ClientMessage&gt;, mpsc::Receiver&lt;DaemonMessage&gt;)&gt; {
+) -&gt; (mpsc::Sender&lt;ClientMessage&gt;, mpsc::Receiver&lt;DaemonMessage&gt;) {
     <span class="kw">let </span><span class="kw-2">mut </span>codec = actix_codec::Framed::new(stream, ClientCodec::new());
 
     <span class="kw">let </span>(in_tx, <span class="kw-2">mut </span>in_rx) = mpsc::channel(CONNECTION_CHANNEL_SIZE);
@@ -215,7 +215,7 @@
                             <span class="kw">break</span>;
                         }
                         <span class="prelude-val">None </span>=&gt; {
-                            <span class="macro">error!</span>(<span class="string">&quot;agent disconnected&quot;</span>);
+                            <span class="macro">info!</span>(<span class="string">&quot;agent disconnected&quot;</span>);
 
                             <span class="kw">break</span>;
                         }
@@ -225,7 +225,7 @@
         }
     });
 
-    <span class="prelude-val">Ok</span>((in_tx, out_rx))
+    (in_tx, out_rx)
 }
 
 <span class="attr">#[async_trait]
@@ -270,7 +270,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         stream: <span class="self">Self</span>::AgentRef,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(mpsc::Sender&lt;ClientMessage&gt;, mpsc::Receiver&lt;DaemonMessage&gt;)&gt; {
-        wrap_raw_connection(stream)
+        <span class="prelude-val">Ok</span>(wrap_raw_connection(stream))
     }
 
     <span class="kw">async fn </span>create_agent&lt;P&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>P) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::AgentRef, <span class="self">Self</span>::Err&gt;

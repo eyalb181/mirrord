@@ -179,7 +179,7 @@ testing of your CLI.</p>
 
 <span class="kw">fn </span>main() {
     <span class="kw">let </span>m = cmd().get_matches_from(<span class="macro">vec!</span>[<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;-b&quot;</span>]);
-    <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="kw-2">*</span>m.get_one::&lt;bool&gt;(<span class="string">&quot;bar&quot;</span>).expect(<span class="string">&quot;defaulted by clap&quot;</span>));
+    <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, m.get_flag(<span class="string">&quot;bar&quot;</span>));
 }</code></pre></div>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.error" class="method"><a class="srclink rightside" href="../../src/clap/builder/command.rs.html#468-470">source</a><h4 class="code-header">pub fn <a href="#method.error" class="fn">error</a>(&amp;mut self, kind: <a class="enum" href="../error/enum.ErrorKind.html" title="enum clap::error::ErrorKind">ErrorKind</a>, message: impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html" title="trait core::fmt::Display">Display</a>) -&gt; <a class="type" href="../type.Error.html" title="type clap::Error">Error</a></h4></section></summary><div class="docblock"><p>Custom error message for post-parsing validation</p>
 <h5 id="examples-11"><a href="#examples-11">Examples</a></h5>
@@ -332,7 +332,7 @@ settings can be overridden in subcommands.</p>
 <span class="macro">assert!</span>(r.is_ok(), <span class="string">&quot;unexpected error: {:?}&quot;</span>, r);
 <span class="kw">let </span>m = r.unwrap();
 <span class="macro">assert_eq!</span>(m.get_one::&lt;String&gt;(<span class="string">&quot;config&quot;</span>).unwrap(), <span class="string">&quot;file&quot;</span>);
-<span class="macro">assert!</span>(<span class="kw-2">*</span>m.get_one::&lt;bool&gt;(<span class="string">&quot;f&quot;</span>).expect(<span class="string">&quot;defaulted&quot;</span>));
+<span class="macro">assert!</span>(m.get_flag(<span class="string">&quot;f&quot;</span>));
 <span class="macro">assert_eq!</span>(m.get_one::&lt;String&gt;(<span class="string">&quot;stuff&quot;</span>), <span class="prelude-val">None</span>);</code></pre></div>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.args_override_self" class="method"><a class="srclink rightside" href="../../src/clap/builder/command.rs.html#990-996">source</a><h4 class="code-header">pub fn <a href="#method.args_override_self" class="fn">args_override_self</a>(self, yes: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; Self</h4></section></summary><div class="docblock"><p>Replace prior occurrences of arguments rather than error</p>
 <p>For any argument that would conflict with itself by default (e.g.
@@ -648,7 +648,7 @@ arguments, and subcommands) including titles.</li>
 <li><code>{options}</code>             - Help for options.</li>
 <li><code>{positionals}</code>         - Help for positional arguments.</li>
 <li><code>{subcommands}</code>         - Help for subcommands.</li>
-<li><code>{tag}</code>                 - Standard tab sized used within clap</li>
+<li><code>{tab}</code>                 - Standard tab sized used within clap</li>
 <li><code>{after-help}</code>          - Help from <a href="struct.Command.html#method.after_help"><code>Command::after_help</code></a> or <a href="struct.Command.html#method.after_long_help"><code>Command::after_long_help</code></a>.</li>
 <li><code>{before-help}</code>         - Help from <a href="struct.Command.html#method.before_help"><code>Command::before_help</code></a> or <a href="struct.Command.html#method.before_long_help"><code>Command::before_long_help</code></a>.</li>
 </ul>
@@ -781,7 +781,7 @@ of the <code>--</code> operator is OK (but not required if all arguments will be
 
 <span class="macro">assert_eq!</span>(matches.subcommand_name().unwrap(), <span class="string">&quot;sync&quot;</span>);
 <span class="kw">let </span>sync_matches = matches.subcommand_matches(<span class="string">&quot;sync&quot;</span>).unwrap();
-<span class="macro">assert!</span>(<span class="kw-2">*</span>sync_matches.get_one::&lt;bool&gt;(<span class="string">&quot;search&quot;</span>).expect(<span class="string">&quot;defaulted by clap&quot;</span>));</code></pre></div>
+<span class="macro">assert!</span>(sync_matches.get_flag(<span class="string">&quot;search&quot;</span>));</code></pre></div>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.long_flag" class="method"><a class="srclink rightside" href="../../src/clap/builder/command.rs.html#2236-2239">source</a><h4 class="code-header">pub fn <a href="#method.long_flag" class="fn">long_flag</a>(self, long: impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html" title="trait core::convert::Into">Into</a>&lt;<a class="struct" href="struct.Str.html" title="struct clap::builder::Str">Str</a>&gt;) -&gt; Self</h4></section></summary><div class="docblock"><p>Sets the long version of the subcommand flag without the preceding <code>--</code>.</p>
 <p>Allows the subcommand to be used as if it were an <a href="struct.Arg.html#method.long"><code>Arg::long</code></a>.</p>
 <p><strong>NOTE:</strong> Any leading <code>-</code> characters will be stripped.</p>
@@ -804,7 +804,7 @@ will <em>not</em> be stripped (i.e. <code>sync-file</code> is allowed).</p>
 
 <span class="macro">assert_eq!</span>(matches.subcommand_name().unwrap(), <span class="string">&quot;sync&quot;</span>);
 <span class="kw">let </span>sync_matches = matches.subcommand_matches(<span class="string">&quot;sync&quot;</span>).unwrap();
-<span class="macro">assert!</span>(<span class="kw-2">*</span>sync_matches.get_one::&lt;bool&gt;(<span class="string">&quot;search&quot;</span>).expect(<span class="string">&quot;defaulted by clap&quot;</span>));</code></pre></div>
+<span class="macro">assert!</span>(sync_matches.get_flag(<span class="string">&quot;search&quot;</span>));</code></pre></div>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.alias" class="method"><a class="srclink rightside" href="../../src/clap/builder/command.rs.html#2267-2274">source</a><h4 class="code-header">pub fn <a href="#method.alias" class="fn">alias</a>(self, name: impl <a class="trait" href="trait.IntoResettable.html" title="trait clap::builder::IntoResettable">IntoResettable</a>&lt;<a class="struct" href="struct.Str.html" title="struct clap::builder::Str">Str</a>&gt;) -&gt; Self</h4></section></summary><div class="docblock"><p>Sets a hidden alias to this subcommand.</p>
 <p>This allows the subcommand to be accessed via <em>either</em> the original name, or this given
 alias. This is more efficient and easier than creating multiple hidden subcommands as one
@@ -993,8 +993,8 @@ Commands:
     alpha   Some help and text
 
 Options:
-    -h, --help       Print help information
-    -V, --version    Print version information
+    -h, --help       Print help
+    -V, --version    Print version
 </code></pre></div></div></details><details class="toggle method-toggle" open><summary><section id="method.hide" class="method"><a class="srclink rightside" href="../../src/clap/builder/command.rs.html#2669-2675">source</a><h4 class="code-header">pub fn <a href="#method.hide" class="fn">hide</a>(self, yes: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; Self</h4></section></summary><div class="docblock"><p>Specifies that this <a href="struct.Command.html#method.subcommand"><code>subcommand</code></a> should be hidden from help messages</p>
 <h5 id="examples-71"><a href="#examples-71">Examples</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code>Command::new(<span class="string">&quot;myprog&quot;</span>)
@@ -1270,8 +1270,8 @@ Commands:
     sub1
 
 Options:
-    -h, --help       Print help information
-    -V, --version    Print version information
+    -h, --help       Print help
+    -V, --version    Print version
 </code></pre></div>
 <p>but usage of <code>subcommand_value_name</code></p>
 
@@ -1289,8 +1289,8 @@ Commands:
     sub1
 
 Options:
-    -h, --help       Print help information
-    -V, --version    Print version information
+    -h, --help       Print help
+    -V, --version    Print version
 </code></pre></div></div></details><details class="toggle method-toggle" open><summary><section id="method.subcommand_help_heading" class="method"><a class="srclink rightside" href="../../src/clap/builder/command.rs.html#3203-3206">source</a><h4 class="code-header">pub fn <a href="#method.subcommand_help_heading" class="fn">subcommand_help_heading</a>(self, heading: impl <a class="trait" href="trait.IntoResettable.html" title="trait clap::builder::IntoResettable">IntoResettable</a>&lt;<a class="struct" href="struct.Str.html" title="struct clap::builder::Str">Str</a>&gt;) -&gt; Self</h4></section></summary><div class="docblock"><p>Sets the help heading used for subcommands when printing usage and help.</p>
 <p>By default, this is “Commands”.</p>
 <p>See also <a href="struct.Command.html#method.subcommand_value_name" title="Command::subcommand_value_name"><code>Command::subcommand_value_name</code></a></p>
@@ -1308,8 +1308,8 @@ Commands:
     sub1
 
 Options:
-    -h, --help       Print help information
-    -V, --version    Print version information
+    -h, --help       Print help
+    -V, --version    Print version
 </code></pre></div>
 <p>but usage of <code>subcommand_help_heading</code></p>
 
@@ -1327,8 +1327,8 @@ Things:
     sub1
 
 Options:
-    -h, --help       Print help information
-    -V, --version    Print version information
+    -h, --help       Print help
+    -V, --version    Print version
 </code></pre></div></div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-Command-4" class="impl"><a class="srclink rightside" href="../../src/clap/builder/command.rs.html#3210-3732">source</a><a href="#impl-Command-4" class="anchor">§</a><h3 class="code-header">impl <a class="struct" href="struct.Command.html" title="struct clap::builder::Command">Command</a></h3></section></summary><div class="docblock"><h4 id="reflection"><a href="#reflection">Reflection</a></h4></div><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.get_display_name" class="method"><a class="srclink rightside" href="../../src/clap/builder/command.rs.html#3219-3221">source</a><h4 class="code-header">pub fn <a href="#method.get_display_name" class="fn">get_display_name</a>(&amp;self) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;&amp;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;</h4></section></summary><div class="docblock"><p>Get the name of the binary.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.get_bin_name" class="method"><a class="srclink rightside" href="../../src/clap/builder/command.rs.html#3225-3227">source</a><h4 class="code-header">pub fn <a href="#method.get_bin_name" class="fn">get_bin_name</a>(&amp;self) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;&amp;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;</h4></section></summary><div class="docblock"><p>Get the name of the binary.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.set_bin_name" class="method"><a class="srclink rightside" href="../../src/clap/builder/command.rs.html#3230-3232">source</a><h4 class="code-header">pub fn <a href="#method.set_bin_name" class="fn">set_bin_name</a>(&amp;mut self, name: impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html" title="trait core::convert::Into">Into</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html" title="struct alloc::string::String">String</a>&gt;)</h4></section></summary><div class="docblock"><p>Set binary name. Uses <code>&amp;mut self</code> instead of <code>self</code>.</p>

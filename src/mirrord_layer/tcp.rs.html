@@ -169,6 +169,10 @@
 <a href="#169" id="169">169</a>
 <a href="#170" id="170">170</a>
 <a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
 </pre><pre class="rust"><code><span class="doccomment">/// Tcp Traffic management, common code for stealing &amp; mirroring
 </span><span class="kw">use </span>std::{
     borrow::Borrow,
@@ -307,10 +311,14 @@
 
         <span class="kw">let </span>addr: SocketAddr = listen.into();
 
-        <span class="kw">let </span>info = SocketInformation::new(SocketAddr::new(
-            tcp_connection.address,
-            tcp_connection.source_port,
-        ));
+        <span class="kw">let </span>info = SocketInformation::new(
+            SocketAddr::new(tcp_connection.remote_address, tcp_connection.source_port),
+            SocketAddr::new(
+                tcp_connection.local_address,
+                tcp_connection.destination_port,
+            ),
+        );
+
         {
             CONNECTION_QUEUE.lock().unwrap().add(<span class="kw-2">&amp;</span>listen.fd, info);
         }

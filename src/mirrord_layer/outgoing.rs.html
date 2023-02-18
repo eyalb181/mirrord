@@ -58,6 +58,9 @@
 <a href="#58" id="58">58</a>
 <a href="#59" id="59">59</a>
 <a href="#60" id="60">60</a>
+<a href="#61" id="61">61</a>
+<a href="#62" id="62">62</a>
+<a href="#63" id="63">63</a>
 </pre><pre class="rust"><code><span class="kw">use </span>core::fmt;
 <span class="kw">use </span>std::{
     net::SocketAddr,
@@ -76,12 +79,15 @@
 
 <span class="doccomment">/// Wrapper type for the (layer) socket address that intercepts the user&#39;s socket messages.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>MirrorAddress(<span class="kw">pub</span>(<span class="kw">crate</span>) SocketAddr);
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>RemoteConnection {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) mirror_address: SocketAddr,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) local_address: SocketAddr,
+}
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Connect {
     <span class="kw">pub</span>(<span class="kw">crate</span>) remote_address: SocketAddr,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) channel_tx: ResponseChannel&lt;MirrorAddress&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) channel_tx: ResponseChannel&lt;RemoteConnection&gt;,
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Write {

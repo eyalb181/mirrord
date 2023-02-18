@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":[["GENERAL_HELP",""]],"enum":[["CliError",""]],"type":[["Result",""]]};
+window.SIDEBAR_ITEMS = {"constant":[["GENERAL_HELP",""]],"enum":[["CliError",""],["InternalProxyError",""]],"type":[["Result",""]]};

@@ -203,6 +203,8 @@
 <a href="#203" id="203">203</a>
 <a href="#204" id="204">204</a>
 <a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
 </pre><pre class="rust"><code><span class="doccomment">//! We implement each hook function in a safe function as much as possible, having the unsafe do the
 //! absolute minimum
 </span><span class="kw">use </span>std::{
@@ -235,7 +237,10 @@
 <span class="doccomment">/// Struct sent over the socket once created to pass metadata to the hook
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>SocketInformation {
-    <span class="kw">pub </span>address: SocketAddr,
+    <span class="doccomment">/// Address of the incoming peer
+    </span><span class="kw">pub </span>remote_address: SocketAddr,
+    <span class="doccomment">/// Address of the local peer (our IP)
+    </span><span class="kw">pub </span>local_address: SocketAddr,
 }
 
 <span class="doccomment">/// poll_agent loop inserts connection data into this queue, and accept reads it.
@@ -262,21 +267,20 @@
 }
 
 <span class="kw">impl </span>SocketInformation {
-    <span class="kw">pub fn </span>new(address: SocketAddr) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ address }
+    <span class="kw">pub fn </span>new(remote_address: SocketAddr, local_address: SocketAddr) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            remote_address,
+            local_address,
+        }
     }
-}
-
-<span class="kw">trait </span>GetPeerName {
-    <span class="kw">fn </span>get_peer_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SocketAddr;
 }
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Connected {
     <span class="doccomment">/// Remote address we&#39;re connected to
     </span>remote_address: SocketAddr,
-    <span class="doccomment">/// Local address it&#39;s connected from
-    </span>mirror_address: SocketAddr,
+    <span class="doccomment">/// Local address (pod-wise)
+    </span>local_address: SocketAddr,
 }
 
 <span class="attr">#[derive(Debug, Clone, Copy)]
