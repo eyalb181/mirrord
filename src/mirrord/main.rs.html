@@ -342,6 +342,9 @@
 <a href="#342" id="342">342</a>
 <a href="#343" id="343">343</a>
 <a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
 </pre><pre class="rust"><code><span class="attr">#![feature(let_chains)]
 
 </span><span class="kw">use </span>std::{collections::HashMap, time::Duration};
@@ -592,7 +595,7 @@
 /// ]```
 </span><span class="kw">async fn </span>print_pod_targets(args: <span class="kw-2">&amp;</span>ListTargetArgs) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">let </span>pods = get_kube_pods(args.namespace.as_deref()).<span class="kw">await</span><span class="question-mark">?</span>;
-    <span class="kw">let </span>target_vector = pods
+    <span class="kw">let </span><span class="kw-2">mut </span>target_vector = pods
         .iter()
         .flat_map(|(pod, containers)| {
             <span class="kw">if </span>containers.len() == <span class="number">1 </span>{
@@ -605,6 +608,9 @@
             }
         })
         .collect::&lt;Vec&lt;String&gt;&gt;();
+
+    target_vector.sort();
+
     <span class="kw">let </span>json_obj = <span class="macro">json!</span>(target_vector);
     <span class="macro">println!</span>(<span class="string">&quot;{json_obj}&quot;</span>);
     <span class="prelude-val">Ok</span>(())
