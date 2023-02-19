@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":[["boxed","Convert a [`http_body::Body`] into a [`BoxBody`]."]],"struct":[["StreamBody","An [`http_body::Body`] created from a `Stream`."]],"type":[["BoxBody","A boxed [`Body`] trait object."]]};

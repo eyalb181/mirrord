@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["SyncFuture","`Future` which is `Sync`."],["SyncWrapper","A mutual exclusion primitive that relies on static type information only"]]};

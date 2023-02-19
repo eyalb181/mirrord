@@ -130,19 +130,19 @@ and the inner service responds with <code>500 Internal Server Error</code> then 
 in this case since the response was classified as a failure.</p>
 <h4 id="on_body_chunk"><a href="#on_body_chunk"><code>on_body_chunk</code></a></h4>
 <p>The <code>on_body_chunk</code> callback is called when the response body produces a new
-chunk, that is when <a href="https://docs.rs/http-body/0.4.5/http_body/trait.Body.html#tymethod.poll_data"><code>Body::poll_data</code></a> returns <code>Poll::Ready(Some(Ok(chunk)))</code>.</p>
+chunk, that is when <a href="../../http_body/trait.Body.html#tymethod.poll_data"><code>Body::poll_data</code></a> returns <code>Poll::Ready(Some(Ok(chunk)))</code>.</p>
 <p><code>on_body_chunk</code> is called even if the chunk is empty.</p>
 <h4 id="on_eos"><a href="#on_eos"><code>on_eos</code></a></h4>
 <p>The <code>on_eos</code> callback is called when a streaming response body ends, that is
-when <a href="https://docs.rs/http-body/0.4.5/http_body/trait.Body.html#tymethod.poll_trailers"><code>Body::poll_trailers</code></a> returns <code>Poll::Ready(Ok(trailers))</code>.</p>
+when <a href="../../http_body/trait.Body.html#tymethod.poll_trailers"><code>Body::poll_trailers</code></a> returns <code>Poll::Ready(Ok(trailers))</code>.</p>
 <p><code>on_eos</code> is called even if the trailers produced are <code>None</code>.</p>
 <h4 id="on_failure"><a href="#on_failure"><code>on_failure</code></a></h4>
 <p>The <code>on_failure</code> callback is called when:</p>
 <ul>
 <li>The inner <a href="../../tower_service/trait.Service.html"><code>Service</code></a>’s response future resolves to an error.</li>
 <li>A response is classified as a failure.</li>
-<li><a href="https://docs.rs/http-body/0.4.5/http_body/trait.Body.html#tymethod.poll_data"><code>Body::poll_data</code></a> returns an error.</li>
-<li><a href="https://docs.rs/http-body/0.4.5/http_body/trait.Body.html#tymethod.poll_trailers"><code>Body::poll_trailers</code></a> returns an error.</li>
+<li><a href="../../http_body/trait.Body.html#tymethod.poll_data"><code>Body::poll_data</code></a> returns an error.</li>
+<li><a href="../../http_body/trait.Body.html#tymethod.poll_trailers"><code>Body::poll_trailers</code></a> returns an error.</li>
 <li>An end-of-stream is classified as a failure.</li>
 </ul>
 <h2 id="recording-fields-on-the-span"><a href="#recording-fields-on-the-span">Recording fields on the span</a></h2>
