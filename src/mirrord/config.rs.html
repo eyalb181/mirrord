@@ -250,6 +250,14 @@
 <a href="#250" id="250">250</a>
 <a href="#251" id="251">251</a>
 <a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
 </pre><pre class="rust"><code><span class="attr">#![deny(missing_docs)]
 
 </span><span class="kw">use </span>std::path::PathBuf;
@@ -287,7 +295,7 @@
 
     <span class="doccomment">/// Internal proxy - used to aggregate connections from multiple layers
     </span><span class="attr">#[command(hide = <span class="bool-val">true</span>, name = <span class="string">&quot;intproxy&quot;</span>)]
-    </span>InternalProxy,
+    </span>InternalProxy(Box&lt;InternalProxyArgs&gt;),
 }
 
 <span class="attr">#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]
@@ -501,6 +509,14 @@
     <span class="doccomment">/// Specify target
     </span><span class="attr">#[arg(short = <span class="string">&#39;t&#39;</span>)]
     </span><span class="kw">pub </span>target: <span class="prelude-ty">Option</span>&lt;String&gt;,
+}
+
+<span class="attr">#[derive(Args, Debug)]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>InternalProxyArgs {
+    <span class="doccomment">/// Launch timeout until we get first connection.
+    /// If layer doesn&#39;t connect in this time, we timeout and exit.
+    </span><span class="attr">#[arg(short = <span class="string">&#39;t&#39;</span>, default_value_t = <span class="number">2</span>)]
+    </span><span class="kw">pub </span>timeout: u64,
 }
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="mirrord" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (001a77fac 2023-01-30)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-7c23ac01f615ce90.css" ></div></body></html>

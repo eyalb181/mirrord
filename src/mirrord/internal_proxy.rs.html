@@ -195,10 +195,6 @@
 <a href="#195" id="195">195</a>
 <a href="#196" id="196">196</a>
 <a href="#197" id="197">197</a>
-<a href="#198" id="198">198</a>
-<a href="#199" id="199">199</a>
-<a href="#200" id="200">200</a>
-<a href="#201" id="201">201</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Internal proxy is accepting connection from local layers and forward it to agent
 //! while having 1:1 relationship - each layer connection is another agent connection.
 //!
@@ -230,11 +226,10 @@
 };
 <span class="kw">use </span>tracing::{error, log::trace};
 
-<span class="kw">use </span><span class="kw">crate</span>::error::{InternalProxyError, <span class="prelude-ty">Result</span>};
-
-<span class="doccomment">/// Launch timeout until we get first connection.
-/// If layer doesn&#39;t connect in this time, we timeout and exit.
-</span><span class="kw">const </span>FIRST_CONNECTION_TIMEOUT: u64 = <span class="number">5</span>;
+<span class="kw">use crate</span>::{
+    config::InternalProxyArgs,
+    error::{InternalProxyError, <span class="prelude-ty">Result</span>},
+};
 
 <span class="doccomment">/// Print the port for the caller (mirrord cli execution flow) so it can pass it
 /// back to the layer instances via env var.
@@ -295,7 +290,7 @@
 
 <span class="doccomment">/// Main entry point for the internal proxy.
 /// It listens for inbound layer connect and forwards to agent.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>proxy() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>proxy(args: InternalProxyArgs) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="comment">// Let it assign port for us then print it for the user.
     </span><span class="kw">let </span>listener = TcpListener::bind(SocketAddrV4::new(Ipv4Addr::LOCALHOST, <span class="number">0</span>))
         .<span class="kw">await
@@ -309,13 +304,10 @@
     print_port(<span class="kw-2">&amp;</span>listener)<span class="question-mark">?</span>;
 
     <span class="comment">// wait for first connection `FIRST_CONNECTION_TIMEOUT` seconds, or timeout.
-    </span><span class="kw">let </span>(stream, <span class="kw">_</span>) = timeout(
-        Duration::from_secs(FIRST_CONNECTION_TIMEOUT),
-        listener.accept(),
-    )
-    .<span class="kw">await
-    </span>.map_err(|<span class="kw">_</span>| InternalProxyError::FirstConnectionTimeout)<span class="question-mark">?
-    </span>.map_err(InternalProxyError::AcceptError)<span class="question-mark">?</span>;
+    </span><span class="kw">let </span>(stream, <span class="kw">_</span>) = timeout(Duration::from_secs(args.timeout), listener.accept())
+        .<span class="kw">await
+        </span>.map_err(|<span class="kw">_</span>| InternalProxyError::FirstConnectionTimeout)<span class="question-mark">?
+        </span>.map_err(InternalProxyError::AcceptError)<span class="question-mark">?</span>;
 
     <span class="kw">let </span><span class="kw-2">mut </span>active_connections = JoinSet::new();
 

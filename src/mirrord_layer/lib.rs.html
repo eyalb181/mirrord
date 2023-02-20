@@ -1171,7 +1171,7 @@
                     .with_writer(tracing_util::file_tracing_writer())
                     .with_ansi(<span class="bool-val">false</span>)
                     .with_thread_ids(<span class="bool-val">true</span>)
-                    .with_span_events(FmtSpan::ACTIVE),
+                    .with_span_events(FmtSpan::NEW | FmtSpan::CLOSE),
             )
             .with(tracing_subscriber::EnvFilter::new(<span class="string">&quot;mirrord=trace&quot;</span>))
             .init();
@@ -1184,7 +1184,7 @@
             .with(
                 tracing_subscriber::fmt::layer()
                     .with_thread_ids(<span class="bool-val">true</span>)
-                    .with_span_events(FmtSpan::ACTIVE)
+                    .with_span_events(FmtSpan::NEW | FmtSpan::CLOSE)
                     .compact()
                     .with_writer(std::io::stderr),
             )

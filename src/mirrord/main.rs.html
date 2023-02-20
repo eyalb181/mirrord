@@ -523,7 +523,7 @@
         }
     }
 
-    <span class="kw">let </span>execution_info = MirrordExecution::start(<span class="kw-2">&amp;</span>config, progress).<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="kw">let </span>execution_info = MirrordExecution::start(<span class="kw-2">&amp;</span>config, progress, <span class="prelude-val">None</span>).<span class="kw">await</span><span class="question-mark">?</span>;
 
     <span class="comment">// Stop confusion with layer
     </span>std::env::set_var(mirrord_progress::MIRRORD_PROGRESS_ENV, <span class="string">&quot;off&quot;</span>);
@@ -660,7 +660,7 @@
         Commands::Login(args) =&gt; login(args)<span class="question-mark">?</span>,
         Commands::Operator(args) =&gt; operator_command(<span class="kw-2">*</span>args).<span class="kw">await</span><span class="question-mark">?</span>,
         Commands::ExtensionExec(args) =&gt; extension_exec(<span class="kw-2">*</span>args).<span class="kw">await</span><span class="question-mark">?</span>,
-        Commands::InternalProxy =&gt; internal_proxy::proxy().<span class="kw">await</span><span class="question-mark">?</span>,
+        Commands::InternalProxy(args) =&gt; internal_proxy::proxy(<span class="kw-2">*</span>args).<span class="kw">await</span><span class="question-mark">?</span>,
     }
 
     <span class="prelude-val">Ok</span>(())
