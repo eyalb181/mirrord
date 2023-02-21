@@ -150,6 +150,10 @@
 <a href="#150" id="150">150</a>
 <a href="#151" id="151">151</a>
 <a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
 </pre><pre class="rust"><code><span class="kw">use </span>futures::{SinkExt, StreamExt};
 <span class="kw">use </span>http::request::Request;
 <span class="kw">use </span>kube::{error::ErrorResponse, Api, Client};
@@ -201,7 +205,11 @@
     <span class="kw">async fn </span>new(config: <span class="kw-2">&amp;</span>LayerConfig) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>target_config = config.target.clone();
 
-        <span class="kw">let </span>client = create_kube_api(<span class="prelude-val">Some</span>(config.clone())).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let </span>client = create_kube_api(
+            config.accept_invalid_certificates,
+            config.kubeconfig.clone(),
+        )
+        .<span class="kw">await</span><span class="question-mark">?</span>;
 
         <span class="kw">let </span>target_api: Api&lt;TargetCrd&gt; =
             get_k8s_resource_api(<span class="kw-2">&amp;</span>client, target_config.namespace.as_deref());

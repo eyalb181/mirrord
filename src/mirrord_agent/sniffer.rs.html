@@ -557,6 +557,10 @@
 <a href="#557" id="557">557</a>
 <a href="#558" id="558">558</a>
 <a href="#559" id="559">559</a>
+<a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
+<a href="#563" id="563">563</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     collections::{HashMap, HashSet},
     hash::{Hash, Hasher},
@@ -826,7 +830,11 @@
             </span>}
             LayerTcp::PortUnsubscribe(port) =&gt; <span class="self">self</span>.port_unsubscribe(port).<span class="kw">await</span>,
         }
-    }
+        .map_err(|<span class="kw">_</span>| AgentError::SnifferApiError)
+        <span class="comment">// Translate all errors to a single error type
+        // so we can notify the user the sniffer api is unavailable.
+        // and steal might work for them.
+    </span>}
 }
 
 <span class="kw">impl </span>Drop <span class="kw">for </span>TcpSnifferApi {

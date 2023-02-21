@@ -149,9 +149,16 @@
 <a href="#149" id="149">149</a>
 <a href="#150" id="150">150</a>
 <a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{fs::File, path::PathBuf, time::Duration};
 
 <span class="kw">use </span>kube::Api;
+<span class="kw">use </span>mirrord_config::{config::MirrordConfig, LayerFileConfig};
 <span class="kw">use </span>mirrord_kube::{api::kubernetes::create_kube_api, error::KubeApiError};
 <span class="kw">use </span>mirrord_operator::{
     client::OperatorApiError,
@@ -215,14 +222,19 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">async fn </span>operator_status() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+<span class="kw">async fn </span>operator_status(config: <span class="prelude-ty">Option</span>&lt;String&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">let </span>progress = TaskProgress::new(<span class="string">&quot;Operator Status&quot;</span>).fail_on_drop(<span class="bool-val">true</span>);
 
-    <span class="kw">let </span>status_api: Api&lt;MirrordOperatorCrd&gt; = Api::all(
-        create_kube_api(<span class="prelude-val">None</span>)
-            .<span class="kw">await
-            </span>.map_err(CliError::KubernetesApiFailed)<span class="question-mark">?</span>,
-    );
+    <span class="kw">let </span>kube_api = <span class="kw">if let </span><span class="prelude-val">Some</span>(config_path) = config {
+        <span class="kw">let </span>config = LayerFileConfig::from_path(config_path)<span class="question-mark">?</span>.generate_config()<span class="question-mark">?</span>;
+        create_kube_api(config.accept_invalid_certificates, config.kubeconfig)
+    } <span class="kw">else </span>{
+        create_kube_api(<span class="bool-val">false</span>, <span class="prelude-val">None</span>)
+    }
+    .<span class="kw">await
+    </span>.map_err(CliError::KubernetesApiFailed)<span class="question-mark">?</span>;
+
+    <span class="kw">let </span>status_api: Api&lt;MirrordOperatorCrd&gt; = Api::all(kube_api);
 
     <span class="kw">let </span>status_progress = progress.subtask(<span class="string">&quot;Fetching Status&quot;</span>);
 
@@ -297,7 +309,7 @@ Operator License
             namespace,
             license_key,
         } =&gt; operator_setup(accept_tos, file, namespace, license_key).<span class="kw">await</span>,
-        OperatorCommand::Status =&gt; operator_status().<span class="kw">await</span>,
+        OperatorCommand::Status { config_file } =&gt; operator_status(config_file).<span class="kw">await</span>,
     }
 }
 </code></pre></div>

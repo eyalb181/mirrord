@@ -258,6 +258,18 @@
 <a href="#258" id="258">258</a>
 <a href="#259" id="259">259</a>
 <a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
 </pre><pre class="rust"><code><span class="attr">#![deny(missing_docs)]
 
 </span><span class="kw">use </span>std::path::PathBuf;
@@ -476,7 +488,11 @@
         </span><span class="attr">#[arg(short, long, default_value = <span class="string">&quot;mirrord&quot;</span>)]
         </span>namespace: OperatorNamespace,
     },
-    Status,
+    Status {
+        <span class="doccomment">/// Specify config file to use
+        </span><span class="attr">#[arg(short = <span class="string">&#39;f&#39;</span>)]
+        </span>config_file: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    },
 }
 
 <span class="attr">#[derive(ValueEnum, Clone, Debug)]
@@ -499,6 +515,10 @@
     <span class="doccomment">/// Specify the namespace to list targets in.
     </span><span class="attr">#[arg(short = <span class="string">&#39;n&#39;</span>, long = <span class="string">&quot;namespace&quot;</span>)]
     </span><span class="kw">pub </span>namespace: <span class="prelude-ty">Option</span>&lt;String&gt;,
+
+    <span class="doccomment">/// Specify config file to use
+    </span><span class="attr">#[arg(short = <span class="string">&#39;f&#39;</span>)]
+    </span><span class="kw">pub </span>config_file: <span class="prelude-ty">Option</span>&lt;String&gt;,
 }
 
 <span class="attr">#[derive(Args, Debug)]
@@ -517,6 +537,10 @@
     /// If layer doesn&#39;t connect in this time, we timeout and exit.
     </span><span class="attr">#[arg(short = <span class="string">&#39;t&#39;</span>, default_value_t = <span class="number">2</span>)]
     </span><span class="kw">pub </span>timeout: u64,
+
+    <span class="doccomment">/// Specify config file to use
+    </span><span class="attr">#[arg(short = <span class="string">&#39;f&#39;</span>)]
+    </span><span class="kw">pub </span>config_file: <span class="prelude-ty">Option</span>&lt;String&gt;,
 }
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="mirrord" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (001a77fac 2023-01-30)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-7c23ac01f615ce90.css" ></div></body></html>

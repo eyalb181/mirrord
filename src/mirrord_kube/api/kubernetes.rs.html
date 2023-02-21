@@ -167,8 +167,8 @@
 <a href="#167" id="167">167</a>
 <a href="#168" id="168">168</a>
 <a href="#169" id="169">169</a>
-<a href="#170" id="170">170</a>
-</pre><pre class="rust"><code><span class="attr">#[cfg(feature = <span class="string">&quot;incluster&quot;</span>)]
+</pre><pre class="rust"><code><span class="kw">use </span>std::path::Path;
+<span class="attr">#[cfg(feature = <span class="string">&quot;incluster&quot;</span>)]
 </span><span class="kw">use </span>std::time::Duration;
 
 <span class="kw">use </span>async_trait::async_trait;
@@ -184,7 +184,7 @@
 <span class="attr">#[cfg(feature = <span class="string">&quot;incluster&quot;</span>)]
 </span><span class="kw">use </span>tokio::net::TcpStream;
 <span class="kw">use </span>tokio::sync::mpsc;
-<span class="kw">use </span>tracing::{info, trace, warn};
+<span class="kw">use </span>tracing::{info, trace};
 
 <span class="kw">use crate</span>::{
     api::{
@@ -204,7 +204,11 @@
 
 <span class="kw">impl </span>KubernetesAPI {
     <span class="kw">pub async fn </span>create(config: <span class="kw-2">&amp;</span>LayerConfig) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">let </span>client = create_kube_api(<span class="prelude-val">Some</span>(config.clone())).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let </span>client = create_kube_api(
+            config.accept_invalid_certificates,
+            config.kubeconfig.clone(),
+        )
+        .<span class="kw">await</span><span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(KubernetesAPI::new(
             client,
@@ -316,27 +320,21 @@
     }
 }
 
-<span class="kw">pub async fn </span>create_kube_api(config: <span class="prelude-ty">Option</span>&lt;LayerConfig&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Client&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>kube_config = Config::infer().<span class="kw">await</span><span class="question-mark">?</span>;
-
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(config) = config {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(kube_config_file) = config.kubeconfig {
-            <span class="kw">let </span>parsed_kube_config = Kubeconfig::read_from(kube_config_file)<span class="question-mark">?</span>;
-            kube_config =
-                Config::from_custom_kubeconfig(parsed_kube_config, <span class="kw-2">&amp;</span>KubeConfigOptions::default())
-                    .<span class="kw">await</span><span class="question-mark">?</span>;
-        }
-
-        <span class="kw">if </span>config.accept_invalid_certificates {
-            kube_config.accept_invalid_certs = <span class="bool-val">true</span>;
-            <span class="comment">// Only warn the first time connecting to the agent, not on child processes.
-            </span><span class="kw">if </span>config.connect_agent_name.is_none() {
-                <span class="macro">warn!</span>(<span class="string">&quot;Accepting invalid certificates&quot;</span>);
-            }
-        }
-    }
-
-    Client::try_from(kube_config).map_err(KubeApiError::from)
+<span class="kw">pub async fn </span>create_kube_api&lt;P&gt;(
+    accept_invalid_certificates: bool,
+    kubeconfig: <span class="prelude-ty">Option</span>&lt;P&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;Client&gt;
+<span class="kw">where
+    </span>P: AsRef&lt;Path&gt;,
+{
+    <span class="kw">let </span><span class="kw-2">mut </span>config = <span class="kw">if let </span><span class="prelude-val">Some</span>(kubeconfig) = kubeconfig {
+        <span class="kw">let </span>parsed_kube_config = Kubeconfig::read_from(kubeconfig)<span class="question-mark">?</span>;
+        Config::from_custom_kubeconfig(parsed_kube_config, <span class="kw-2">&amp;</span>KubeConfigOptions::default()).<span class="kw">await</span><span class="question-mark">?
+    </span>} <span class="kw">else </span>{
+        Config::infer().<span class="kw">await</span><span class="question-mark">?
+    </span>};
+    config.accept_invalid_certs = accept_invalid_certificates;
+    Client::try_from(config).map_err(KubeApiError::from)
 }
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="mirrord_kube" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (001a77fac 2023-01-30)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-7c23ac01f615ce90.css" ></div></body></html>

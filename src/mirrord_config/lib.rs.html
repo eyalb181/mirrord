@@ -461,6 +461,10 @@
 <a href="#461" id="461">461</a>
 <a href="#462" id="462">462</a>
 <a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a>
 </pre><pre class="rust"><code><span class="attr">#![feature(slice_concat_trait)]
 #![feature(once_cell)]
 #![feature(result_option_inspect)]
@@ -481,7 +485,7 @@
 ///
 /// Remember to re-generate the `mirrord-schema.json` if you make **ANY** changes to this lib,
 /// including if you only made documentation changes.
-</span><span class="kw">use </span>std::path::{Path, PathBuf};
+</span><span class="kw">use </span>std::path::Path;
 
 <span class="kw">use </span>config::{ConfigError, MirrordConfig};
 <span class="kw">use </span>mirrord_config_derive::MirrordConfig;
@@ -594,7 +598,7 @@
 <span class="kw">impl </span>LayerConfig {
     <span class="kw">pub fn </span>from_env() -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, ConfigError&gt; {
         <span class="kw">if let </span><span class="prelude-val">Ok</span>(path) = std::env::var(<span class="string">&quot;MIRRORD_CONFIG_FILE&quot;</span>) {
-            LayerFileConfig::from_path(<span class="kw-2">&amp;</span>PathBuf::from(path))<span class="question-mark">?</span>.generate_config()
+            LayerFileConfig::from_path(path)<span class="question-mark">?</span>.generate_config()
         } <span class="kw">else </span>{
             LayerFileConfig::default().generate_config()
         }
@@ -602,7 +606,11 @@
 }
 
 <span class="kw">impl </span>LayerFileConfig {
-    <span class="kw">pub fn </span>from_path(path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, ConfigError&gt; {
+    <span class="kw">pub fn </span>from_path&lt;P&gt;(path: P) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, ConfigError&gt;
+    <span class="kw">where
+        </span>P: AsRef&lt;Path&gt;,
+    {
+        <span class="kw">let </span>path = path.as_ref();
         <span class="kw">let </span>file = std::fs::read(path)<span class="question-mark">?</span>;
 
         <span class="kw">match </span>path.extension().and_then(|os_val| os_val.to_str()) {

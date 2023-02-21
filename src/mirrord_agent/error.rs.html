@@ -124,6 +124,13 @@
 <a href="#124" id="124">124</a>
 <a href="#125" id="125">125</a>
 <a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
 </pre><pre class="rust"><code><span class="kw">use </span>mirrord_protocol::{
     outgoing::{
         tcp::{DaemonTcpOutgoing, LayerTcpOutgoing},
@@ -247,6 +254,13 @@
 
     <span class="attr">#[error(<span class="string">&quot;Failed to encode a an HTTP response with error: `{0}`&quot;</span>)]
     </span>HttpEncoding(<span class="attr">#[from] </span>hyper::http::Error),
+
+    <span class="attr">#[error(
+        <span class="string">r#&quot;Couldn&#39;t send message to sniffer (mirror) api, sniffer probably not running. 
+        Possible reason can be node kernel version before 4.20
+        Check agent logs for errors and please report a bug if kernel version &gt;=4.20&quot;#
+    </span>)]
+    </span>SnifferApiError,
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span><span class="prelude-ty">Result</span>&lt;T, E = AgentError&gt; = std::result::Result&lt;T, E&gt;;
