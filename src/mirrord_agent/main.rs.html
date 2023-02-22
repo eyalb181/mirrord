@@ -624,6 +624,7 @@
 <a href="#624" id="624">624</a>
 <a href="#625" id="625">625</a>
 <a href="#626" id="626">626</a>
+<a href="#627" id="627">627</a>
 </pre><pre class="rust"><code><span class="attr">#![feature(result_option_inspect)]
 #![feature(hash_drain_filter)]
 #![feature(once_cell)]
@@ -907,6 +908,7 @@
                                 <span class="kw">break</span>;
                             }
                             <span class="prelude-val">Err</span>(e) =&gt; {
+                                <span class="macro">error!</span>(<span class="string">&quot;Error handling client message: {e:?}&quot;</span>);
                                 <span class="self">self</span>.respond(DaemonMessage::Close(<span class="macro">format!</span>(<span class="string">&quot;{e:?}&quot;</span>))).<span class="kw">await</span><span class="question-mark">?</span>;
                                 <span class="kw">break</span>;
                             }
