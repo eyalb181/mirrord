@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":[["cert_der_as_trust_anchor","Deprecated. Use TrustAnchor::try_from_cert_der."]]};
