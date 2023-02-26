@@ -205,6 +205,9 @@
 <a href="#205" id="205">205</a>
 <a href="#206" id="206">206</a>
 <a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     borrow::Borrow,
     collections::HashSet,
@@ -226,7 +229,7 @@
     time::sleep,
 };
 <span class="kw">use </span>tokio_stream::{wrappers::ReceiverStream, StreamExt};
-<span class="kw">use </span>tracing::{debug, error, trace, warn};
+<span class="kw">use </span>tracing::{debug, error, info, trace, warn};
 
 <span class="kw">use crate</span>::{
     error::{LayerError, <span class="prelude-ty">Result</span>},
@@ -391,10 +394,13 @@
     </span><span class="kw">async fn </span>handle_listen(<span class="kw-2">&amp;mut </span><span class="self">self</span>, listen: Listen, tx: <span class="kw-2">&amp;</span>Sender&lt;ClientMessage&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span>port = listen.requested_port;
 
-        <span class="self">self</span>.ports_mut()
-            .insert(listen)
-            .then_some(())
-            .ok_or(LayerError::ListenAlreadyExists)<span class="question-mark">?</span>;
+        <span class="kw">if </span>!<span class="self">self</span>.ports_mut().insert(listen) {
+            <span class="macro">info!</span>(
+                <span class="string">&quot;Port {} already listening, might be on different address&quot;</span>,
+                port
+            );
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+        }
 
         tx.send(ClientMessage::Tcp(LayerTcp::PortSubscribe(port)))
             .<span class="kw">await

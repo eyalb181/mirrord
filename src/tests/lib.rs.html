@@ -840,7 +840,59 @@
 <a href="#840" id="840">840</a>
 <a href="#841" id="841">841</a>
 <a href="#842" id="842">842</a>
+<a href="#843" id="843">843</a>
+<a href="#844" id="844">844</a>
+<a href="#845" id="845">845</a>
+<a href="#846" id="846">846</a>
+<a href="#847" id="847">847</a>
+<a href="#848" id="848">848</a>
+<a href="#849" id="849">849</a>
+<a href="#850" id="850">850</a>
+<a href="#851" id="851">851</a>
+<a href="#852" id="852">852</a>
+<a href="#853" id="853">853</a>
+<a href="#854" id="854">854</a>
+<a href="#855" id="855">855</a>
+<a href="#856" id="856">856</a>
+<a href="#857" id="857">857</a>
+<a href="#858" id="858">858</a>
+<a href="#859" id="859">859</a>
+<a href="#860" id="860">860</a>
+<a href="#861" id="861">861</a>
+<a href="#862" id="862">862</a>
+<a href="#863" id="863">863</a>
+<a href="#864" id="864">864</a>
+<a href="#865" id="865">865</a>
+<a href="#866" id="866">866</a>
+<a href="#867" id="867">867</a>
+<a href="#868" id="868">868</a>
+<a href="#869" id="869">869</a>
+<a href="#870" id="870">870</a>
+<a href="#871" id="871">871</a>
+<a href="#872" id="872">872</a>
+<a href="#873" id="873">873</a>
+<a href="#874" id="874">874</a>
+<a href="#875" id="875">875</a>
+<a href="#876" id="876">876</a>
+<a href="#877" id="877">877</a>
+<a href="#878" id="878">878</a>
+<a href="#879" id="879">879</a>
+<a href="#880" id="880">880</a>
+<a href="#881" id="881">881</a>
+<a href="#882" id="882">882</a>
+<a href="#883" id="883">883</a>
+<a href="#884" id="884">884</a>
+<a href="#885" id="885">885</a>
+<a href="#886" id="886">886</a>
+<a href="#887" id="887">887</a>
+<a href="#888" id="888">888</a>
+<a href="#889" id="889">889</a>
+<a href="#890" id="890">890</a>
+<a href="#891" id="891">891</a>
+<a href="#892" id="892">892</a>
+<a href="#893" id="893">893</a>
 </pre><pre class="rust"><code><span class="attr">#![feature(stmt_expr_attributes)]
+
 </span><span class="kw">mod </span>env;
 <span class="kw">mod </span>file_ops;
 <span class="kw">mod </span>http;
@@ -866,13 +918,13 @@
     <span class="kw">use </span>futures_util::stream::{StreamExt, TryStreamExt};
     <span class="kw">use </span>k8s_openapi::api::{
         apps::v1::Deployment,
-        core::v1::{Pod, Service},
+        core::v1::{Namespace, Pod, Service},
     };
     <span class="kw">use </span>kube::{
         api::{DeleteParams, ListParams, PostParams},
         core::WatchEvent,
         runtime::wait::{await_condition, conditions::is_pod_running},
-        Api, Client, Config,
+        Api, Client, Config, Error,
     };
     <span class="kw">use </span>rand::{distributions::Alphanumeric, Rng};
     <span class="kw">use </span>reqwest::{RequestBuilder, StatusCode};
@@ -1252,14 +1304,15 @@
 
     <span class="kw">impl </span>ResourceGuard {
         <span class="doccomment">/// Creates a resource and spawns a task to delete it when dropped
+        /// Returns Error if already exists.
         /// I&#39;m not sure why I have to add the `static here but this works?
         </span><span class="kw">pub async fn </span>create&lt;K: Debug + Clone + DeserializeOwned + Serialize + <span class="lifetime">&#39;static</span>&gt;(
             api: <span class="kw-2">&amp;</span>Api&lt;K&gt;,
             name: String,
             data: <span class="kw-2">&amp;</span>K,
             delete_on_fail: bool,
-        ) -&gt; ResourceGuard {
-            api.create(<span class="kw-2">&amp;</span>PostParams::default(), data).<span class="kw">await</span>.unwrap();
+        ) -&gt; <span class="prelude-ty">Result</span>&lt;ResourceGuard, Error&gt; {
+            api.create(<span class="kw-2">&amp;</span>PostParams::default(), data).<span class="kw">await</span><span class="question-mark">?</span>;
             <span class="kw">let </span>cancel_token = CancellationToken::new();
             <span class="kw">let </span>resource_token = cancel_token.clone();
             <span class="kw">let </span>barrier = std::sync::Arc::new(std::sync::Barrier::new(<span class="number">2</span>));
@@ -1276,12 +1329,12 @@
                     </span>.unwrap();
                 barrier.wait();
             });
-            <span class="self">Self </span>{
+            <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
                 guard: <span class="prelude-val">Some</span>(resource_token.drop_guard()),
                 barrier: guard_barrier,
                 handle,
                 delete_on_fail,
-            }
+            })
         }
     }
 
@@ -1299,12 +1352,16 @@
         }
     }
 
-    <span class="kw">pub struct </span>KubeService {
+    <span class="doccomment">/// A service deployed to the kubernetes cluster.
+    /// Service is meant as in &quot;Microservice&quot;, not as in the Kubernetes resource called Service.
+    /// This includes a Deployment resource, a Service resource and optionally a Namespace.
+    </span><span class="kw">pub struct </span>KubeService {
         <span class="kw">pub </span>name: String,
         <span class="kw">pub </span>namespace: String,
         <span class="kw">pub </span>target: String,
         _pod: ResourceGuard,
         _service: ResourceGuard,
+        _namespace: <span class="prelude-ty">Option</span>&lt;ResourceGuard&gt;,
     }
 
     <span class="doccomment">/// randomize_name: should a random suffix be added to the end of resource names? e.g.
@@ -1312,15 +1369,16 @@
     /// delete_after_fail: delete resources even if the test fails.
     </span><span class="attr">#[fixture]
     </span><span class="kw">pub async fn </span>service(
-        <span class="attr">#[future] </span>kube_client: Client,
         <span class="attr">#[default(<span class="string">&quot;default&quot;</span>)] </span>namespace: <span class="kw-2">&amp;</span>str,
         <span class="attr">#[default(<span class="string">&quot;NodePort&quot;</span>)] </span>service_type: <span class="kw-2">&amp;</span>str,
         <span class="attr">#[default(<span class="string">&quot;ghcr.io/metalbear-co/mirrord-pytest:latest&quot;</span>)] </span>image: <span class="kw-2">&amp;</span>str,
         <span class="attr">#[default(<span class="string">&quot;http-echo&quot;</span>)] </span>service_name: <span class="kw-2">&amp;</span>str,
         <span class="attr">#[default(<span class="bool-val">true</span>)] </span>randomize_name: bool,
         <span class="attr">#[default(<span class="bool-val">false</span>)] </span>delete_after_fail: bool,
+        <span class="attr">#[future] </span>kube_client: Client,
     ) -&gt; KubeService {
         <span class="kw">let </span>kube_client = kube_client.<span class="kw">await</span>;
+        <span class="kw">let </span>namespace_api: Api&lt;Namespace&gt; = Api::all(kube_client.clone());
         <span class="kw">let </span>deployment_api: Api&lt;Deployment&gt; = Api::namespaced(kube_client.clone(), namespace);
         <span class="kw">let </span>service_api: Api&lt;Service&gt; = Api::namespaced(kube_client.clone(), namespace);
         <span class="kw">let </span>name;
@@ -1336,6 +1394,30 @@
                 .delete(service_name, <span class="kw-2">&amp;</span>DeleteParams::default())
                 .<span class="kw">await</span>;
             name = service_name.to_string();
+        }
+
+        <span class="kw">let </span>namespace_resource: Namespace = serde_json::from_value(<span class="macro">json!</span>({
+            <span class="string">&quot;apiVersion&quot;</span>: <span class="string">&quot;v1&quot;</span>,
+            <span class="string">&quot;kind&quot;</span>: <span class="string">&quot;Namespace&quot;</span>,
+            <span class="string">&quot;metadata&quot;</span>: {
+                <span class="string">&quot;name&quot;</span>: namespace,
+            },
+        }))
+        .unwrap();
+
+        <span class="comment">// Create namespace if does not yet exist. If already exits, it will also not going to be
+        // deleted when the calling test is done.
+        </span><span class="kw">let </span>namespace_guard = ResourceGuard::create(
+            <span class="kw-2">&amp;</span>namespace_api,
+            namespace.to_string(),
+            <span class="kw-2">&amp;</span>namespace_resource,
+            delete_after_fail,
+        )
+        .<span class="kw">await
+        </span>.ok();
+
+        <span class="kw">if </span>namespace_guard.is_some() {
+            watch_resource_exists(<span class="kw-2">&amp;</span>namespace_api, namespace).<span class="kw">await</span>;
         }
 
         <span class="kw">let </span>deployment: Deployment = serde_json::from_value(<span class="macro">json!</span>({
@@ -1397,7 +1479,8 @@
             <span class="kw-2">&amp;</span>deployment,
             delete_after_fail,
         )
-        .<span class="kw">await</span>;
+        .<span class="kw">await
+        </span>.unwrap();
         watch_resource_exists(<span class="kw-2">&amp;</span>deployment_api, <span class="kw-2">&amp;</span>name).<span class="kw">await</span>;
 
         <span class="kw">let </span>service: Service = serde_json::from_value(<span class="macro">json!</span>({
@@ -1434,7 +1517,8 @@
 
         <span class="kw">let </span>service_guard =
             ResourceGuard::create(<span class="kw-2">&amp;</span>service_api, name.to_string(), <span class="kw-2">&amp;</span>service, delete_after_fail)
-                .<span class="kw">await</span>;
+                .<span class="kw">await
+                </span>.unwrap();
         watch_resource_exists(<span class="kw-2">&amp;</span>service_api, <span class="string">&quot;default&quot;</span>).<span class="kw">await</span>;
 
         <span class="kw">let </span>target = get_pod_instance(<span class="kw-2">&amp;</span>kube_client, <span class="kw-2">&amp;</span>name, namespace)
@@ -1451,6 +1535,7 @@
             target: <span class="macro">format!</span>(<span class="string">&quot;pod/{target}/container/{CONTAINER_NAME}&quot;</span>),
             _pod: pod_guard,
             _service: service_guard,
+            _namespace: namespace_guard,
         }
     }
 
@@ -1460,13 +1545,13 @@
     </span><span class="attr">#[fixture]
     </span><span class="kw">pub async fn </span>udp_logger_service(<span class="attr">#[future] </span>kube_client: Client) -&gt; KubeService {
         service(
-            kube_client,
             <span class="string">&quot;default&quot;</span>,
             <span class="string">&quot;ClusterIP&quot;</span>,
             <span class="string">&quot;ghcr.io/metalbear-co/mirrord-node-udp-logger:latest&quot;</span>,
             <span class="string">&quot;udp-logger&quot;</span>,
             <span class="bool-val">true</span>,
             <span class="bool-val">false</span>,
+            kube_client,
         )
         .<span class="kw">await
     </span>}
@@ -1474,13 +1559,13 @@
     <span class="attr">#[fixture]
     </span><span class="kw">pub async fn </span>http_logger_service(<span class="attr">#[future] </span>kube_client: Client) -&gt; KubeService {
         service(
-            kube_client,
             <span class="string">&quot;default&quot;</span>,
             <span class="string">&quot;ClusterIP&quot;</span>,
             <span class="string">&quot;ghcr.io/metalbear-co/mirrord-http-logger:latest&quot;</span>,
             <span class="string">&quot;mirrord-tests-http-logger&quot;</span>,
             <span class="bool-val">false</span>, <span class="comment">// So that requester can reach logger by name.
             </span><span class="bool-val">true</span>,
+            kube_client,
         )
         .<span class="kw">await
     </span>}
@@ -1488,7 +1573,6 @@
     <span class="attr">#[fixture]
     </span><span class="kw">pub async fn </span>http_log_requester_service(<span class="attr">#[future] </span>kube_client: Client) -&gt; KubeService {
         service(
-            kube_client,
             <span class="string">&quot;default&quot;</span>,
             <span class="string">&quot;ClusterIP&quot;</span>,
             <span class="string">&quot;ghcr.io/metalbear-co/mirrord-http-log-requester:latest&quot;</span>,
@@ -1497,7 +1581,8 @@
             // so that another requester does not send requests while this one is paused.
             </span><span class="bool-val">false</span>,
             <span class="bool-val">true</span>, <span class="comment">// Delete also on fail, cause this service constantly does work.
-        </span>)
+            </span>kube_client,
+        )
         .<span class="kw">await
     </span>}
 
@@ -1506,13 +1591,13 @@
     </span><span class="attr">#[fixture]
     </span><span class="kw">pub async fn </span>tcp_echo_service(<span class="attr">#[future] </span>kube_client: Client) -&gt; KubeService {
         service(
-            kube_client,
             <span class="string">&quot;default&quot;</span>,
             <span class="string">&quot;NodePort&quot;</span>,
             <span class="string">&quot;ghcr.io/metalbear-co/mirrord-tcp-echo:latest&quot;</span>,
             <span class="string">&quot;tcp-echo&quot;</span>,
             <span class="bool-val">true</span>,
             <span class="bool-val">false</span>,
+            kube_client,
         )
         .<span class="kw">await
     </span>}
@@ -1523,13 +1608,13 @@
     </span><span class="attr">#[fixture]
     </span><span class="kw">pub async fn </span>websocket_service(<span class="attr">#[future] </span>kube_client: Client) -&gt; KubeService {
         service(
-            kube_client,
             <span class="string">&quot;default&quot;</span>,
             <span class="string">&quot;NodePort&quot;</span>,
             <span class="string">&quot;ghcr.io/metalbear-co/mirrord-websocket:latest&quot;</span>,
             <span class="string">&quot;websocket&quot;</span>,
             <span class="bool-val">true</span>,
             <span class="bool-val">false</span>,
+            kube_client,
         )
         .<span class="kw">await
     </span>}
@@ -1539,13 +1624,30 @@
     </span><span class="attr">#[fixture]
     </span><span class="kw">pub async fn </span>hostname_service(<span class="attr">#[future] </span>kube_client: Client) -&gt; KubeService {
         service(
-            kube_client,
             <span class="string">&quot;default&quot;</span>,
             <span class="string">&quot;NodePort&quot;</span>,
             <span class="string">&quot;ghcr.io/metalbear-co/mirrord-pytest:latest&quot;</span>,
             <span class="string">&quot;hostname-echo&quot;</span>,
             <span class="bool-val">true</span>,
             <span class="bool-val">true</span>,
+            kube_client,
+        )
+        .<span class="kw">await
+    </span>}
+
+    <span class="attr">#[fixture]
+    </span><span class="kw">pub async fn </span>random_namespace_self_deleting_service(
+        <span class="attr">#[future] </span>kube_client: Client,
+    ) -&gt; KubeService {
+        <span class="kw">let </span>namespace = <span class="macro">format!</span>(<span class="string">&quot;random-namespace-{}&quot;</span>, random_string());
+        service(
+            <span class="kw-2">&amp;</span>namespace,
+            <span class="string">&quot;NodePort&quot;</span>,
+            <span class="string">&quot;ghcr.io/metalbear-co/mirrord-pytest:latest&quot;</span>,
+            <span class="string">&quot;pytest-echo&quot;</span>,
+            <span class="bool-val">true</span>,
+            <span class="bool-val">true</span>,
+            kube_client,
         )
         .<span class="kw">await
     </span>}

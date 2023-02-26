@@ -427,6 +427,9 @@
 <a href="#427" id="427">427</a>
 <a href="#428" id="428">428</a>
 <a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     collections::{HashMap, HashSet},
     net::SocketAddr,
@@ -593,10 +596,13 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), LayerError&gt; {
         <span class="kw">let </span>port = listen.requested_port;
 
-        <span class="self">self</span>.ports_mut()
-            .insert(listen)
-            .then_some(())
-            .ok_or(LayerError::ListenAlreadyExists)<span class="question-mark">?</span>;
+        <span class="kw">if </span>!<span class="self">self</span>.ports_mut().insert(listen) {
+            <span class="macro">info!</span>(
+                <span class="string">&quot;Port {} already listening, might be on different address&quot;</span>,
+                port
+            );
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+        }
 
         <span class="kw">let </span>steal_type = <span class="kw">if </span><span class="self">self</span>.http_ports.contains(<span class="kw-2">&amp;</span>port) &amp;&amp; <span class="kw">let </span><span class="prelude-val">Some</span>(filter_str) = <span class="self">self</span>.http_filter.take() {
             FilteredHttp(port, Filter::new(filter_str)<span class="question-mark">?</span>)

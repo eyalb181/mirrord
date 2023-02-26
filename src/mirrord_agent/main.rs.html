@@ -625,6 +625,28 @@
 <a href="#625" id="625">625</a>
 <a href="#626" id="626">626</a>
 <a href="#627" id="627">627</a>
+<a href="#628" id="628">628</a>
+<a href="#629" id="629">629</a>
+<a href="#630" id="630">630</a>
+<a href="#631" id="631">631</a>
+<a href="#632" id="632">632</a>
+<a href="#633" id="633">633</a>
+<a href="#634" id="634">634</a>
+<a href="#635" id="635">635</a>
+<a href="#636" id="636">636</a>
+<a href="#637" id="637">637</a>
+<a href="#638" id="638">638</a>
+<a href="#639" id="639">639</a>
+<a href="#640" id="640">640</a>
+<a href="#641" id="641">641</a>
+<a href="#642" id="642">642</a>
+<a href="#643" id="643">643</a>
+<a href="#644" id="644">644</a>
+<a href="#645" id="645">645</a>
+<a href="#646" id="646">646</a>
+<a href="#647" id="647">647</a>
+<a href="#648" id="648">648</a>
+<a href="#649" id="649">649</a>
 </pre><pre class="rust"><code><span class="attr">#![feature(result_option_inspect)]
 #![feature(hash_drain_filter)]
 #![feature(once_cell)]
@@ -644,6 +666,7 @@
 <span class="kw">use </span>error::{AgentError, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>file::FileManager;
 <span class="kw">use </span>futures::{
+    executor,
     stream::{FuturesUnordered, StreamExt},
     SinkExt, TryFutureExt,
 };
@@ -659,7 +682,7 @@
     time::{timeout, Duration},
 };
 <span class="kw">use </span>tokio_util::sync::CancellationToken;
-<span class="kw">use </span>tracing::{debug, error, info, log::warn, trace};
+<span class="kw">use </span>tracing::{debug, error, info, trace, warn};
 <span class="kw">use </span>tracing_subscriber::{fmt::format::FmtSpan, prelude::<span class="kw-2">*</span>};
 
 <span class="kw">use crate</span>::{
@@ -698,6 +721,23 @@
     <span class="doccomment">/// This is an option because it is acceptable not to pass a container runtime and id if not
     /// pausing. When those args are not passed, container is None.
     </span>container: <span class="prelude-ty">Option</span>&lt;Container&gt;,
+}
+
+<span class="doccomment">/// This is to make sure we don&#39;t leave the target container paused if the agent hits an error and
+/// exits early without removing all of its clients.
+</span><span class="kw">impl </span>Drop <span class="kw">for </span>State {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">if </span><span class="self">self</span>.should_pause &amp;&amp; !<span class="self">self</span>.no_clients_left() {
+            <span class="macro">info!</span>(
+                <span class="string">&quot;Agent exiting without having removed all the clients. Unpausing target container.&quot;
+            </span>);
+            <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = executor::block_on(<span class="self">self</span>.container.as_ref().unwrap().unpause()) {
+                <span class="macro">error!</span>(
+                    <span class="string">&quot;Could not unpause target container while exiting early, got error: {err:?}&quot;
+                </span>);
+            }
+        }
+    }
 }
 
 <span class="kw">impl </span>State {
@@ -1129,6 +1169,10 @@
             <span class="macro">error!</span>(<span class="string">&quot;start -&gt; Failed to accept first connection: timeout&quot;</span>);
             <span class="kw">return </span><span class="prelude-val">Err</span>(err.into());
         }
+    }
+
+    <span class="kw">if </span>args.test_error {
+        <span class="kw">return </span><span class="prelude-val">Err</span>(AgentError::TestError);
     }
 
     <span class="kw">loop </span>{

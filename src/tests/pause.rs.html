@@ -117,6 +117,68 @@
 <a href="#117" id="117">117</a>
 <a href="#118" id="118">118</a>
 <a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
 </pre><pre class="rust"><code><span class="attr">#[cfg(test)]
 
 </span><span class="kw">mod </span>pause {
@@ -124,13 +186,17 @@
     <span class="kw">use </span>std::time::Duration;
 
     <span class="kw">use </span>futures::StreamExt;
-    <span class="kw">use </span>k8s_openapi::api::core::v1::Pod;
-    <span class="kw">use </span>kube::{api::LogParams, Api, Client};
+    <span class="kw">use </span>k8s_openapi::api::{batch::v1::Job, core::v1::Pod};
+    <span class="kw">use </span>kube::{
+        api::{ListParams, LogParams},
+        runtime::wait::{await_condition, conditions::is_job_completed},
+        Api, Client, ResourceExt,
+    };
     <span class="kw">use </span>rstest::<span class="kw-2">*</span>;
 
     <span class="kw">use </span><span class="kw">crate</span>::utils::{
-        get_next_log, http_log_requester_service, http_logger_service, kube_client, run_exec,
-        KubeService,
+        get_next_log, get_service_url, http_log_requester_service, http_logger_service,
+        kube_client, random_namespace_self_deleting_service, run_exec, KubeService,
     };
 
     <span class="doccomment">/// http_logger_service is a service that logs strings from the uri of incoming http requests.
@@ -234,6 +300,64 @@
         <span class="comment">// Verify that the deployed app resumes after the local app is done.
         </span><span class="kw">let </span>log_from_deployed_after_resume = get_next_log(<span class="kw-2">&amp;mut </span>log_stream).<span class="kw">await</span>;
         <span class="macro">assert_eq!</span>(log_from_deployed_after_resume, hi_from_deployed_app);
+    }
+
+    <span class="doccomment">/// Verify that when running mirrord with the pause feature, and the agent exits early due to an
+    /// error, that it unpauses the container before exiting.
+    ///
+    /// Test Plan:
+    ///
+    /// 1. Run mirrord with pause and agent error.
+    /// 2. Wait for the local child process to exit.
+    /// 3. Wait for the agent jobs to complete.
+    /// 4. Verify the target pod is unpaused.
+    </span><span class="attr">#[rstest]
+    #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
+    #[timeout(Duration::from_secs(<span class="number">60</span>))]
+    </span><span class="kw">pub async fn </span>unpause_after_error(
+        <span class="attr">#[future] </span>random_namespace_self_deleting_service: KubeService,
+        <span class="attr">#[future] </span>kube_client: Client,
+    ) {
+        <span class="comment">// Using a new random namespace so that we can find the right agent pod.
+        </span><span class="kw">let </span>service = random_namespace_self_deleting_service.<span class="kw">await</span>;
+        <span class="kw">let </span>kube_client = kube_client.<span class="kw">await</span>;
+        <span class="kw">let </span>jobs: Api&lt;Job&gt; = Api::namespaced(kube_client.clone(), <span class="kw-2">&amp;</span>service.namespace);
+
+        <span class="macro">println!</span>(<span class="string">&quot;Running local app with mirrord.&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>process = run_exec(
+            <span class="comment">// not specifying so grep waits on stdin.
+            </span><span class="macro">vec!</span>[<span class="string">&quot;grep&quot;</span>, <span class="string">&quot;nothing&quot;</span>],
+            <span class="kw-2">&amp;</span>service.target,
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>service.namespace),
+            <span class="prelude-val">None</span>,
+            <span class="prelude-val">Some</span>(<span class="macro">vec!</span>[
+                (<span class="string">&quot;MIRRORD_PAUSE&quot;</span>, <span class="string">&quot;true&quot;</span>),
+                (<span class="string">&quot;MIRRORD_AGENT_TEST_ERROR&quot;</span>, <span class="string">&quot;true&quot;</span>),
+                (<span class="string">&quot;MIRRORD_AGENT_NAMESPACE&quot;</span>, <span class="kw-2">&amp;</span>service.namespace),
+            ]),
+        )
+        .<span class="kw">await</span>;
+
+        <span class="kw">let </span>res = process.child.wait().<span class="kw">await</span>.unwrap();
+        <span class="macro">println!</span>(<span class="string">&quot;mirrord done running.&quot;</span>);
+        <span class="comment">// Expecting the local process with mirrord to fail due to the agent disconnecting.
+        </span><span class="macro">assert!</span>(!res.success());
+
+        <span class="comment">// Verify the agent pod was deleted before we verify that the target pod is unpaused.
+        </span><span class="kw">let </span>lp = ListParams::default().labels(<span class="string">&quot;app=mirrord&quot;</span>);
+        <span class="kw">let </span>agent_jobs = jobs.clone().list(<span class="kw-2">&amp;</span>lp).<span class="kw">await</span>.unwrap();
+        <span class="kw">for </span>job <span class="kw">in </span>agent_jobs.items {
+            <span class="macro">println!</span>(<span class="string">&quot;Found agent job. Verifying its completion before moving on.&quot;</span>,);
+            await_condition(jobs.clone(), <span class="kw-2">&amp;</span>job.name_any(), is_job_completed())
+                .<span class="kw">await
+                </span>.unwrap()
+                .unwrap();
+        }
+        <span class="macro">println!</span>(<span class="string">&quot;Verified all agents completed.&quot;</span>);
+
+        <span class="comment">// Now verify the remote pod is unpaused after being paused and exiting early with an error.
+        </span><span class="kw">let </span>url = get_service_url(kube_client.clone(), <span class="kw-2">&amp;</span>service).<span class="kw">await</span>;
+        <span class="macro">assert!</span>(reqwest::get(url).<span class="kw">await</span>.unwrap().status().is_success());
     }
 }
 </code></pre></div>

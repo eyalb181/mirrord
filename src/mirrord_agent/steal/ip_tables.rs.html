@@ -416,6 +416,8 @@
 <a href="#416" id="416">416</a>
 <a href="#417" id="417">417</a>
 <a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::sync::LazyLock;
 
 <span class="kw">use </span>fancy_regex::Regex;
@@ -675,11 +677,13 @@
                 .list_rules(mesh_ipt_chain)<span class="question-mark">?
                 </span>.iter()
                 .find_map(|rule| UID_LOOKUP_REGEX.find(rule).ok().flatten())
-                .map(|m| m.as_str().to_owned());
+                .map(|m| <span class="macro">format!</span>(<span class="string">&quot;-o lo {}&quot;</span>, m.as_str()));
 
-            <span class="prelude-val">Ok</span>(IPTableFormatter::Mesh(
-                filter.unwrap_or_else(|| <span class="string">&quot;-o lo&quot;</span>.to_owned()),
-            ))
+            <span class="prelude-val">Ok</span>(IPTableFormatter::Mesh(filter.unwrap_or_else(|| {
+                <span class="macro">warn!</span>(<span class="string">&quot;Couldn&#39;t find --uid-owner of meshed chain {mesh_ipt_chain:?} falling back on \&quot;-o lo\&quot; rule&quot;</span>);
+
+                <span class="string">&quot;-o lo&quot;</span>.to_owned()
+            })))
         } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(IPTableFormatter::Normal)
         }
@@ -808,7 +812,7 @@
         mock.expect_insert_rule()
             .with(
                 str::starts_with(<span class="string">&quot;MIRRORD_REDIRECT_&quot;</span>),
-                eq(<span class="string">&quot;-m owner --uid-owner 2102 -m tcp -p tcp --dport 69 -j REDIRECT --to-ports 420&quot;</span>),
+                eq(<span class="string">&quot;-o lo -m owner --uid-owner 2102 -m tcp -p tcp --dport 69 -j REDIRECT --to-ports 420&quot;</span>),
                 eq(<span class="number">1</span>),
             )
             .times(<span class="number">1</span>)
@@ -822,7 +826,7 @@
         mock.expect_remove_rule()
             .with(
                 str::starts_with(<span class="string">&quot;MIRRORD_REDIRECT_&quot;</span>),
-                eq(<span class="string">&quot;-m owner --uid-owner 2102 -m tcp -p tcp --dport 69 -j REDIRECT --to-ports 420&quot;</span>),
+                eq(<span class="string">&quot;-o lo -m owner --uid-owner 2102 -m tcp -p tcp --dport 69 -j REDIRECT --to-ports 420&quot;</span>),
             )
             .times(<span class="number">1</span>)
             .returning(|<span class="kw">_</span>, <span class="kw">_</span>| <span class="prelude-val">Ok</span>(()));

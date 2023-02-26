@@ -62,6 +62,15 @@
 <a href="#62" id="62">62</a>
 <a href="#63" id="63">63</a>
 <a href="#64" id="64">64</a>
+<a href="#65" id="65">65</a>
+<a href="#66" id="66">66</a>
+<a href="#67" id="67">67</a>
+<a href="#68" id="68">68</a>
+<a href="#69" id="69">69</a>
+<a href="#70" id="70">70</a>
+<a href="#71" id="71">71</a>
+<a href="#72" id="72">72</a>
+<a href="#73" id="73">73</a>
 </pre><pre class="rust"><code><span class="attr">#![deny(missing_docs)]
 
 </span><span class="kw">use </span>clap::{
@@ -99,6 +108,15 @@
     <span class="doccomment">/// Pause the target container while clients are connected.
     </span><span class="attr">#[arg(short = <span class="string">&#39;p&#39;</span>, long, default_value_t = <span class="bool-val">false</span>)]
     </span><span class="kw">pub </span>pause: bool,
+
+    <span class="doccomment">/// Return an error after accepting the first client connection, in order to test agent error
+    /// cleanup.
+    ///
+    /// ## Internal
+    ///
+    /// This feature is used internally for debugging purposes only!
+    </span><span class="attr">#[arg(long, default_value_t = <span class="bool-val">false</span>, hide = <span class="bool-val">true</span>)]
+    </span><span class="kw">pub </span>test_error: bool,
 }
 
 <span class="kw">const </span>DEFAULT_RUNTIME: <span class="kw-2">&amp;</span>str = <span class="string">&quot;containerd&quot;</span>;
