@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["create_test_file",""],["main",""],["test_fgets",""],["test_open_read_contents",""],["test_open_read_only",""],["test_open_read_write",""],["test_pread",""],["test_pwrite",""]],"static":[["FILE_CONTENTS",""],["FILE_PATH",""]]};
+window.SIDEBAR_ITEMS = {"fn":[["create_test_file",""],["fgets",""],["main",""],["open_read_contents",""],["open_read_only",""],["open_read_write",""],["pread",""],["pwrite",""]],"static":[["FILE_CONTENTS",""],["FILE_PATH",""]]};

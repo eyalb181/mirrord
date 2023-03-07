@@ -379,7 +379,7 @@
     #[case(<span class="string">&quot;deployment/nginx-deployment&quot;</span>, Target::Deployment(DeploymentTarget {deployment: <span class="string">&quot;nginx-deployment&quot;</span>.to_string(), container: <span class="prelude-val">None</span>}))]
     #[case(<span class="string">&quot;pod/foo/container/baz&quot;</span>, Target::Pod(PodTarget { pod: <span class="string">&quot;foo&quot;</span>.to_string(), container: <span class="prelude-val">Some</span>(<span class="string">&quot;baz&quot;</span>.to_string()) }))]
     #[case(<span class="string">&quot;deployment/nginx-deployment/container/container-name&quot;</span>, Target::Deployment(DeploymentTarget {deployment: <span class="string">&quot;nginx-deployment&quot;</span>.to_string(), container: <span class="prelude-val">Some</span>(<span class="string">&quot;container-name&quot;</span>.to_string())}))]
-    </span><span class="kw">fn </span>test_target_parses(<span class="attr">#[case] </span>target: <span class="kw-2">&amp;</span>str, <span class="attr">#[case] </span>expected: Target) {
+    </span><span class="kw">fn </span>target_parses(<span class="attr">#[case] </span>target: <span class="kw-2">&amp;</span>str, <span class="attr">#[case] </span>expected: Target) {
         <span class="kw">let </span>target = target.parse::&lt;Target&gt;().unwrap();
         <span class="macro">assert_eq!</span>(target, expected)
     }
@@ -389,7 +389,7 @@
     #[case::panic(<span class="string">&quot;deployment/foobaz/blah&quot;</span>)]
     #[should_panic(expected = <span class="string">&quot;InvalidTarget&quot;</span>)]
     #[case::panic(<span class="string">&quot;pod/foo/baz&quot;</span>)]
-    </span><span class="kw">fn </span>test_target_parse_fails(<span class="attr">#[case] </span>target: <span class="kw-2">&amp;</span>str) {
+    </span><span class="kw">fn </span>target_parse_fails(<span class="attr">#[case] </span>target: <span class="kw-2">&amp;</span>str) {
         <span class="kw">let </span>target = target.parse::&lt;Target&gt;().unwrap();
         <span class="macro">assert_eq!</span>(
             target,

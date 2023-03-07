@@ -465,6 +465,17 @@
 <a href="#465" id="465">465</a>
 <a href="#466" id="466">466</a>
 <a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
+<a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
+<a href="#476" id="476">476</a>
+<a href="#477" id="477">477</a>
+<a href="#478" id="478">478</a>
 </pre><pre class="rust"><code><span class="attr">#![feature(slice_concat_trait)]
 #![feature(once_cell)]
 #![feature(result_option_inspect)]
@@ -593,6 +604,13 @@
     /// in-cluster config.
     </span><span class="attr">#[config(env = <span class="string">&quot;MIRRORD_KUBECONFIG&quot;</span>)]
     </span><span class="kw">pub </span>kubeconfig: <span class="prelude-ty">Option</span>&lt;String&gt;,
+
+    <span class="doccomment">/// Binaries to patch (macOS SIP).
+    /// Use this when mirrord isn&#39;t loaded to protected binaries
+    /// that weren&#39;t automatically patched.
+    /// Runs `endswith` on the binary path (so `bash` would apply to any binary
+    /// ending with `bash` while `/usr/bin/bash` would apply only for that binary).
+    </span><span class="kw">pub </span>sip_binaries: <span class="prelude-ty">Option</span>&lt;VecOrSingle&lt;String&gt;&gt;,
 }
 
 <span class="kw">impl </span>LayerConfig {
@@ -830,17 +848,21 @@
                         IncomingAdvancedFileConfig {
                             mode: <span class="prelude-val">Some</span>(IncomingMode::Mirror),
                             http_header_filter: <span class="prelude-val">None</span>,
+                            port_mapping: <span class="prelude-val">None</span>,
+                            ignore_localhost: <span class="prelude-val">None</span>,
                         },
                     ))),
                     outgoing: <span class="prelude-val">Some</span>(ToggleableConfig::Config(OutgoingFileConfig {
                         tcp: <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
                         udp: <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
+                        ..Default::default()
                     })),
                 })),
                 capture_error_trace: <span class="prelude-val">None</span>,
             }),
             connect_tcp: <span class="prelude-val">None</span>,
             operator: <span class="prelude-val">None</span>,
+            sip_binaries: <span class="prelude-val">None</span>,
         };
 
         <span class="macro">assert_eq!</span>(config, expect);
@@ -914,12 +936,12 @@
     }
 
     <span class="attr">#[test]
-    </span><span class="kw">fn </span>test_schema_file_exists() {
+    </span><span class="kw">fn </span>schema_file_exists() {
         <span class="kw">let _ </span>= File::open(SCHEMA_FILE_PATH).expect(<span class="string">&quot;Schema file doesn&#39;t exist!&quot;</span>);
     }
 
     <span class="attr">#[test]
-    </span><span class="kw">fn </span>test_schema_file_is_up_to_date() {
+    </span><span class="kw">fn </span>schema_file_is_up_to_date() {
         <span class="kw">let </span>compare_schema = <span class="macro">schemars::schema_for!</span>(LayerFileConfig);
         <span class="kw">let </span>compare_content =
             serde_json::to_string_pretty(<span class="kw-2">&amp;</span>compare_schema).expect(<span class="string">&quot;Failed generating schema!&quot;</span>);

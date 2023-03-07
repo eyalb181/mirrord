@@ -376,6 +376,9 @@
 <a href="#376" id="376">376</a>
 <a href="#377" id="377">377</a>
 <a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
 </pre><pre class="rust"><code><span class="doccomment">//! The layer uses features from this module to check if it should bypass one of its hooks, and call
 //! the original [`libc`] function.
 //!
@@ -554,6 +557,9 @@
     /// `intercept_tmp_dir`
     </span><span class="attr">#[cfg(target_os = <span class="string">&quot;macos&quot;</span>)]
     </span>TooManyArgs,
+
+    <span class="doccomment">/// Socket is connecting to localhots and we&#39;re asked to ignore it.
+    </span>IgnoreLocalhost(u16),
 }
 
 <span class="doccomment">/// [`ControlFlow`](std::ops::ControlFlow)-like enum to be used by hooks.

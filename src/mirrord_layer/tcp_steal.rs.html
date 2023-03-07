@@ -430,6 +430,15 @@
 <a href="#430" id="430">430</a>
 <a href="#431" id="431">431</a>
 <a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     collections::{HashMap, HashSet},
     net::SocketAddr,
@@ -437,6 +446,7 @@
 
 <span class="kw">use </span>anyhow::Result;
 <span class="kw">use </span>async_trait::async_trait;
+<span class="kw">use </span>bimap::BiMap;
 <span class="kw">use </span>bytes::Bytes;
 <span class="kw">use </span>http_body_util::Full;
 <span class="kw">use </span>hyper::{
@@ -488,6 +498,9 @@
 
     <span class="doccomment">/// These ports would be filtered with the `http_filter`, if it&#39;s Some.
     </span>http_ports: Vec&lt;u16&gt;,
+
+    <span class="doccomment">/// LocalPort:RemotePort mapping.
+    </span>port_mapping: BiMap&lt;u16, u16&gt;,
 }
 
 <span class="attr">#[async_trait]
@@ -588,26 +601,29 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.ports
     }
 
+    <span class="kw">fn </span>port_mapping_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>BiMap&lt;u16, u16&gt; {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.port_mapping
+    }
+
     <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>, tx))]
     </span><span class="kw">async fn </span>handle_listen(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        listen: Listen,
+        <span class="kw-2">mut </span>listen: Listen,
         tx: <span class="kw-2">&amp;</span>Sender&lt;ClientMessage&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), LayerError&gt; {
-        <span class="kw">let </span>port = listen.requested_port;
+        <span class="kw">let </span>original_port = listen.requested_port;
+        <span class="self">self</span>.apply_port_mapping(<span class="kw-2">&amp;mut </span>listen);
+        <span class="kw">let </span>request_port = listen.requested_port;
 
         <span class="kw">if </span>!<span class="self">self</span>.ports_mut().insert(listen) {
-            <span class="macro">info!</span>(
-                <span class="string">&quot;Port {} already listening, might be on different address&quot;</span>,
-                port
-            );
+            <span class="macro">info!</span>(<span class="string">&quot;Port {request_port} already listening, might be on different address&quot;</span>);
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
 
-        <span class="kw">let </span>steal_type = <span class="kw">if </span><span class="self">self</span>.http_ports.contains(<span class="kw-2">&amp;</span>port) &amp;&amp; <span class="kw">let </span><span class="prelude-val">Some</span>(filter_str) = <span class="self">self</span>.http_filter.take() {
-            FilteredHttp(port, Filter::new(filter_str)<span class="question-mark">?</span>)
+        <span class="kw">let </span>steal_type = <span class="kw">if </span><span class="self">self</span>.http_ports.contains(<span class="kw-2">&amp;</span>original_port) &amp;&amp; <span class="kw">let </span><span class="prelude-val">Some</span>(filter_str) = <span class="self">self</span>.http_filter.take() {
+            FilteredHttp(request_port, Filter::new(filter_str)<span class="question-mark">?</span>)
         } <span class="kw">else </span>{
-            All(port)
+            All(request_port)
         };
 
         tx.send(ClientMessage::TcpSteal(LayerTcpSteal::PortSubscribe(
@@ -623,6 +639,7 @@
         http_filter: <span class="prelude-ty">Option</span>&lt;String&gt;,
         http_ports: Vec&lt;u16&gt;,
         http_response_sender: Sender&lt;HttpResponse&gt;,
+        port_mapping: BiMap&lt;u16, u16&gt;,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             ports: Default::default(),
@@ -632,6 +649,7 @@
             http_response_sender,
             http_filter,
             http_ports,
+            port_mapping,
         }
     }
 

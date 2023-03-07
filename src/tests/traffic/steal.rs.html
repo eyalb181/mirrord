@@ -378,7 +378,7 @@
     #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">240</span>))]
-    </span><span class="kw">async fn </span>test_steal_http_traffic(
+    </span><span class="kw">async fn </span>steal_http_traffic(
         <span class="attr">#[future] </span>service: KubeService,
         <span class="attr">#[future] </span>kube_client: Client,
         <span class="attr">#[values(
@@ -414,7 +414,7 @@
     #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">240</span>))]
-    </span><span class="kw">async fn </span>test_steal_http_traffic_with_flush_connections(
+    </span><span class="kw">async fn </span>steal_http_traffic_with_flush_connections(
         <span class="attr">#[future] </span>service: KubeService,
         <span class="attr">#[future] </span>kube_client: Client,
         <span class="attr">#[values(
@@ -456,7 +456,7 @@
     </span><span class="attr">#[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">45</span>))]
-    </span><span class="kw">async fn </span>test_filter_with_single_client_and_only_matching_requests(
+    </span><span class="kw">async fn </span>filter_with_single_client_and_only_matching_requests(
         <span class="attr">#[future] </span>service: KubeService,
         <span class="attr">#[future] </span>kube_client: Client,
         <span class="attr">#[values(
@@ -503,7 +503,7 @@
     </span><span class="attr">#[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">45</span>))]
-    </span><span class="kw">async fn </span>test_filter_with_single_client_and_some_matching_requests(
+    </span><span class="kw">async fn </span>filter_with_single_client_and_some_matching_requests(
         <span class="attr">#[future] </span>service: KubeService,
         <span class="attr">#[future] </span>kube_client: Client,
         <span class="attr">#[values(
@@ -573,7 +573,7 @@
     </span><span class="attr">#[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">60</span>))]
-    </span><span class="kw">async fn </span>test_complete_passthrough(
+    </span><span class="kw">async fn </span>complete_passthrough(
         <span class="attr">#[future] </span>tcp_echo_service: KubeService,
         <span class="attr">#[future] </span>kube_client: Client,
         <span class="attr">#[values(Agent::Job)] </span>agent: Agent,
@@ -637,7 +637,7 @@
     </span><span class="attr">#[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">60</span>))]
-    </span><span class="kw">async fn </span>test_websocket_upgrade(
+    </span><span class="kw">async fn </span>websocket_upgrade(
         <span class="attr">#[future] </span>websocket_service: KubeService,
         <span class="attr">#[future] </span>kube_client: Client,
         <span class="attr">#[values(Agent::Job)] </span>agent: Agent,

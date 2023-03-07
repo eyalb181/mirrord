@@ -647,6 +647,10 @@
 <a href="#647" id="647">647</a>
 <a href="#648" id="648">648</a>
 <a href="#649" id="649">649</a>
+<a href="#650" id="650">650</a>
+<a href="#651" id="651">651</a>
+<a href="#652" id="652">652</a>
+<a href="#653" id="653">653</a>
 </pre><pre class="rust"><code><span class="attr">#![feature(result_option_inspect)]
 #![feature(hash_drain_filter)]
 #![feature(once_cell)]
@@ -655,9 +659,8 @@
 #![feature(type_alias_impl_trait)]
 
 </span><span class="kw">use </span>std::{
-    collections::HashSet,
+    collections::{HashMap, HashSet},
     net::{Ipv4Addr, SocketAddrV4},
-    path::PathBuf,
 };
 
 <span class="kw">use </span>actix_codec::Framed;
@@ -672,6 +675,7 @@
 };
 <span class="kw">use </span>mirrord_protocol::{ClientMessage, DaemonCodec, DaemonMessage, GetEnvVarsRequest};
 <span class="kw">use </span>outgoing::{udp::UdpOutgoingApi, TcpOutgoingApi};
+<span class="kw">use </span>runtime::ContainerInfo;
 <span class="kw">use </span>sniffer::{SnifferCommand, TcpConnectionSniffer, TcpSnifferApi};
 <span class="kw">use </span>steal::api::TcpStealerApi;
 <span class="kw">use </span>tokio::{
@@ -757,12 +761,12 @@
         })
     }
 
-    <span class="doccomment">/// Get the external pid of the target container, if container info available.
-    </span><span class="kw">pub async fn </span>get_container_pid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;u64&gt;&gt; {
+    <span class="doccomment">/// Get the external pid + env of the target container, if container info available.
+    </span><span class="kw">pub async fn </span>get_container_info(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;ContainerInfo&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.container.is_some() {
             <span class="kw">let </span>container = <span class="self">self</span>.container.as_ref().unwrap();
-            <span class="kw">let </span>pid = container.get_pid().<span class="kw">await</span><span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(pid))
+            <span class="kw">let </span>info = container.get_info().<span class="kw">await</span><span class="question-mark">?</span>;
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(info))
         } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
         }
@@ -798,6 +802,7 @@
         dns_sender: Sender&lt;DnsRequest&gt;,
         ephemeral_container: bool,
         pid: <span class="prelude-ty">Option</span>&lt;u64&gt;,
+        env: HashMap&lt;String, String&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;JoinHandle&lt;u32&gt;&gt;&gt; {
         <span class="kw">match </span><span class="self">self</span>.new_client().<span class="kw">await </span>{
             <span class="prelude-val">Ok</span>(client_id) =&gt; {
@@ -810,6 +815,7 @@
                         sniffer_command_tx,
                         stealer_command_tx,
                         dns_sender,
+                        env,
                     )
                     .and_then(|client| client.start(cancellation_token))
                     .<span class="kw">await
@@ -872,16 +878,17 @@
     <span class="doccomment">/// Handles mirrord&#39;s file operations, see [`FileManager`].
     </span>file_manager: FileManager,
     stream: Framed&lt;TcpStream, DaemonCodec&gt;,
-    pid: <span class="prelude-ty">Option</span>&lt;u64&gt;,
     tcp_sniffer_api: <span class="prelude-ty">Option</span>&lt;TcpSnifferApi&gt;,
     tcp_stealer_api: TcpStealerApi,
     tcp_outgoing_api: TcpOutgoingApi,
     udp_outgoing_api: UdpOutgoingApi,
     dns_sender: Sender&lt;DnsRequest&gt;,
+    env: HashMap&lt;String, String&gt;,
 }
 
 <span class="kw">impl </span>ClientConnectionHandler {
-    <span class="doccomment">/// Initializes [`ClientConnectionHandler`].
+    <span class="attr">#[allow(clippy::too_many_arguments)]
+    </span><span class="doccomment">/// Initializes [`ClientConnectionHandler`].
     </span><span class="kw">pub async fn </span>new(
         id: ClientId,
         stream: TcpStream,
@@ -890,6 +897,7 @@
         sniffer_command_sender: Sender&lt;SnifferCommand&gt;,
         stealer_command_sender: Sender&lt;StealerCommand&gt;,
         dns_sender: Sender&lt;DnsRequest&gt;,
+        env: HashMap&lt;String, String&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>file_manager = <span class="kw">match </span>pid {
             <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; FileManager::new(pid),
@@ -922,12 +930,12 @@
             id,
             file_manager,
             stream,
-            pid,
             tcp_sniffer_api,
             tcp_stealer_api,
             tcp_outgoing_api,
             udp_outgoing_api,
             dns_sender,
+            env,
         };
 
         <span class="prelude-val">Ok</span>(client_handler)
@@ -1037,14 +1045,8 @@
                     <span class="self">self</span>.id, env_vars_filter, env_vars_select
                 );
 
-                <span class="kw">let </span>pid = <span class="self">self
-                    </span>.pid
-                    .map(|i| i.to_string())
-                    .unwrap_or_else(|| <span class="string">&quot;self&quot;</span>.to_string());
-                <span class="kw">let </span>environ_path = PathBuf::from(<span class="string">&quot;/proc&quot;</span>).join(pid).join(<span class="string">&quot;environ&quot;</span>);
-
                 <span class="kw">let </span>env_vars_result =
-                    env::select_env_vars(environ_path, env_vars_filter, env_vars_select).<span class="kw">await</span>;
+                    env::select_env_vars(<span class="kw-2">&amp;</span><span class="self">self</span>.env, env_vars_filter, env_vars_select);
 
                 <span class="self">self</span>.respond(DaemonMessage::GetEnvVarsResponse(env_vars_result))
                     .<span class="kw">await</span><span class="question-mark">?
@@ -1095,7 +1097,11 @@
     .<span class="kw">await</span><span class="question-mark">?</span>;
 
     <span class="kw">let </span><span class="kw-2">mut </span>state = State::new(<span class="kw-2">&amp;</span>args).<span class="kw">await</span><span class="question-mark">?</span>;
-    <span class="kw">let </span>pid = state.get_container_pid().<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="kw">let </span>(pid, env) = <span class="kw">match </span>state.get_container_info().<span class="kw">await</span><span class="question-mark">? </span>{
+        <span class="prelude-val">Some</span>(ContainerInfo { pid, env }) =&gt; (<span class="prelude-val">Some</span>(pid), env),
+        <span class="prelude-val">None </span>=&gt; (<span class="prelude-val">None</span>, HashMap::new()),
+    };
+
     <span class="kw">let </span>cancellation_token = CancellationToken::new();
     <span class="comment">// Cancel all other tasks on exit
     </span><span class="kw">let </span>cancel_guard = cancellation_token.clone().drop_guard();
@@ -1155,6 +1161,7 @@
                     dns_sender.clone(),
                     args.ephemeral_container,
                     pid,
+                    env.clone(),
                 )
                 .<span class="kw">await</span><span class="question-mark">?
             </span>{
@@ -1186,7 +1193,8 @@
                     cancellation_token.clone(),
                     dns_sender.clone(),
                     args.ephemeral_container,
-                    pid
+                    pid,
+                    env.clone()
                 ).<span class="kw">await</span><span class="question-mark">? </span>{clients.push(client) };
             },
             client = clients.next() =&gt; {
@@ -1242,7 +1250,7 @@
 
     <span class="kw">let </span>args = parse_args();
     <span class="kw">let </span>state = State::new(<span class="kw-2">&amp;</span>args).<span class="kw">await</span><span class="question-mark">?</span>;
-    <span class="kw">let </span>pid = state.get_container_pid().<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="kw">let </span>pid = state.get_container_info().<span class="kw">await</span><span class="question-mark">?</span>.map(|c| c.pid);
 
     <span class="kw">let </span>chain_name = SafeIpTables::&lt;iptables::IPTables&gt;::get_chain_name();
 

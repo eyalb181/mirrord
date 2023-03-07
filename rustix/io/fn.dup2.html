@@ -5,7 +5,7 @@ and should only be used on file descriptors where you know how <code>new</code> 
 be subsequently used.</p>
 <p>This function does not set the <code>O_CLOEXEC</code> flag. To do a <code>dup2</code> that does
 set <code>O_CLOEXEC</code>, use <a href="fn.dup3.html" title="dup3"><code>dup3</code></a> with <a href="struct.DupFlags.html#associatedconstant.CLOEXEC" title="DupFlags::CLOEXEC"><code>DupFlags::CLOEXEC</code></a> on platforms which
-support it, or <a href="fn.fcntl_dupfd_cloexec.html"><code>fcntl_dupfd_cloexec</code></a></p>
+support it, or <a href="../fs/fn.fcntl_dupfd_cloexec.html"><code>fcntl_dupfd_cloexec</code></a></p>
 <h2 id="references"><a href="#references">References</a></h2>
 <ul>
 <li><a href="https://pubs.opengroup.org/onlinepubs/9699919799/functions/dup2.html">POSIX</a></li>

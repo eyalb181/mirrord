@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/thread_local-1.1.5/src/thread_id.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>thread_id.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-f2fc7b5fd698d27d.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-5f7299aa2b503fb1.css"><link rel="stylesheet" disabled href="../../static.files/dark-dfb18ef8114bb428.css"><link rel="stylesheet" disabled href="../../static.files/ayu-4047a6aaddd3789d.css"><script id="default-settings" ></script><script src="../../static.files/storage-ff4706381ddb2707.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-02cbe07fc548e88c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../thread_local/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/thread_local-1.1.7/src/thread_id.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>thread_id.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-f2fc7b5fd698d27d.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-5f7299aa2b503fb1.css"><link rel="stylesheet" disabled href="../../static.files/dark-dfb18ef8114bb428.css"><link rel="stylesheet" disabled href="../../static.files/ayu-4047a6aaddd3789d.css"><script id="default-settings" ></script><script src="../../static.files/storage-ff4706381ddb2707.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-02cbe07fc548e88c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../thread_local/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -196,6 +196,15 @@
 <a href="#196" id="196">196</a>
 <a href="#197" id="197">197</a>
 <a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017 Amanieu d&#39;Antras
 //
 // Licensed under the Apache License, Version 2.0, &lt;LICENSE-APACHE or
@@ -205,6 +214,7 @@
 
 </span><span class="kw">use </span><span class="kw">crate</span>::POINTER_WIDTH;
 <span class="kw">use </span>once_cell::sync::Lazy;
+<span class="kw">use </span>std::cell::Cell;
 <span class="kw">use </span>std::cmp::Reverse;
 <span class="kw">use </span>std::collections::BinaryHeap;
 <span class="kw">use </span>std::sync::Mutex;
@@ -279,28 +289,25 @@
         // This makes the fast path smaller.
         </span><span class="attr">#[thread_local]
         </span><span class="kw">static </span><span class="kw-2">mut </span>THREAD: <span class="prelude-ty">Option</span>&lt;Thread&gt; = <span class="prelude-val">None</span>;
-        <span class="macro">thread_local! </span>{ <span class="kw">static </span>THREAD_GUARD: ThreadGuard = <span class="kw">const </span>{ ThreadGuard }; }
+        <span class="macro">thread_local! </span>{ <span class="kw">static </span>THREAD_GUARD: ThreadGuard = <span class="kw">const </span>{ ThreadGuard { id: Cell::new(<span class="number">0</span>) } }; }
 
         <span class="comment">// Guard to ensure the thread ID is released on thread exit.
-        </span><span class="kw">struct </span>ThreadGuard;
+        </span><span class="kw">struct </span>ThreadGuard {
+            <span class="comment">// We keep a copy of the thread ID in the ThreadGuard: we can&#39;t
+            // reliably access THREAD in our Drop impl due to the unpredictable
+            // order of TLS destructors.
+            </span>id: Cell&lt;usize&gt;,
+        }
 
         <span class="kw">impl </span>Drop <span class="kw">for </span>ThreadGuard {
             <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-                <span class="comment">// SAFETY: this is safe because we know that we (the current thread)
-                // are the only one who can be accessing our `THREAD` and thus
-                // it&#39;s safe for us to access and drop it.
-                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(thread) = <span class="kw">unsafe </span>{ THREAD.take() } {
-                    THREAD_ID_MANAGER.lock().unwrap().free(thread.id);
+                <span class="comment">// Release the thread ID. Any further accesses to the thread ID
+                // will go through get_slow which will either panic or
+                // initialize a new ThreadGuard.
+                </span><span class="kw">unsafe </span>{
+                    THREAD = <span class="prelude-val">None</span>;
                 }
-            }
-        }
-
-        <span class="doccomment">/// Attempts to get the current thread if `get` has previously been
-        /// called.
-        </span><span class="attr">#[inline]
-        </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_get() -&gt; <span class="prelude-ty">Option</span>&lt;Thread&gt; {
-            <span class="kw">unsafe </span>{
-                THREAD
+                THREAD_ID_MANAGER.lock().unwrap().free(<span class="self">self</span>.id.get());
             }
         }
 
@@ -310,39 +317,44 @@
             <span class="kw">if let </span><span class="prelude-val">Some</span>(thread) = <span class="kw">unsafe </span>{ THREAD } {
                 thread
             } <span class="kw">else </span>{
-                <span class="kw">let </span>new = Thread::new(THREAD_ID_MANAGER.lock().unwrap().alloc());
-                <span class="kw">unsafe </span>{
-                    THREAD = <span class="prelude-val">Some</span>(new);
-                }
-                THREAD_GUARD.with(|<span class="kw">_</span>| {});
-                new
+                get_slow()
             }
         }
-    } <span class="kw">else </span>{
-        <span class="kw">use </span>std::cell::Cell;
 
+        <span class="doccomment">/// Out-of-line slow path for allocating a thread ID.
+        </span><span class="attr">#[cold]
+         </span><span class="kw">fn </span>get_slow() -&gt; Thread {
+            <span class="kw">let </span>new = Thread::new(THREAD_ID_MANAGER.lock().unwrap().alloc());
+            <span class="kw">unsafe </span>{
+                THREAD = <span class="prelude-val">Some</span>(new);
+            }
+            THREAD_GUARD.with(|guard| guard.id.set(new.id));
+            new
+        }
+    } <span class="kw">else </span>{
         <span class="comment">// This is split into 2 thread-local variables so that we can check whether the
         // thread is initialized without having to register a thread-local destructor.
         //
         // This makes the fast path smaller.
         </span><span class="macro">thread_local! </span>{ <span class="kw">static </span>THREAD: Cell&lt;<span class="prelude-ty">Option</span>&lt;Thread&gt;&gt; = <span class="kw">const </span>{ Cell::new(<span class="prelude-val">None</span>) }; }
-        <span class="macro">thread_local! </span>{ <span class="kw">static </span>THREAD_GUARD: ThreadGuard = <span class="kw">const </span>{ ThreadGuard }; }
+        <span class="macro">thread_local! </span>{ <span class="kw">static </span>THREAD_GUARD: ThreadGuard = <span class="kw">const </span>{ ThreadGuard { id: Cell::new(<span class="number">0</span>) } }; }
 
         <span class="comment">// Guard to ensure the thread ID is released on thread exit.
-        </span><span class="kw">struct </span>ThreadGuard;
+        </span><span class="kw">struct </span>ThreadGuard {
+            <span class="comment">// We keep a copy of the thread ID in the ThreadGuard: we can&#39;t
+            // reliably access THREAD in our Drop impl due to the unpredictable
+            // order of TLS destructors.
+            </span>id: Cell&lt;usize&gt;,
+        }
 
         <span class="kw">impl </span>Drop <span class="kw">for </span>ThreadGuard {
             <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-                <span class="kw">let </span>thread = THREAD.with(|thread| thread.get()).unwrap();
-                THREAD_ID_MANAGER.lock().unwrap().free(thread.id);
+                <span class="comment">// Release the thread ID. Any further accesses to the thread ID
+                // will go through get_slow which will either panic or
+                // initialize a new ThreadGuard.
+                </span><span class="kw">let _ </span>= THREAD.try_with(|thread| thread.set(<span class="prelude-val">None</span>));
+                THREAD_ID_MANAGER.lock().unwrap().free(<span class="self">self</span>.id.get());
             }
-        }
-
-        <span class="doccomment">/// Attempts to get the current thread if `get` has previously been
-        /// called.
-        </span><span class="attr">#[inline]
-        </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_get() -&gt; <span class="prelude-ty">Option</span>&lt;Thread&gt; {
-            THREAD.with(|thread| thread.get())
         }
 
         <span class="doccomment">/// Returns a thread ID for the current thread, allocating one if needed.
@@ -352,12 +364,18 @@
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(thread) = thread.get() {
                     thread
                 } <span class="kw">else </span>{
-                    <span class="kw">let </span>new = Thread::new(THREAD_ID_MANAGER.lock().unwrap().alloc());
-                    thread.set(<span class="prelude-val">Some</span>(new));
-                    THREAD_GUARD.with(|<span class="kw">_</span>| {});
-                    new
+                    get_slow(thread)
                 }
             })
+        }
+
+        <span class="doccomment">/// Out-of-line slow path for allocating a thread ID.
+        </span><span class="attr">#[cold]
+        </span><span class="kw">fn </span>get_slow(thread: <span class="kw-2">&amp;</span>Cell&lt;<span class="prelude-ty">Option</span>&lt;Thread&gt;&gt;) -&gt; Thread {
+            <span class="kw">let </span>new = Thread::new(THREAD_ID_MANAGER.lock().unwrap().alloc());
+            thread.set(<span class="prelude-val">Some</span>(new));
+            THREAD_GUARD.with(|guard| guard.id.set(new.id));
+            new
         }
     }
 }

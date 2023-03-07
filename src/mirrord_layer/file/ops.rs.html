@@ -585,6 +585,12 @@
 <a href="#585" id="585">585</a>
 <a href="#586" id="586">586</a>
 <a href="#587" id="587">587</a>
+<a href="#588" id="588">588</a>
+<a href="#589" id="589">589</a>
+<a href="#590" id="590">590</a>
+<a href="#591" id="591">591</a>
+<a href="#592" id="592">592</a>
+<a href="#593" id="593">593</a>
 </pre><pre class="rust"><code><span class="kw">use </span>core::ffi::CStr;
 <span class="kw">use </span>std::{ffi::CString, io::SeekFrom, os::unix::io::RawFd, path::PathBuf};
 
@@ -603,6 +609,9 @@
     error::{HookError, HookResult <span class="kw">as </span><span class="prelude-ty">Result</span>},
     HookMessage,
 };
+
+<span class="doccomment">/// 1 Megabyte. Large read requests can lead to timeouts.
+</span><span class="kw">const </span>MAX_READ_SIZE: u64 = <span class="number">1024 </span>* <span class="number">1024</span>;
 
 <span class="attr">#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>RemoteFile {
@@ -951,6 +960,9 @@
 </span><span class="kw">fn </span>remote_read(remote_fd: u64, read_amount: u64) -&gt; Detour&lt;ReadFileResponse&gt; {
     <span class="kw">let </span>(file_channel_tx, file_channel_rx) = oneshot::channel();
 
+    <span class="comment">// Limit read size because if we read too much it can lead to a timeout
+    // Seems also that bincode doesn&#39;t do well with large buffers
+    </span><span class="kw">let </span>read_amount = std::cmp::min(read_amount, MAX_READ_SIZE);
     <span class="kw">let </span>reading_file = Read {
         remote_fd,
         buffer_size: read_amount,

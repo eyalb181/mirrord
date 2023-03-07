@@ -87,7 +87,7 @@
 
 <span class="kw">static </span>FILE_PATH: <span class="kw-2">&amp;</span>str = <span class="string">&quot;/tmp/test_file.txt&quot;</span>;
 
-<span class="kw">fn </span>test_pwrite() {
+<span class="kw">fn </span>pwrite() {
     <span class="macro">println!</span>(<span class="string">&quot;&gt;&gt; test_pwrite&quot;</span>);
 
     <span class="kw">let </span>file = OpenOptions::new()
@@ -108,7 +108,7 @@
 }
 
 <span class="comment">// Test that fclose flushes correctly, no need to run remotely for all we care
-</span><span class="kw">fn </span>test_ffunctions() {
+</span><span class="kw">fn </span>ffunctions() {
     <span class="macro">println!</span>(<span class="string">&quot;&gt;&gt; test_ffunctions&quot;</span>);
 
     <span class="kw">unsafe </span>{
@@ -125,7 +125,7 @@
 <span class="comment">// Rust compiles with newer libc on Linux that uses statx
 </span><span class="attr">#[cfg(target_os = <span class="string">&quot;macos&quot;</span>)]
 </span><span class="comment">// Test that lstat works remotely
-</span><span class="kw">fn </span>test_lstat() {
+</span><span class="kw">fn </span>lstat() {
     <span class="macro">println!</span>(<span class="string">&quot;&gt;&gt; test_lstat&quot;</span>);
 
     <span class="kw">let </span>metadata = std::fs::symlink_metadata(<span class="string">&quot;/tmp/test_file.txt&quot;</span>).unwrap();
@@ -138,7 +138,7 @@
 
 <span class="attr">#[cfg(target_os = <span class="string">&quot;macos&quot;</span>)]
 </span><span class="comment">// Test that stat works remotely
-</span><span class="kw">fn </span>test_stat() {
+</span><span class="kw">fn </span>stat() {
     <span class="macro">println!</span>(<span class="string">&quot;&gt;&gt; test_stat&quot;</span>);
 
     <span class="kw">let </span>metadata = std::fs::metadata(<span class="string">&quot;/tmp/test_file.txt&quot;</span>).unwrap();
@@ -150,12 +150,12 @@
 }
 
 <span class="kw">fn </span>main() {
-    test_pwrite();
-    test_ffunctions();
+    pwrite();
+    ffunctions();
     <span class="attr">#[cfg(target_os = <span class="string">&quot;macos&quot;</span>)]
     </span>{
-        test_lstat();
-        test_stat();
+        lstat();
+        stat();
     }
     <span class="comment">// let close message get called
     </span>std::thread::sleep(std::time::Duration::from_millis(<span class="number">10</span>));

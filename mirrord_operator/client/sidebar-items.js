@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["OperatorApiError",""]],"fn":[["wrap_connection",""]],"static":[["CONNECTION_CHANNEL_SIZE",""]],"struct":[["OperatorApi",""]],"type":[["Result",""]]};
+window.SIDEBAR_ITEMS = {"enum":[["OperatorApiError",""]],"static":[["CONNECTION_CHANNEL_SIZE",""]],"struct":[["ConnectionWrapper",""],["OperatorApi",""]],"type":[["Result",""]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"trait":[["Http2ConnExec","An executor to spawn http2 connections."]]};

@@ -330,7 +330,7 @@
     <span class="attr">#[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">240</span>))]
-    </span><span class="kw">pub async fn </span>test_remote_dns_enabled_works(<span class="attr">#[future] </span>service: KubeService) {
+    </span><span class="kw">pub async fn </span>remote_dns_enabled_works(<span class="attr">#[future] </span>service: KubeService) {
         <span class="kw">let </span>service = service.<span class="kw">await</span>;
         <span class="kw">let </span>node_command = <span class="macro">vec!</span>[
             <span class="string">&quot;node&quot;</span>,
@@ -345,7 +345,7 @@
     <span class="attr">#[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">240</span>))]
-    </span><span class="kw">pub async fn </span>test_remote_dns_lookup_google(<span class="attr">#[future] </span>service: KubeService) {
+    </span><span class="kw">pub async fn </span>remote_dns_lookup_google(<span class="attr">#[future] </span>service: KubeService) {
         <span class="kw">let </span>service = service.<span class="kw">await</span>;
         <span class="kw">let </span>node_command = <span class="macro">vec!</span>[
             <span class="string">&quot;node&quot;</span>,
@@ -362,7 +362,7 @@
     //       directly sent out from the local application).
     </span><span class="attr">#[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
-    </span><span class="kw">pub async fn </span>test_outgoing_traffic_single_request_enabled(<span class="attr">#[future] </span>service: KubeService) {
+    </span><span class="kw">pub async fn </span>outgoing_traffic_single_request_enabled(<span class="attr">#[future] </span>service: KubeService) {
         <span class="kw">let </span>service = service.<span class="kw">await</span>;
         <span class="kw">let </span>node_command = <span class="macro">vec!</span>[
             <span class="string">&quot;node&quot;</span>,
@@ -377,7 +377,7 @@
     <span class="attr">#[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[should_panic]
-    </span><span class="kw">pub async fn </span>test_outgoing_traffic_single_request_ipv6(<span class="attr">#[future] </span>service: KubeService) {
+    </span><span class="kw">pub async fn </span>outgoing_traffic_single_request_ipv6(<span class="attr">#[future] </span>service: KubeService) {
         <span class="kw">let </span>service = service.<span class="kw">await</span>;
         <span class="kw">let </span>node_command = <span class="macro">vec!</span>[
             <span class="string">&quot;node&quot;</span>,
@@ -391,7 +391,7 @@
 
     <span class="attr">#[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
-    </span><span class="kw">pub async fn </span>test_outgoing_traffic_single_request_disabled(<span class="attr">#[future] </span>service: KubeService) {
+    </span><span class="kw">pub async fn </span>outgoing_traffic_single_request_disabled(<span class="attr">#[future] </span>service: KubeService) {
         <span class="kw">let </span>service = service.<span class="kw">await</span>;
         <span class="kw">let </span>node_command = <span class="macro">vec!</span>[
             <span class="string">&quot;node&quot;</span>,
@@ -413,7 +413,7 @@
 
     <span class="attr">#[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
-    </span><span class="kw">pub async fn </span>test_outgoing_traffic_make_request_after_listen(<span class="attr">#[future] </span>service: KubeService) {
+    </span><span class="kw">pub async fn </span>outgoing_traffic_make_request_after_listen(<span class="attr">#[future] </span>service: KubeService) {
         <span class="kw">let </span>service = service.<span class="kw">await</span>;
         <span class="kw">let </span>node_command = <span class="macro">vec!</span>[
             <span class="string">&quot;node&quot;</span>,
@@ -426,7 +426,7 @@
 
     <span class="attr">#[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
-    </span><span class="kw">pub async fn </span>test_outgoing_traffic_make_request_localhost(<span class="attr">#[future] </span>service: KubeService) {
+    </span><span class="kw">pub async fn </span>outgoing_traffic_make_request_localhost(<span class="attr">#[future] </span>service: KubeService) {
         <span class="kw">let </span>service = service.<span class="kw">await</span>;
         <span class="kw">let </span>node_command = <span class="macro">vec!</span>[
             <span class="string">&quot;node&quot;</span>,
@@ -443,7 +443,7 @@
     </span><span class="attr">#[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">240</span>))]
-    </span><span class="kw">pub async fn </span>test_outgoing_traffic_udp_with_connect(
+    </span><span class="kw">pub async fn </span>outgoing_traffic_udp_with_connect(
         <span class="attr">#[future] </span>udp_logger_service: KubeService,
         <span class="attr">#[future] </span>service: KubeService,
         <span class="attr">#[future] </span>kube_client: Client,
@@ -520,7 +520,7 @@
     </span><span class="attr">#[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">30</span>))]
-    </span><span class="kw">pub async fn </span>test_outgoing_disabled_udp(<span class="attr">#[future] </span>service: KubeService) {
+    </span><span class="kw">pub async fn </span>outgoing_disabled_udp(<span class="attr">#[future] </span>service: KubeService) {
         <span class="kw">let </span>service = service.<span class="kw">await</span>;
         <span class="comment">// Binding specific port, because if we bind 0 then we get a  port that is bypassed by
         // mirrord and then the tested crash is not prevented by the fix but by the bypassed port.
@@ -561,49 +561,49 @@
 
     <span class="attr">#[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
-    </span><span class="kw">pub async fn </span>test_go18_outgoing_traffic_single_request_enabled(<span class="attr">#[future] </span>service: KubeService) {
+    </span><span class="kw">pub async fn </span>go18_outgoing_traffic_single_request_enabled(<span class="attr">#[future] </span>service: KubeService) {
         <span class="kw">let </span>command = <span class="macro">vec!</span>[<span class="string">&quot;go-e2e-outgoing/18&quot;</span>];
         test_go(service, command).<span class="kw">await</span>;
     }
 
     <span class="attr">#[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
-    </span><span class="kw">pub async fn </span>test_go19_outgoing_traffic_single_request_enabled(<span class="attr">#[future] </span>service: KubeService) {
+    </span><span class="kw">pub async fn </span>go19_outgoing_traffic_single_request_enabled(<span class="attr">#[future] </span>service: KubeService) {
         <span class="kw">let </span>command = <span class="macro">vec!</span>[<span class="string">&quot;go-e2e-outgoing/19&quot;</span>];
         test_go(service, command).<span class="kw">await</span>;
     }
 
     <span class="attr">#[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
-    </span><span class="kw">pub async fn </span>test_go20_outgoing_traffic_single_request_enabled(<span class="attr">#[future] </span>service: KubeService) {
+    </span><span class="kw">pub async fn </span>go20_outgoing_traffic_single_request_enabled(<span class="attr">#[future] </span>service: KubeService) {
         <span class="kw">let </span>command = <span class="macro">vec!</span>[<span class="string">&quot;go-e2e-outgoing/20&quot;</span>];
         test_go(service, command).<span class="kw">await</span>;
     }
 
     <span class="attr">#[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
-    </span><span class="kw">pub async fn </span>test_go18_dns_lookup(<span class="attr">#[future] </span>service: KubeService) {
+    </span><span class="kw">pub async fn </span>go18_dns_lookup(<span class="attr">#[future] </span>service: KubeService) {
         <span class="kw">let </span>command = <span class="macro">vec!</span>[<span class="string">&quot;go-e2e-dns/18&quot;</span>];
         test_go(service, command).<span class="kw">await</span>;
     }
 
     <span class="attr">#[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
-    </span><span class="kw">pub async fn </span>test_go19_dns_lookup(<span class="attr">#[future] </span>service: KubeService) {
+    </span><span class="kw">pub async fn </span>go19_dns_lookup(<span class="attr">#[future] </span>service: KubeService) {
         <span class="kw">let </span>command = <span class="macro">vec!</span>[<span class="string">&quot;go-e2e-dns/19&quot;</span>];
         test_go(service, command).<span class="kw">await</span>;
     }
 
     <span class="attr">#[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
-    </span><span class="kw">pub async fn </span>test_go20_dns_lookup(<span class="attr">#[future] </span>service: KubeService) {
+    </span><span class="kw">pub async fn </span>go20_dns_lookup(<span class="attr">#[future] </span>service: KubeService) {
         <span class="kw">let </span>command = <span class="macro">vec!</span>[<span class="string">&quot;go-e2e-dns/20&quot;</span>];
         test_go(service, command).<span class="kw">await</span>;
     }
 
     <span class="attr">#[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
-    </span><span class="kw">pub async fn </span>test_listen_localhost(<span class="attr">#[future] </span>service: KubeService) {
+    </span><span class="kw">pub async fn </span>listen_localhost(<span class="attr">#[future] </span>service: KubeService) {
         <span class="kw">let </span>service = service.<span class="kw">await</span>;
         <span class="kw">let </span>node_command = <span class="macro">vec!</span>[<span class="string">&quot;node&quot;</span>, <span class="string">&quot;node-e2e/listen/test_listen_localhost.mjs&quot;</span>];
         <span class="kw">let </span><span class="kw-2">mut </span>process = run_exec(node_command, <span class="kw-2">&amp;</span>service.target, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>).<span class="kw">await</span>;
@@ -613,7 +613,7 @@
 
     <span class="attr">#[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
-    </span><span class="kw">pub async fn </span>test_gethostname_remote_result(<span class="attr">#[future] </span>hostname_service: KubeService) {
+    </span><span class="kw">pub async fn </span>gethostname_remote_result(<span class="attr">#[future] </span>hostname_service: KubeService) {
         <span class="kw">let </span>service = hostname_service.<span class="kw">await</span>;
         <span class="kw">let </span>node_command = <span class="macro">vec!</span>[<span class="string">&quot;python3&quot;</span>, <span class="string">&quot;-u&quot;</span>, <span class="string">&quot;python-e2e/hostname.py&quot;</span>];
         <span class="kw">let </span><span class="kw-2">mut </span>process = run_exec(node_command, <span class="kw-2">&amp;</span>service.target, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>).<span class="kw">await</span>;

@@ -690,7 +690,7 @@
     #[case(FsModeConfig::Local, <span class="string">&quot;/pain/write.a&quot;</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>)]
     #[case(FsModeConfig::Local, <span class="string">&quot;/pain/local/test.a&quot;</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>)]
     #[case(FsModeConfig::Local, <span class="string">&quot;/opt/test.a&quot;</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>)]
-    </span><span class="kw">fn </span>test_include_complex_configuration(
+    </span><span class="kw">fn </span>include_complex_configuration(
         <span class="attr">#[case] </span>mode: FsModeConfig,
         <span class="attr">#[case] </span>path: <span class="kw-2">&amp;</span>str,
         <span class="attr">#[case] </span>write: bool,
@@ -737,7 +737,7 @@
         <span class="bool-val">false</span>,
         <span class="bool-val">false
     </span>)]
-    </span><span class="kw">fn </span>test_remote_read_only_set(
+    </span><span class="kw">fn </span>remote_read_only_set(
         <span class="attr">#[case] </span>mode: FsModeConfig,
         <span class="attr">#[case] </span>path: <span class="kw-2">&amp;</span>str,
         <span class="attr">#[case] </span>write: bool,

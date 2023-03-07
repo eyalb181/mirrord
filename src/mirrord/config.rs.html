@@ -270,6 +270,13 @@
 <a href="#270" id="270">270</a>
 <a href="#271" id="271">271</a>
 <a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
 </pre><pre class="rust"><code><span class="attr">#![deny(missing_docs)]
 
 </span><span class="kw">use </span>std::path::PathBuf;
@@ -278,7 +285,14 @@
 <span class="kw">use </span>mirrord_operator::setup::OperatorNamespace;
 
 <span class="attr">#[derive(Parser)]
-#[command(author, version, about, long_about = <span class="prelude-val">None</span>)]
+#[command(
+    author,
+    version,
+    about,
+    long_about = <span class="string">r#&quot;
+Encountered an issue? Have a feature request?
+Join our Discord server https://discord.gg/pSKEdmNZcK or create a GitHub issue&quot;#
+</span>)]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Cli {
     <span class="attr">#[command(subcommand)]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) commands: Commands,

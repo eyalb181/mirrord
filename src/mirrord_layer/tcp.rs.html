@@ -173,6 +173,22 @@
 <a href="#173" id="173">173</a>
 <a href="#174" id="174">174</a>
 <a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
 </pre><pre class="rust"><code><span class="doccomment">/// Tcp Traffic management, common code for stealing &amp; mirroring
 </span><span class="kw">use </span>std::{
     borrow::Borrow,
@@ -180,21 +196,21 @@
     hash::{Hash, Hasher},
     net::SocketAddr,
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
-    os::unix::io::RawFd,
 };
 
 <span class="kw">use </span>async_trait::async_trait;
+<span class="kw">use </span>bimap::BiMap;
 <span class="kw">use </span>mirrord_protocol::{
     tcp::{DaemonTcp, HttpRequest, NewTcpConnection, TcpClose, TcpData},
     ClientMessage, Port, ResponseError,
 };
 <span class="kw">use </span>tokio::{net::TcpStream, sync::mpsc::Sender};
-<span class="kw">use </span>tracing::{debug, error};
+<span class="kw">use </span>tracing::{debug, error, log::trace};
 
 <span class="kw">use crate</span>::{
     detour::DetourGuard,
     error::LayerError,
-    socket::{SocketInformation, CONNECTION_QUEUE},
+    socket::{id::SocketId, SocketInformation, CONNECTION_QUEUE},
     LayerError::{PortAlreadyStolen, UnexpectedResponseError},
 };
 
@@ -208,7 +224,7 @@
     <span class="kw">pub </span>mirror_port: Port,
     <span class="kw">pub </span>requested_port: Port,
     <span class="kw">pub </span>ipv6: bool,
-    <span class="kw">pub </span>fd: RawFd,
+    <span class="kw">pub </span>id: SocketId,
 }
 
 <span class="kw">impl </span>PartialEq <span class="kw">for </span>Listen {
@@ -248,6 +264,16 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>TcpHandler {
     <span class="kw">fn </span>ports(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>HashSet&lt;Listen&gt;;
     <span class="kw">fn </span>ports_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>HashSet&lt;Listen&gt;;
+    <span class="kw">fn </span>port_mapping_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>BiMap&lt;u16, u16&gt;;
+
+    <span class="doccomment">/// Modify `Listen` to match local port to remote port based on mapping
+    /// If no mapping is found, the port is not modified
+    </span><span class="kw">fn </span>apply_port_mapping(<span class="kw-2">&amp;</span><span class="self">self</span>, listen: <span class="kw-2">&amp;mut </span>Listen) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(mapped_port) = <span class="self">self</span>.port_mapping_ref().get_by_left(<span class="kw-2">&amp;</span>listen.requested_port) {
+            <span class="macro">trace!</span>(<span class="string">&quot;mapping port {} to {mapped_port}&quot;</span>, <span class="kw-2">&amp;</span>listen.requested_port);
+            listen.requested_port = <span class="kw-2">*</span>mapped_port;
+        }
+    }
 
     <span class="doccomment">/// Returns true to let caller know to keep running
     </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
@@ -302,25 +328,31 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         tcp_connection: <span class="kw-2">&amp;</span>NewTcpConnection,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;TcpStream, LayerError&gt; {
-        <span class="kw">let </span>destination_port = tcp_connection.destination_port;
+        <span class="kw">let </span>remote_destination_port = tcp_connection.destination_port;
+        <span class="kw">let </span>local_destination_port = <span class="self">self
+            </span>.port_mapping_ref()
+            .get_by_right(<span class="kw-2">&amp;</span>tcp_connection.destination_port)
+            .map(|p| {
+                <span class="macro">trace!</span>(<span class="string">&quot;mapping port {} to {p}&quot;</span>, <span class="kw-2">&amp;</span>tcp_connection.destination_port);
+                <span class="kw-2">*</span>p
+            })
+            .unwrap_or(tcp_connection.destination_port);
 
         <span class="kw">let </span>listen = <span class="self">self
             </span>.ports()
-            .get(<span class="kw-2">&amp;</span>destination_port)
-            .ok_or(LayerError::PortNotFound(destination_port))<span class="question-mark">?</span>;
+            .get(<span class="kw-2">&amp;</span>remote_destination_port)
+            .ok_or(LayerError::PortNotFound(remote_destination_port))<span class="question-mark">?</span>;
 
         <span class="kw">let </span>addr: SocketAddr = listen.into();
 
         <span class="kw">let </span>info = SocketInformation::new(
             SocketAddr::new(tcp_connection.remote_address, tcp_connection.source_port),
-            SocketAddr::new(
-                tcp_connection.local_address,
-                tcp_connection.destination_port,
-            ),
+            <span class="comment">// we want local so app won&#39;t know we did the mapping.
+            </span>SocketAddr::new(tcp_connection.local_address, local_destination_port),
         );
 
         {
-            CONNECTION_QUEUE.lock().unwrap().add(<span class="kw-2">&amp;</span>listen.fd, info);
+            CONNECTION_QUEUE.lock().unwrap().add(listen.id, info);
         }
 
         <span class="attr">#[allow(clippy::let_and_return)]

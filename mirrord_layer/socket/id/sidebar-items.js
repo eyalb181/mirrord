@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"static":[["SOCKET_ID_ALLOCATOR","Holds the latest `u64` to be used as a new [`SocketId`]."]],"struct":[["SocketId","Better way of identifying a socket than just relying on its `fd`."]]};

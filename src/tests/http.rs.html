@@ -121,7 +121,7 @@
     #[trace]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">240</span>))]
-    </span><span class="kw">async fn </span>test_mirror_http_traffic(
+    </span><span class="kw">async fn </span>mirror_http_traffic(
         <span class="attr">#[future]
         #[notrace]
         </span>service: KubeService,
@@ -170,7 +170,7 @@
     #[trace]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">240</span>))]
-    </span><span class="kw">async fn </span>test_mirror_http_traffic(
+    </span><span class="kw">async fn </span>mirror_http_traffic(
         <span class="attr">#[future]
         #[notrace]
         </span>service: KubeService,

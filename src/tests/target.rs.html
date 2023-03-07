@@ -36,7 +36,7 @@
 
     <span class="attr">#[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
-    </span><span class="kw">pub async fn </span>test_mirrord_ls(<span class="attr">#[future] </span>service: KubeService) {
+    </span><span class="kw">pub async fn </span>mirrord_ls(<span class="attr">#[future] </span>service: KubeService) {
         <span class="kw">let </span>service = service.<span class="kw">await</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>process = run_ls(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>);
         <span class="kw">let </span>res = process.child.wait().<span class="kw">await</span>.unwrap();

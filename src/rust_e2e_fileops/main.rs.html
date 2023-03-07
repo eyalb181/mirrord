@@ -167,7 +167,7 @@
     <span class="macro">assert_eq!</span>(amount, FILE_CONTENTS.len());
 }
 
-<span class="kw">fn </span>test_open_read_only() {
+<span class="kw">fn </span>open_read_only() {
     <span class="macro">println!</span>(<span class="string">&quot;&gt;&gt; test_open_read_only&quot;</span>);
 
     OpenOptions::new()
@@ -176,7 +176,7 @@
         .expect(<span class="string">&quot;Open read-only!&quot;</span>);
 }
 
-<span class="kw">fn </span>test_open_read_write() {
+<span class="kw">fn </span>open_read_write() {
     <span class="macro">println!</span>(<span class="string">&quot;&gt;&gt; test_open_read_write&quot;</span>);
 
     OpenOptions::new()
@@ -186,7 +186,7 @@
         .expect(<span class="string">&quot;Open read/write!&quot;</span>);
 }
 
-<span class="kw">fn </span>test_open_read_contents() {
+<span class="kw">fn </span>open_read_contents() {
     <span class="macro">println!</span>(<span class="string">&quot;&gt;&gt; test_open_read_contents&quot;</span>);
 
     <span class="kw">let </span><span class="kw-2">mut </span>file = OpenOptions::new()
@@ -202,7 +202,7 @@
     <span class="macro">assert_eq!</span>(amount, FILE_CONTENTS.len());
 }
 
-<span class="kw">fn </span>test_fgets() {
+<span class="kw">fn </span>fgets() {
     <span class="macro">println!</span>(<span class="string">&quot;&gt;&gt; test_fgets&quot;</span>);
 
     <span class="kw">let </span>file = OpenOptions::new()
@@ -224,7 +224,7 @@
     };
 }
 
-<span class="kw">fn </span>test_pread() {
+<span class="kw">fn </span>pread() {
     <span class="macro">println!</span>(<span class="string">&quot;&gt;&gt; test_pread&quot;</span>);
 
     <span class="kw">let </span>file = OpenOptions::new()
@@ -246,7 +246,7 @@
     };
 }
 
-<span class="kw">fn </span>test_pwrite() {
+<span class="kw">fn </span>pwrite() {
     <span class="macro">println!</span>(<span class="string">&quot;&gt;&gt; test_pwrite&quot;</span>);
 
     <span class="kw">let </span>file = OpenOptions::new()
@@ -269,12 +269,12 @@
 <span class="kw">fn </span>main() {
     create_test_file();
 
-    test_open_read_only();
-    test_open_read_write();
-    test_open_read_contents();
-    test_fgets();
-    test_pread();
-    test_pwrite();
+    open_read_only();
+    open_read_write();
+    open_read_contents();
+    fgets();
+    pread();
+    pwrite();
 }
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rust_e2e_fileops" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (001a77fac 2023-01-30)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-7c23ac01f615ce90.css" ></div></body></html>

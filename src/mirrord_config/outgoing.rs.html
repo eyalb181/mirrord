@@ -93,6 +93,11 @@
 <a href="#93" id="93">93</a>
 <a href="#94" id="94">94</a>
 <a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
 </pre><pre class="rust"><code><span class="kw">use </span>mirrord_config_derive::MirrordConfig;
 <span class="kw">use </span>schemars::JsonSchema;
 
@@ -110,6 +115,10 @@
 
     <span class="attr">#[config(env = <span class="string">&quot;MIRRORD_UDP_OUTGOING&quot;</span>, default = <span class="bool-val">true</span>)]
     </span><span class="kw">pub </span>udp: bool,
+
+    <span class="doccomment">/// Consider removing when adding https://github.com/metalbear-co/mirrord/issues/702
+    </span><span class="attr">#[config(unstable, default = <span class="bool-val">false</span>)]
+    </span><span class="kw">pub </span>ignore_localhost: bool,
 }
 
 <span class="kw">impl </span>MirrordToggleableConfig <span class="kw">for </span>OutgoingFileConfig {
@@ -122,6 +131,7 @@
             udp: FromEnv::new(<span class="string">&quot;MIRRORD_UDP_OUTGOING&quot;</span>)
                 .source_value()
                 .unwrap_or(<span class="prelude-val">Ok</span>(<span class="bool-val">false</span>))<span class="question-mark">?</span>,
+            ..Default::default()
         })
     }
 }

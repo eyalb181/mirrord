@@ -77,12 +77,6 @@
 <a href="#77" id="77">77</a>
 <a href="#78" id="78">78</a>
 <a href="#79" id="79">79</a>
-<a href="#80" id="80">80</a>
-<a href="#81" id="81">81</a>
-<a href="#82" id="82">82</a>
-<a href="#83" id="83">83</a>
-<a href="#84" id="84">84</a>
-<a href="#85" id="85">85</a>
 </pre><pre class="rust"><code><span class="kw">use </span>mirrord_config::{util::VecOrSingle, LayerConfig};
 
 <span class="doccomment">/// For processes that spawn other processes and also specified in `MIRRORD_SKIP_PROCESSES` list we
@@ -151,20 +145,14 @@
     #[case(<span class="string">&quot;test&quot;</span>, <span class="prelude-val">Some</span>(<span class="macro">vec!</span>[<span class="string">&quot;foo&quot;</span>.to_string()]</span>))]
     <span class="attr">#[case(<span class="string">&quot;test&quot;</span>, <span class="prelude-val">None</span>)]
     #[case(<span class="string">&quot;test&quot;</span>, <span class="prelude-val">Some</span>(<span class="macro">vec!</span>[<span class="string">&quot;foo&quot;</span>.to_owned(), <span class="string">&quot;bar&quot;</span>.to_owned(), <span class="string">&quot;baz&quot;</span>.to_owned()]</span>))]
-    <span class="kw">fn </span>test_should_load_true(
-        <span class="attr">#[case] </span>given_process: <span class="kw-2">&amp;</span>str,
-        <span class="attr">#[case] </span>skip_processes: <span class="prelude-ty">Option</span>&lt;Vec&lt;String&gt;&gt;,
-    ) {
+    <span class="kw">fn </span>should_load_true(<span class="attr">#[case] </span>given_process: <span class="kw-2">&amp;</span>str, <span class="attr">#[case] </span>skip_processes: <span class="prelude-ty">Option</span>&lt;Vec&lt;String&gt;&gt;) {
         <span class="macro">assert!</span>(should_load(given_process, skip_processes));
     }
 
     <span class="attr">#[rstest]
     #[case(<span class="string">&quot;test&quot;</span>, <span class="prelude-val">Some</span>(<span class="macro">vec!</span>[<span class="string">&quot;test&quot;</span>.to_string()]</span>))]
     <span class="attr">#[case(<span class="string">&quot;test&quot;</span>, <span class="prelude-val">Some</span>(<span class="macro">vec!</span>[<span class="string">&quot;test&quot;</span>.to_owned(), <span class="string">&quot;foo&quot;</span>.to_owned(), <span class="string">&quot;bar&quot;</span>.to_owned(), <span class="string">&quot;baz&quot;</span>.to_owned()]</span>))]
-    <span class="kw">fn </span>test_should_load_false(
-        <span class="attr">#[case] </span>given_process: <span class="kw-2">&amp;</span>str,
-        <span class="attr">#[case] </span>skip_processes: <span class="prelude-ty">Option</span>&lt;Vec&lt;String&gt;&gt;,
-    ) {
+    <span class="kw">fn </span>should_load_false(<span class="attr">#[case] </span>given_process: <span class="kw-2">&amp;</span>str, <span class="attr">#[case] </span>skip_processes: <span class="prelude-ty">Option</span>&lt;Vec&lt;String&gt;&gt;) {
         <span class="macro">assert!</span>(!should_load(given_process, skip_processes));
     }
 }

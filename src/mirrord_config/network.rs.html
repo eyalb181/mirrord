@@ -180,15 +180,15 @@
         <span class="attr">#[values(
             (
                 <span class="prelude-val">None</span>,
-                IncomingConfig { mode: IncomingMode::Mirror, http_header_filter: Default::default(), }
+                IncomingConfig { mode: IncomingMode::Mirror, ..Default::default() }
             ),
             (
                 <span class="prelude-val">Some</span>(<span class="string">&quot;false&quot;</span>),
-                IncomingConfig { mode: IncomingMode::Mirror, http_header_filter: Default::default(), }
+                IncomingConfig { mode: IncomingMode::Mirror, ..Default::default() }
             ),
             (
                 <span class="prelude-val">Some</span>(<span class="string">&quot;true&quot;</span>),
-                IncomingConfig { mode: IncomingMode::Steal, http_header_filter: Default::default(), }
+                IncomingConfig { mode: IncomingMode::Steal, ..Default::default() }
             ),
         )]
         </span>incoming: (<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;, IncomingConfig),

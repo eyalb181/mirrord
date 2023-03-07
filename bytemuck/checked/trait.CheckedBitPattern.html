@@ -10,7 +10,7 @@ structs containing them.</p>
 <p>To do this, we define a <code>Bits</code> type which is a type with equivalent layout
 to <code>Self</code> other than the invalid bit patterns which disallow <code>Self</code> from
 being <a href="../trait.AnyBitPattern.html" title="AnyBitPattern"><code>AnyBitPattern</code></a>. This <code>Bits</code> type must itself implement
-<a href="../trait.AnyBitPattern.html" title="AnyBitPattern"><code>AnyBitPattern</code></a>. Then, we implement a function that checks wheter a
+<a href="../trait.AnyBitPattern.html" title="AnyBitPattern"><code>AnyBitPattern</code></a>. Then, we implement a function that checks whether a
 certain instance of the <code>Bits</code> is also a valid bit pattern of <code>Self</code>. If
 this check passes, then we can allow casting from the <code>Bits</code> to <code>Self</code> (and
 therefore, any type which is able to be cast to <code>Bits</code> is also able to be
