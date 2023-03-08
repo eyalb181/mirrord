@@ -269,7 +269,7 @@
                         <span class="kw">continue</span>;
                     },
                     <span class="prelude-val">Err</span>(fail) =&gt; {
-                        <span class="macro">trace!</span>(<span class="string">&quot;Failed reading local_stream with {:#?}&quot;</span>, fail);
+                        <span class="macro">info!</span>(<span class="string">&quot;Failed reading local_stream with {:#?}&quot;</span>, fail);
                         <span class="kw">break</span>;
                     }
                     <span class="prelude-val">Ok</span>(read_amount) <span class="kw">if </span>read_amount == <span class="number">0 </span>=&gt; {

@@ -329,7 +329,7 @@
     task,
 };
 <span class="kw">use </span>tokio_stream::{wrappers::ReceiverStream, StreamExt};
-<span class="kw">use </span>tracing::{error, trace, warn};
+<span class="kw">use </span>tracing::{error, info, trace, warn};
 
 <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <span class="kw">use crate</span>::{common::ResponseDeque, detour::DetourGuard, error::LayerError};
@@ -415,7 +415,7 @@
                             <span class="kw">continue</span>;
                         },
                         <span class="prelude-val">Err</span>(fail) =&gt; {
-                            <span class="macro">error!</span>(<span class="string">&quot;Failed reading mirror_stream with {:#?}&quot;</span>, fail);
+                            <span class="macro">info!</span>(<span class="string">&quot;Failed reading mirror_stream with {:#?}&quot;</span>, fail);
                             close_remote_stream(layer_tx.clone()).<span class="kw">await</span>;
 
                             <span class="kw">break</span>;

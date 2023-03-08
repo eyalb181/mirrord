@@ -869,7 +869,7 @@
     .bypass(Bypass::AddressConversion)<span class="question-mark">?</span>;
 
     Arc::get_mut(<span class="kw-2">&amp;mut </span>socket).unwrap().state = SocketState::Bound(Bound {
-        requested_port,
+        requested_address,
         address,
     });
 
@@ -891,7 +891,7 @@
 
     <span class="kw">match </span>socket.state {
         SocketState::Bound(Bound {
-            requested_port,
+            requested_address,
             address,
         }) =&gt; {
             <span class="kw">let </span>listen_result = <span class="kw">unsafe </span>{ FN_LISTEN(sockfd, backlog) };
@@ -903,13 +903,13 @@
 
             blocking_send_hook_message(HookMessage::Tcp(TcpIncoming::Listen(Listen {
                 mirror_port: address.port(),
-                requested_port,
+                requested_port: requested_address.port(),
                 ipv6: address.is_ipv6(),
                 id: socket.id,
             })))<span class="question-mark">?</span>;
 
             Arc::get_mut(<span class="kw-2">&amp;mut </span>socket).unwrap().state = SocketState::Listening(Bound {
-                requested_port,
+                requested_address,
                 address,
             });
 
@@ -1058,11 +1058,11 @@
     </span><span class="kw">if </span>remote_address.ip().is_loopback() &amp;&amp; <span class="kw">let </span><span class="prelude-val">Some</span>(res) =
         SOCKETS.lock()<span class="question-mark">?</span>.values().find_map(|socket| {
             <span class="kw">if let </span>SocketState::Listening(Bound {
-                requested_port,
+                requested_address,
                 address,
             }) = socket.state
             {
-                <span class="kw">if </span>requested_port == remote_address.port()
+                <span class="kw">if </span>requested_address.port() == remote_address.port()
                     &amp;&amp; socket.protocol == user_socket_info.protocol
                 {
                     <span class="kw">return </span><span class="prelude-val">Some</span>(raw_connect(address));
@@ -1141,8 +1141,8 @@
             .bypass(Bypass::LocalFdNotFound(sockfd))
             .and_then(|socket| <span class="kw">match </span><span class="kw-2">&amp;</span>socket.state {
                 SocketState::Connected(connected) =&gt; Detour::Success(connected.local_address),
-                SocketState::Bound(bound) =&gt; Detour::Success(bound.address),
-                SocketState::Listening(bound) =&gt; Detour::Success(bound.address),
+                SocketState::Bound(bound) =&gt; Detour::Success(bound.requested_address),
+                SocketState::Listening(bound) =&gt; Detour::Success(bound.requested_address),
                 <span class="kw">_ </span>=&gt; Detour::Bypass(Bypass::InvalidState(sockfd)),
             })<span class="question-mark">?
     </span>};
