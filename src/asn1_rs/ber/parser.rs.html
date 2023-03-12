@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/asn1-rs-0.5.1/src/ber/parser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-f2fc7b5fd698d27d.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-5f7299aa2b503fb1.css"><link rel="stylesheet" disabled href="../../../static.files/dark-dfb18ef8114bb428.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-4047a6aaddd3789d.css"><script id="default-settings" ></script><script src="../../../static.files/storage-ff4706381ddb2707.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-02cbe07fc548e88c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../asn1_rs/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/asn1-rs-0.5.2/src/ber/parser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-f2fc7b5fd698d27d.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-5f7299aa2b503fb1.css"><link rel="stylesheet" disabled href="../../../static.files/dark-dfb18ef8114bb428.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-4047a6aaddd3789d.css"><script id="default-settings" ></script><script src="../../../static.files/storage-ff4706381ddb2707.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-02cbe07fc548e88c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../asn1_rs/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -137,9 +137,39 @@
 <a href="#137" id="137">137</a>
 <a href="#138" id="138">138</a>
 <a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::error::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw">crate</span>::header::<span class="kw-2">*</span>;
-<span class="kw">use crate</span>::{FromDer, Length, Tag};
+<span class="kw">use crate</span>::{BerParser, DerParser, FromBer, Length, Tag};
 <span class="kw">use </span>nom::bytes::streaming::take;
 <span class="kw">use </span>nom::{<span class="prelude-val">Err</span>, Needed, Offset};
 <span class="kw">use </span>rusticata_macros::custom_check;
@@ -150,8 +180,58 @@
 <span class="doccomment">/// Default maximum object size (2^32)
 </span><span class="comment">// pub const MAX_OBJECT_SIZE: usize = 4_294_967_295;
 
-</span><span class="doccomment">/// Skip object content, and return true if object was End-Of-Content
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ber_skip_object_content&lt;<span class="lifetime">&#39;a</span>&gt;(
+</span><span class="kw">pub trait </span>GetObjectContent {
+    <span class="doccomment">/// Return the raw content (bytes) of the next ASN.1 encoded object
+    ///
+    /// Note: if using BER and length is indefinite, terminating End-Of-Content is NOT included
+    </span><span class="kw">fn </span>get_object_content&lt;<span class="lifetime">&#39;a</span>&gt;(
+        i: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8],
+        hdr: <span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>Header,
+        max_depth: usize,
+    ) -&gt; ParseResult&lt;<span class="lifetime">&#39;a</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt;;
+}
+
+<span class="kw">impl </span>GetObjectContent <span class="kw">for </span>BerParser {
+    <span class="kw">fn </span>get_object_content&lt;<span class="lifetime">&#39;a</span>&gt;(
+        i: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8],
+        hdr: <span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>Header,
+        max_depth: usize,
+    ) -&gt; ParseResult&lt;<span class="lifetime">&#39;a</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt; {
+        <span class="kw">let </span>start_i = i;
+        <span class="kw">let </span>(i, <span class="kw">_</span>) = ber_skip_object_content(i, hdr, max_depth)<span class="question-mark">?</span>;
+        <span class="kw">let </span>len = start_i.offset(i);
+        <span class="kw">let </span>(content, i) = start_i.split_at(len);
+        <span class="comment">// if len is indefinite, there are 2 extra bytes for EOC
+        </span><span class="kw">if </span>hdr.length == Length::Indefinite {
+            <span class="kw">let </span>len = content.len();
+            <span class="macro">assert!</span>(len &gt;= <span class="number">2</span>);
+            <span class="prelude-val">Ok</span>((i, <span class="kw-2">&amp;</span>content[..len - <span class="number">2</span>]))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>((i, content))
+        }
+    }
+}
+
+<span class="kw">impl </span>GetObjectContent <span class="kw">for </span>DerParser {
+    <span class="doccomment">/// Skip object content, accepting only DER
+    ///
+    /// This this function is for DER only, it cannot go into recursion (no indefinite length)
+    </span><span class="kw">fn </span>get_object_content&lt;<span class="lifetime">&#39;a</span>&gt;(
+        i: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8],
+        hdr: <span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>Header,
+        _max_depth: usize,
+    ) -&gt; ParseResult&lt;<span class="lifetime">&#39;a</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt; {
+        <span class="kw">match </span>hdr.length {
+            Length::Definite(l) =&gt; take(l)(i),
+            Length::Indefinite =&gt; <span class="prelude-val">Err</span>(Err::Error(Error::DerConstraintFailed(
+                DerConstraint::IndefiniteLength,
+            ))),
+        }
+    }
+}
+
+<span class="doccomment">/// Skip object content, and return true if object was End-Of-Content
+</span><span class="kw">fn </span>ber_skip_object_content&lt;<span class="lifetime">&#39;a</span>&gt;(
     i: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8],
     hdr: <span class="kw-2">&amp;</span>Header,
     max_depth: usize,
@@ -173,7 +253,7 @@
             // this is recursive
             </span><span class="kw">let </span><span class="kw-2">mut </span>i = i;
             <span class="kw">loop </span>{
-                <span class="kw">let </span>(i2, header2) = Header::from_der(i)<span class="question-mark">?</span>;
+                <span class="kw">let </span>(i2, header2) = Header::from_ber(i)<span class="question-mark">?</span>;
                 <span class="kw">let </span>(i3, eoc) = ber_skip_object_content(i2, <span class="kw-2">&amp;</span>header2, max_depth - <span class="number">1</span>)<span class="question-mark">?</span>;
                 <span class="kw">if </span>eoc {
                     <span class="comment">// return false, since top object was not EndOfContent
@@ -182,26 +262,6 @@
                 i = i3;
             }
         }
-    }
-}
-
-<span class="doccomment">/// Read object raw content (bytes)
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ber_get_object_content&lt;<span class="lifetime">&#39;a</span>&gt;(
-    i: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8],
-    hdr: <span class="kw-2">&amp;</span>Header,
-    max_depth: usize,
-) -&gt; ParseResult&lt;<span class="lifetime">&#39;a</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt; {
-    <span class="kw">let </span>start_i = i;
-    <span class="kw">let </span>(i, <span class="kw">_</span>) = ber_skip_object_content(i, hdr, max_depth)<span class="question-mark">?</span>;
-    <span class="kw">let </span>len = start_i.offset(i);
-    <span class="kw">let </span>(content, i) = start_i.split_at(len);
-    <span class="comment">// if len is indefinite, there are 2 extra bytes for EOC
-    </span><span class="kw">if </span>hdr.length == Length::Indefinite {
-        <span class="kw">let </span>len = content.len();
-        <span class="macro">assert!</span>(len &gt;= <span class="number">2</span>);
-        <span class="prelude-val">Ok</span>((i, <span class="kw-2">&amp;</span>content[..len - <span class="number">2</span>]))
-    } <span class="kw">else </span>{
-        <span class="prelude-val">Ok</span>((i, content))
     }
 }
 
@@ -224,7 +284,7 @@
         <span class="prelude-val">Err</span>(Err::Incomplete(Needed::new(<span class="number">1</span>)))
     } <span class="kw">else </span>{
         <span class="kw">let </span>a = i[<span class="number">0</span>] &gt;&gt; <span class="number">6</span>;
-        <span class="kw">let </span>b = <span class="kw">if </span>i[<span class="number">0</span>] &amp; <span class="number">0b0010_0000 </span>!= <span class="number">0 </span>{ <span class="number">1 </span>} <span class="kw">else </span>{ <span class="number">0 </span>};
+        <span class="kw">let </span>b = u8::from(i[<span class="number">0</span>] &amp; <span class="number">0b0010_0000 </span>!= <span class="number">0</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>c = u32::from(i[<span class="number">0</span>] &amp; <span class="number">0b0001_1111</span>);
 
         <span class="kw">let </span><span class="kw-2">mut </span>tag_byte_count = <span class="number">1</span>;

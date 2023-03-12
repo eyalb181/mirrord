@@ -711,7 +711,7 @@
     flags: u16,
 }
 
-<span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, fields(bytes = %eth_packet.len()))]
+<span class="attr">#[tracing::instrument(skip(eth_packet), level = <span class="string">&quot;trace&quot;</span>, fields(bytes = %eth_packet.len()))]
 </span><span class="kw">fn </span>get_tcp_packet(eth_packet: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;(TcpSessionIdentifier, TcpPacketData)&gt; {
     <span class="kw">let </span>eth_packet = EthernetPacket::new(<span class="kw-2">&amp;</span>eth_packet[..])<span class="question-mark">?</span>;
     <span class="kw">let </span>ip_packet = <span class="kw">match </span>eth_packet.get_ethertype() {
@@ -1029,7 +1029,7 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>), fields(bytes = %eth_packet.len()))]
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>, eth_packet), fields(bytes = %eth_packet.len()))]
     </span><span class="kw">async fn </span>handle_packet(<span class="kw-2">&amp;mut </span><span class="self">self</span>, eth_packet: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), AgentError&gt; {
         <span class="kw">let </span>(identifier, tcp_packet) = <span class="kw">match </span>get_tcp_packet(eth_packet) {
             <span class="prelude-val">Some</span>(res) =&gt; res,

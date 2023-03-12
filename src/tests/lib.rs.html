@@ -891,6 +891,7 @@
 <a href="#891" id="891">891</a>
 <a href="#892" id="892">892</a>
 <a href="#893" id="893">893</a>
+<a href="#894" id="894">894</a>
 </pre><pre class="rust"><code><span class="attr">#![feature(stmt_expr_attributes)]
 
 </span><span class="kw">mod </span>env;
@@ -973,6 +974,7 @@
     }
 
     <span class="attr">#[derive(Debug)]
+    #[allow(dead_code)]
     </span><span class="kw">pub enum </span>Application {
         PythonFlaskHTTP,
         PythonFastApiHTTP,
