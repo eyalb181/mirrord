@@ -280,6 +280,8 @@
 <a href="#280" id="280">280</a>
 <a href="#281" id="281">281</a>
 <a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     collections::HashMap,
     fs::File,
@@ -308,9 +310,18 @@
     error::{AgentError, <span class="prelude-ty">Result</span>},
 };
 
-<span class="kw">const </span>CONTAINERD_SOCK_PATH: <span class="kw-2">&amp;</span>str = <span class="string">&quot;/host/run/containerd/containerd.sock&quot;</span>;
+<span class="kw">const </span>CONTAINERD_DEFAULT_SOCK_PATH: <span class="kw-2">&amp;</span>str = <span class="string">&quot;/host/run/containerd/containerd.sock&quot;</span>;
 <span class="kw">const </span>CONTAINERD_ALTERNATIVE_SOCK_PATH: <span class="kw-2">&amp;</span>str = <span class="string">&quot;/host/run/dockershim.sock&quot;</span>;
 <span class="kw">const </span>CONTAINERD_K3S_SOCK_PATH: <span class="kw-2">&amp;</span>str = <span class="string">&quot;/host/run/k3s/containerd/containerd.sock&quot;</span>;
+<span class="kw">const </span>CONTAINERD_MICROK8S_SOCK_PATH: <span class="kw-2">&amp;</span>str = <span class="string">&quot;/host/var/snap/microk8s/common/run/containerd.sock&quot;</span>;
+
+<span class="doccomment">/// Possible containerd socket paths, evaluated from left to right.
+</span><span class="kw">const </span>CONTAINERD_SOCK_PATHS: [<span class="kw-2">&amp;</span>str; <span class="number">4</span>] = [
+    CONTAINERD_DEFAULT_SOCK_PATH,
+    CONTAINERD_ALTERNATIVE_SOCK_PATH,
+    CONTAINERD_K3S_SOCK_PATH,
+    CONTAINERD_MICROK8S_SOCK_PATH,
+];
 
 <span class="kw">const </span>DEFAULT_CONTAINERD_NAMESPACE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;k8s.io&quot;</span>;
 
@@ -468,21 +479,14 @@
     /// containerd socket to use and we need to find the one
     /// that manages our target container
     </span><span class="kw">async fn </span>get_channel(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Channel&gt; {
-        <span class="kw">match </span>connect_and_find_container(<span class="self">self</span>.container_id.clone(), CONTAINERD_SOCK_PATH).<span class="kw">await </span>{
-            <span class="prelude-val">Ok</span>(channel) =&gt; <span class="prelude-val">Ok</span>(channel),
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">match </span>connect_and_find_container(
-                <span class="self">self</span>.container_id.clone(),
-                CONTAINERD_ALTERNATIVE_SOCK_PATH,
-            )
-            .<span class="kw">await
+        <span class="kw">for </span>sock_path <span class="kw">in </span>CONTAINERD_SOCK_PATHS {
+            <span class="kw">if let </span><span class="prelude-val">Ok</span>(channel) =
+                connect_and_find_container(<span class="self">self</span>.container_id.clone(), sock_path).<span class="kw">await
             </span>{
-                <span class="prelude-val">Ok</span>(channel) =&gt; <span class="prelude-val">Ok</span>(channel),
-                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-                    connect_and_find_container(<span class="self">self</span>.container_id.clone(), CONTAINERD_K3S_SOCK_PATH)
-                        .<span class="kw">await
-                </span>}
-            },
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(channel);
+            }
         }
+        <span class="prelude-val">Err</span>(AgentError::ContainerdSocketNotFound)
     }
 
     <span class="kw">async fn </span>get_task_client(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;TasksClient&lt;Channel&gt;&gt; {

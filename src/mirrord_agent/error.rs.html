@@ -134,6 +134,13 @@
 <a href="#134" id="134">134</a>
 <a href="#135" id="135">135</a>
 <a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
 </pre><pre class="rust"><code><span class="kw">use </span>mirrord_protocol::{
     outgoing::{
         tcp::{DaemonTcpOutgoing, LayerTcpOutgoing},
@@ -264,6 +271,13 @@
         Check agent logs for errors and please report a bug if kernel version &gt;=4.20&quot;#
     </span>)]
     </span>SnifferApiError,
+
+    <span class="attr">#[error(
+        <span class="string">r#&quot;Couldn&#39;t find containerd socket to use, please open a bug report
+           providing information on how you installed k8s and if you know where
+           the containerd socket is&quot;#
+    </span>)]
+    </span>ContainerdSocketNotFound,
 
     <span class="attr">#[error(<span class="string">&quot;Returning an error to test the agent&#39;s error cleanup. Should only ever be used when testing mirrord.&quot;</span>)]
     </span>TestError,

@@ -461,7 +461,7 @@
 ) -&gt; c_int {
     gethostname()
         .map(|host| {
-            <span class="kw">let </span>host_len = host.as_bytes().len();
+            <span class="kw">let </span>host_len = host.as_bytes_with_nul().len();
 
             raw_name.copy_from_nonoverlapping(host.as_ptr(), cmp::min(name_length, host_len));
 
