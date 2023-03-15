@@ -447,7 +447,7 @@
                             // stream) to our interceptor socket. When the user tries to read the
                             // remote data, this&#39;ll be what they receive.
                             </span><span class="kw">if let </span><span class="prelude-val">Err</span>(fail) = mirror_stream.write_all(<span class="kw-2">&amp;</span>bytes).<span class="kw">await </span>{
-                                <span class="macro">error!</span>(<span class="string">&quot;Failed writing to mirror_stream with {:#?}!&quot;</span>, fail);
+                                <span class="macro">trace!</span>(<span class="string">&quot;Failed writing to mirror_stream with {:#?}!&quot;</span>, fail);
                                 <span class="kw">break</span>;
                             }
                         },
