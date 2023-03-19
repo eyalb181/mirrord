@@ -381,62 +381,50 @@
 <a href="#381" id="381">381</a>
 <a href="#382" id="382">382</a>
 <a href="#383" id="383">383</a>
-<a href="#384" id="384">384</a>
-<a href="#385" id="385">385</a>
-<a href="#386" id="386">386</a>
-<a href="#387" id="387">387</a>
-<a href="#388" id="388">388</a>
-<a href="#389" id="389">389</a>
-<a href="#390" id="390">390</a>
-<a href="#391" id="391">391</a>
-<a href="#392" id="392">392</a>
-<a href="#393" id="393">393</a>
-<a href="#394" id="394">394</a>
-<a href="#395" id="395">395</a>
-<a href="#396" id="396">396</a>
-<a href="#397" id="397">397</a>
-<a href="#398" id="398">398</a>
-<a href="#399" id="399">399</a>
-<a href="#400" id="400">400</a>
-<a href="#401" id="401">401</a>
-<a href="#402" id="402">402</a>
-<a href="#403" id="403">403</a>
-<a href="#404" id="404">404</a>
-<a href="#405" id="405">405</a>
-<a href="#406" id="406">406</a>
-<a href="#407" id="407">407</a>
-<a href="#408" id="408">408</a>
-<a href="#409" id="409">409</a>
-<a href="#410" id="410">410</a>
-<a href="#411" id="411">411</a>
-<a href="#412" id="412">412</a>
-<a href="#413" id="413">413</a>
-<a href="#414" id="414">414</a>
-<a href="#415" id="415">415</a>
-<a href="#416" id="416">416</a>
-<a href="#417" id="417">417</a>
-<a href="#418" id="418">418</a>
-<a href="#419" id="419">419</a>
-<a href="#420" id="420">420</a>
-</pre><pre class="rust"><code><span class="kw">use </span>std::sync::LazyLock;
+</pre><pre class="rust"><code><span class="kw">use </span>std::sync::{Arc, LazyLock};
 
-<span class="kw">use </span>fancy_regex::Regex;
+<span class="kw">use </span>enum_dispatch::enum_dispatch;
 <span class="kw">use </span>mirrord_protocol::Port;
-<span class="kw">use </span>nix::unistd::getgid;
 <span class="kw">use </span>rand::distributions::{Alphanumeric, DistString};
-<span class="kw">use </span>tokio::process::Command;
-<span class="kw">use </span>tracing::warn;
 
-<span class="kw">use </span><span class="kw">crate</span>::error::{AgentError, <span class="prelude-ty">Result</span>};
+<span class="kw">use crate</span>::{
+    error::{AgentError, <span class="prelude-ty">Result</span>},
+    steal::ip_tables::{
+        flush_connections::FlushConnections,
+        mesh::{MeshRedirect, MeshVendor},
+        redirect::{PreroutingRedirect, Redirect},
+    },
+};
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>MIRRORD_IPTABLE_CHAIN_ENV: <span class="kw-2">&amp;</span>str = <span class="string">&quot;MIRRORD_IPTABLE_CHAIN_NAME&quot;</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>chain;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>flush_connections;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>mesh;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>redirect;
 
-<span class="doccomment">/// [`Regex`] used to select the `owner` rule from the list of `iptables` rules.
-</span><span class="kw">static </span>UID_LOOKUP_REGEX: LazyLock&lt;Regex&gt; =
-    LazyLock::new(|| Regex::new(<span class="string">r&quot;-m owner --uid-owner \d+&quot;</span>).unwrap());
+<span class="kw">pub static </span>IPTABLE_PREROUTING_ENV: <span class="kw-2">&amp;</span>str = <span class="string">&quot;MIRRORD_IPTABLE_PREROUTING_NAME&quot;</span>;
+<span class="kw">pub static </span>IPTABLE_PREROUTING: LazyLock&lt;String&gt; = LazyLock::new(|| {
+    std::env::var(IPTABLE_PREROUTING_ENV).unwrap_or_else(|<span class="kw">_</span>| {
+        <span class="macro">format!</span>(
+            <span class="string">&quot;MIRRORD_INPUT_{}&quot;</span>,
+            Alphanumeric.sample_string(<span class="kw-2">&amp;mut </span>rand::thread_rng(), <span class="number">5</span>)
+        )
+    })
+});
+
+<span class="kw">pub static </span>IPTABLE_MESH_ENV: <span class="kw-2">&amp;</span>str = <span class="string">&quot;MIRRORD_IPTABLE_MESH_NAME&quot;</span>;
+<span class="kw">pub static </span>IPTABLE_MESH: LazyLock&lt;String&gt; = LazyLock::new(|| {
+    std::env::var(IPTABLE_MESH_ENV).unwrap_or_else(|<span class="kw">_</span>| {
+        <span class="macro">format!</span>(
+            <span class="string">&quot;MIRRORD_OUTPUT_{}&quot;</span>,
+            Alphanumeric.sample_string(<span class="kw-2">&amp;mut </span>rand::thread_rng(), <span class="number">5</span>)
+        )
+    })
+});
+
+<span class="kw">const </span>IPTABLES_TABLE_NAME: <span class="kw-2">&amp;</span>str = <span class="string">&quot;nat&quot;</span>;
 
 <span class="attr">#[cfg_attr(test, mockall::automock)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>IPTables {
+</span><span class="kw">pub trait </span>IPTables {
     <span class="kw">fn </span>create_chain(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;;
     <span class="kw">fn </span>remove_chain(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;;
 
@@ -447,7 +435,8 @@
 }
 
 <span class="kw">impl </span>IPTables <span class="kw">for </span>iptables::IPTables {
-    <span class="kw">fn </span>create_chain(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>create_chain(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="self">self</span>.new_chain(IPTABLES_TABLE_NAME, name)
             .map_err(|e| AgentError::IPTablesError(e.to_string()))<span class="question-mark">?</span>;
         <span class="self">self</span>.append(IPTABLES_TABLE_NAME, name, <span class="string">&quot;-j RETURN&quot;</span>)
@@ -456,7 +445,8 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>remove_chain(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>remove_chain(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="self">self</span>.flush_chain(IPTABLES_TABLE_NAME, name)
             .map_err(|e| AgentError::IPTablesError(e.to_string()))<span class="question-mark">?</span>;
         <span class="self">self</span>.delete_chain(IPTABLES_TABLE_NAME, name)
@@ -465,36 +455,43 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>add_rule(<span class="kw-2">&amp;</span><span class="self">self</span>, chain: <span class="kw-2">&amp;</span>str, rule: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>add_rule(<span class="kw-2">&amp;</span><span class="self">self</span>, chain: <span class="kw-2">&amp;</span>str, rule: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="self">self</span>.append(IPTABLES_TABLE_NAME, chain, rule)
             .map_err(|e| AgentError::IPTablesError(e.to_string()))
     }
 
-    <span class="kw">fn </span>insert_rule(<span class="kw-2">&amp;</span><span class="self">self</span>, chain: <span class="kw-2">&amp;</span>str, rule: <span class="kw-2">&amp;</span>str, index: i32) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>insert_rule(<span class="kw-2">&amp;</span><span class="self">self</span>, chain: <span class="kw-2">&amp;</span>str, rule: <span class="kw-2">&amp;</span>str, index: i32) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="self">self</span>.insert(IPTABLES_TABLE_NAME, chain, rule, index)
             .map_err(|e| AgentError::IPTablesError(e.to_string()))
     }
 
-    <span class="kw">fn </span>list_rules(<span class="kw-2">&amp;</span><span class="self">self</span>, chain: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;String&gt;&gt; {
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>list_rules(<span class="kw-2">&amp;</span><span class="self">self</span>, chain: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;String&gt;&gt; {
         <span class="self">self</span>.list(IPTABLES_TABLE_NAME, chain)
             .map_err(|e| AgentError::IPTablesError(e.to_string()))
     }
 
-    <span class="kw">fn </span>remove_rule(<span class="kw-2">&amp;</span><span class="self">self</span>, chain: <span class="kw-2">&amp;</span>str, rule: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>remove_rule(<span class="kw-2">&amp;</span><span class="self">self</span>, chain: <span class="kw-2">&amp;</span>str, rule: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="self">self</span>.delete(IPTABLES_TABLE_NAME, chain, rule)
             .map_err(|e| AgentError::IPTablesError(e.to_string()))
     }
 }
 
-<span class="doccomment">/// Wrapper struct for IPTables so it flushes on drop.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SafeIpTables&lt;IPT: IPTables&gt; {
-    inner: IPT,
-    chain_name: String,
-    formatter: IPTableFormatter,
-    flush_connections: bool,
+<span class="attr">#[enum_dispatch(Redirect)]
+</span><span class="kw">pub enum </span>Redirects&lt;IPT: IPTables + Send + Sync&gt; {
+    Standard(PreroutingRedirect&lt;IPT&gt;),
+    Mesh(MeshRedirect&lt;IPT&gt;),
+    FlushConnections(FlushConnections&lt;Redirects&lt;IPT&gt;&gt;),
 }
 
-<span class="kw">const </span>IPTABLES_TABLE_NAME: <span class="kw-2">&amp;</span>str = <span class="string">&quot;nat&quot;</span>;
+<span class="doccomment">/// Wrapper struct for IPTables so it flushes on drop.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SafeIpTables&lt;IPT: IPTables + Send + Sync&gt; {
+    redirect: Redirects&lt;IPT&gt;,
+}
+
 <span class="doccomment">/// Wrapper for using iptables. This creates a a new chain on creation and deletes it on drop.
 /// The way it works is that it adds a chain, then adds a rule to the chain that returns to the
 /// original chain (fallback) and adds a rule in the &quot;PREROUTING&quot; table that jumps to the new chain.
@@ -502,222 +499,70 @@
 /// -&gt; ORIGINAL_CHAIN
 </span><span class="kw">impl</span>&lt;IPT&gt; SafeIpTables&lt;IPT&gt;
 <span class="kw">where
-    </span>IPT: IPTables,
+    </span>IPT: IPTables + Send + Sync,
 {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(ipt: IPT, flush_connections: bool) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">let </span>formatter = IPTableFormatter::detect(<span class="kw-2">&amp;</span>ipt)<span class="question-mark">?</span>;
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">async fn </span>create(ipt: IPT, flush_connections: bool) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>redirect = <span class="kw">if let </span><span class="prelude-val">Some</span>(vendor) = MeshVendor::detect(<span class="kw-2">&amp;</span>ipt)<span class="question-mark">? </span>{
+            Redirects::Mesh(MeshRedirect::create(Arc::new(ipt), vendor)<span class="question-mark">?</span>)
+        } <span class="kw">else </span>{
+            Redirects::Standard(PreroutingRedirect::create(Arc::new(ipt))<span class="question-mark">?</span>)
+        };
 
-        <span class="kw">let </span>chain_name = <span class="self">Self</span>::get_chain_name();
+        <span class="kw">if </span>flush_connections {
+            redirect = Redirects::FlushConnections(FlushConnections::new(Box::new(redirect)))
+        }
 
-        ipt.create_chain(<span class="kw-2">&amp;</span>chain_name)<span class="question-mark">?</span>;
+        redirect.mount_entrypoint().<span class="kw">await</span><span class="question-mark">?</span>;
 
-        ipt.add_rule(formatter.entrypoint(), <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;-j {}&quot;</span>, <span class="kw-2">&amp;</span>chain_name))<span class="question-mark">?</span>;
-
-        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
-            inner: ipt,
-            chain_name,
-            formatter,
-            flush_connections,
-        })
+        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ redirect })
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_chain_name() -&gt; String {
-        std::env::var(MIRRORD_IPTABLE_CHAIN_ENV).unwrap_or_else(|<span class="kw">_</span>| {
-            <span class="macro">format!</span>(
-                <span class="string">&quot;MIRRORD_REDIRECT_{}&quot;</span>,
-                Alphanumeric.sample_string(<span class="kw-2">&amp;mut </span>rand::thread_rng(), <span class="number">5</span>)
-            )
-        })
-    }
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>load(ipt: IPT, flush_connections: bool) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>redirect = <span class="kw">if let </span><span class="prelude-val">Some</span>(vendor) = MeshVendor::detect(<span class="kw-2">&amp;</span>ipt)<span class="question-mark">? </span>{
+            Redirects::Mesh(MeshRedirect::load(Arc::new(ipt), vendor)<span class="question-mark">?</span>)
+        } <span class="kw">else </span>{
+            Redirects::Standard(PreroutingRedirect::load(Arc::new(ipt))<span class="question-mark">?</span>)
+        };
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>remove_chain(
-        ipt: <span class="kw-2">&amp;</span>IPT,
-        formatter: <span class="kw-2">&amp;</span>IPTableFormatter,
-        chain_name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        ipt.remove_rule(formatter.entrypoint(), <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;-j {chain_name}&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">if </span>flush_connections {
+            redirect = Redirects::FlushConnections(FlushConnections::new(Box::new(redirect)))
+        }
 
-        ipt.remove_chain(chain_name)<span class="question-mark">?</span>;
-
-        <span class="prelude-val">Ok</span>(())
-    }
-
-    <span class="doccomment">/// Helper function that lists all the iptables&#39; rules belonging to [`Self::chain_name`].
-    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>list_rules(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;String&gt;&gt; {
-        <span class="self">self</span>.inner.list_rules(<span class="kw-2">&amp;</span><span class="self">self</span>.chain_name)
+        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ redirect })
     }
 
     <span class="doccomment">/// Adds the redirect rule to iptables.
     ///
     /// Used to redirect packets when mirrord incoming feature is set to `steal`.
     </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>add_redirect(<span class="kw-2">&amp;</span><span class="self">self</span>, redirected_port: Port, target_port: Port) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="self">self</span>.inner.insert_rule(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.chain_name,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.formatter.redirect_rule(redirected_port, target_port),
-            <span class="number">1</span>,
-        )
-    }
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">async fn </span>add_redirect(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        redirected_port: Port,
+        target_port: Port,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="self">self</span>.redirect
+            .add_redirect(redirected_port, target_port)
+            .<span class="kw">await
+    </span>}
 
     <span class="doccomment">/// Removes the redirect rule from iptables.
     ///
     /// Stops redirecting packets when mirrord incoming feature is set to `steal`, and there are no
     /// more subscribers on `target_port`.
     </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>remove_redirect(<span class="kw-2">&amp;</span><span class="self">self</span>, redirected_port: Port, target_port: Port) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="self">self</span>.inner.remove_rule(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.chain_name,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.formatter.redirect_rule(redirected_port, target_port),
-        )
-    }
-
-    <span class="doccomment">/// Adds a `RETURN` rule based on `gid` to iptables.
-    ///
-    /// When the mirrord incoming feature is set to `steal`, and we&#39;re using a filter (instead of
-    /// stealing every packet), we need this rule to avoid stealing our own packets, that were sent
-    /// to their original destinations.
-    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>add_bypass_own_packets(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(rule) = <span class="self">self</span>.formatter.bypass_own_packets_rule() {
-            <span class="self">self</span>.inner.insert_rule(<span class="kw-2">&amp;</span><span class="self">self</span>.chain_name, <span class="kw-2">&amp;</span>rule, <span class="number">1</span>)
-        } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(())
-        }
-    }
-
-    <span class="doccomment">/// Removes the `RETURN` bypass rule from iptables.
-    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>remove_bypass_own_packets(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(rule) = <span class="self">self</span>.formatter.bypass_own_packets_rule() {
-            <span class="self">self</span>.inner.remove_rule(<span class="kw-2">&amp;</span><span class="self">self</span>.chain_name, <span class="kw-2">&amp;</span>rule)
-        } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(())
-        }
-    }
-
-    <span class="doccomment">/// Adds port redirection, and bypass gid packets from iptables.
-    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">async fn </span>add_stealer_iptables_rules(
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">async fn </span>remove_redirect(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         redirected_port: Port,
         target_port: Port,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="self">self</span>.add_redirect(redirected_port, target_port)
-            .and_then(|<span class="kw">_</span>| <span class="self">self</span>.add_bypass_own_packets())<span class="question-mark">?</span>;
+        <span class="self">self</span>.redirect
+            .remove_redirect(redirected_port, target_port)
+            .<span class="kw">await
+    </span>}
 
-        <span class="kw">if </span><span class="self">self</span>.flush_connections {
-            <span class="kw">let </span>conntrack = Command::new(<span class="string">&quot;conntrack&quot;</span>)
-                .args([
-                    <span class="string">&quot;--delete&quot;</span>,
-                    <span class="string">&quot;--proto&quot;</span>,
-                    <span class="string">&quot;tcp&quot;</span>,
-                    <span class="string">&quot;--orig-port-dst&quot;</span>,
-                    <span class="kw-2">&amp;</span>target_port.to_string(),
-                ])
-                .output()
-                .<span class="kw">await</span><span class="question-mark">?</span>;
-
-            <span class="kw">if </span>!conntrack.status.success() &amp;&amp; conntrack.status.code() != <span class="prelude-val">Some</span>(<span class="number">256</span>) {
-                <span class="macro">warn!</span>(<span class="string">&quot;`conntrack` output is {conntrack:#?}&quot;</span>);
-            }
-        }
-
-        <span class="prelude-val">Ok</span>(())
-    }
-
-    <span class="doccomment">/// Removes port redirection, and bypass gid packets from iptables.
-    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>remove_stealer_iptables_rules(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        redirected_port: Port,
-        target_port: Port,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="self">self</span>.remove_redirect(redirected_port, target_port)
-            .and_then(|<span class="kw">_</span>| <span class="self">self</span>.remove_bypass_own_packets())
-    }
-}
-
-<span class="kw">impl</span>&lt;IPT&gt; Drop <span class="kw">for </span>SafeIpTables&lt;IPT&gt;
-<span class="kw">where
-    </span>IPT: IPTables,
-{
-    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="self">Self</span>::remove_chain(<span class="kw-2">&amp;</span><span class="self">self</span>.inner, <span class="kw-2">&amp;</span><span class="self">self</span>.formatter, <span class="kw-2">&amp;</span><span class="self">self</span>.chain_name).unwrap();
-    }
-}
-
-<span class="attr">#[derive(Debug)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>IPTableFormatter {
-    Normal,
-    Mesh(String),
-}
-
-<span class="kw">impl </span>IPTableFormatter {
-    <span class="kw">const </span>MESH_OUTPUTS: [<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str; <span class="number">2</span>] = [<span class="string">&quot;-j PROXY_INIT_OUTPUT&quot;</span>, <span class="string">&quot;-j ISTIO_OUTPUT&quot;</span>];
-    <span class="kw">const </span>MESH_NAMES: [<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str; <span class="number">2</span>] = [<span class="string">&quot;PROXY_INIT_OUTPUT&quot;</span>, <span class="string">&quot;ISTIO_OUTPUT&quot;</span>];
-
-    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip_all)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>detect&lt;IPT: IPTables&gt;(ipt: <span class="kw-2">&amp;</span>IPT) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">let </span>output = ipt.list_rules(<span class="string">&quot;OUTPUT&quot;</span>)<span class="question-mark">?</span>;
-
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(mesh_ipt_chain) = output.iter().find_map(|rule| {
-            IPTableFormatter::MESH_OUTPUTS
-                .iter()
-                .enumerate()
-                .find_map(|(index, mesh_output)| {
-                    rule.contains(mesh_output)
-                        .then_some(IPTableFormatter::MESH_NAMES[index])
-                })
-        }) {
-            <span class="comment">// We extract --uid-owner value from the mesh&#39;s rules to get messages only from them
-            // and not other processes sendning messages from localhost like healthprobe for grpc.
-            // This to more closely match behavior with non meshed services
-            </span><span class="kw">let </span>filter = ipt
-                .list_rules(mesh_ipt_chain)<span class="question-mark">?
-                </span>.iter()
-                .find_map(|rule| UID_LOOKUP_REGEX.find(rule).ok().flatten())
-                .map(|m| <span class="macro">format!</span>(<span class="string">&quot;-o lo {}&quot;</span>, m.as_str()));
-
-            <span class="prelude-val">Ok</span>(IPTableFormatter::Mesh(filter.unwrap_or_else(|| {
-                <span class="macro">warn!</span>(<span class="string">&quot;Couldn&#39;t find --uid-owner of meshed chain {mesh_ipt_chain:?} falling back on \&quot;-o lo\&quot; rule&quot;</span>);
-
-                <span class="string">&quot;-o lo&quot;</span>.to_owned()
-            })))
-        } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(IPTableFormatter::Normal)
-        }
-    }
-
-    <span class="kw">fn </span>entrypoint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
-        <span class="kw">match </span><span class="self">self </span>{
-            IPTableFormatter::Normal =&gt; <span class="string">&quot;PREROUTING&quot;</span>,
-            IPTableFormatter::Mesh(<span class="kw">_</span>) =&gt; <span class="string">&quot;OUTPUT&quot;</span>,
-        }
-    }
-
-    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, ret)]
-    </span><span class="kw">fn </span>redirect_rule(<span class="kw-2">&amp;</span><span class="self">self</span>, redirected_port: Port, target_port: Port) -&gt; String {
-        <span class="kw">let </span>redirect_rule =
-            <span class="macro">format!</span>(<span class="string">&quot;-m tcp -p tcp --dport {redirected_port} -j REDIRECT --to-ports {target_port}&quot;</span>);
-
-        <span class="kw">match </span><span class="self">self </span>{
-            IPTableFormatter::Normal =&gt; redirect_rule,
-            IPTableFormatter::Mesh(filter) =&gt; {
-                <span class="macro">format!</span>(<span class="string">&quot;{filter} {redirect_rule}&quot;</span>)
-            }
-        }
-    }
-
-    <span class="kw">fn </span>bypass_own_packets_rule(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
-        <span class="kw">match </span><span class="self">self </span>{
-            IPTableFormatter::Normal =&gt; <span class="prelude-val">None</span>,
-            IPTableFormatter::Mesh(<span class="kw">_</span>) =&gt; {
-                <span class="kw">let </span>gid = getgid();
-                <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;-m owner --gid-owner {gid} -p tcp -j RETURN&quot;</span>))
-            }
-        }
-    }
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>cleanup(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="self">self</span>.redirect.unmount_entrypoint().<span class="kw">await
+    </span>}
 }
 
 <span class="attr">#[cfg(test)]
@@ -726,8 +571,8 @@
 
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="attr">#[test]
-    </span><span class="kw">fn </span>default() {
+    <span class="attr">#[tokio::test]
+    </span><span class="kw">async fn </span>default() {
         <span class="kw">let </span><span class="kw-2">mut </span>mock = MockIPTables::new();
 
         mock.expect_list_rules()
@@ -735,51 +580,55 @@
             .returning(|<span class="kw">_</span>| <span class="prelude-val">Ok</span>(<span class="macro">vec!</span>[]));
 
         mock.expect_create_chain()
-            .with(str::starts_with(<span class="string">&quot;MIRRORD_REDIRECT_&quot;</span>))
+            .with(str::starts_with(<span class="string">&quot;MIRRORD_INPUT_&quot;</span>))
             .times(<span class="number">1</span>)
             .returning(|<span class="kw">_</span>| <span class="prelude-val">Ok</span>(()));
-
-        mock.expect_remove_chain()
-            .with(str::starts_with(<span class="string">&quot;MIRRORD_REDIRECT_&quot;</span>))
-            .times(<span class="number">1</span>)
-            .returning(|<span class="kw">_</span>| <span class="prelude-val">Ok</span>(()));
-
-        mock.expect_add_rule()
-            .with(eq(<span class="string">&quot;PREROUTING&quot;</span>), str::starts_with(<span class="string">&quot;-j MIRRORD_REDIRECT_&quot;</span>))
-            .times(<span class="number">1</span>)
-            .returning(|<span class="kw">_</span>, <span class="kw">_</span>| <span class="prelude-val">Ok</span>(()));
 
         mock.expect_insert_rule()
             .with(
-                str::starts_with(<span class="string">&quot;MIRRORD_REDIRECT_&quot;</span>),
+                str::starts_with(<span class="string">&quot;MIRRORD_INPUT_&quot;</span>),
                 eq(<span class="string">&quot;-m tcp -p tcp --dport 69 -j REDIRECT --to-ports 420&quot;</span>),
                 eq(<span class="number">1</span>),
             )
             .times(<span class="number">1</span>)
             .returning(|<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>| <span class="prelude-val">Ok</span>(()));
 
-        mock.expect_remove_rule()
-            .with(eq(<span class="string">&quot;PREROUTING&quot;</span>), str::starts_with(<span class="string">&quot;-j MIRRORD_REDIRECT_&quot;</span>))
+        mock.expect_add_rule()
+            .with(eq(<span class="string">&quot;PREROUTING&quot;</span>), str::starts_with(<span class="string">&quot;-j MIRRORD_INPUT_&quot;</span>))
             .times(<span class="number">1</span>)
             .returning(|<span class="kw">_</span>, <span class="kw">_</span>| <span class="prelude-val">Ok</span>(()));
 
         mock.expect_remove_rule()
             .with(
-                str::starts_with(<span class="string">&quot;MIRRORD_REDIRECT_&quot;</span>),
+                str::starts_with(<span class="string">&quot;MIRRORD_INPUT_&quot;</span>),
                 eq(<span class="string">&quot;-m tcp -p tcp --dport 69 -j REDIRECT --to-ports 420&quot;</span>),
             )
             .times(<span class="number">1</span>)
             .returning(|<span class="kw">_</span>, <span class="kw">_</span>| <span class="prelude-val">Ok</span>(()));
 
-        <span class="kw">let </span>ipt = SafeIpTables::new(mock, <span class="bool-val">false</span>).expect(<span class="string">&quot;Create Failed&quot;</span>);
+        mock.expect_remove_rule()
+            .with(eq(<span class="string">&quot;PREROUTING&quot;</span>), str::starts_with(<span class="string">&quot;-j MIRRORD_INPUT_&quot;</span>))
+            .times(<span class="number">1</span>)
+            .returning(|<span class="kw">_</span>, <span class="kw">_</span>| <span class="prelude-val">Ok</span>(()));
 
-        <span class="macro">assert!</span>(ipt.add_redirect(<span class="number">69</span>, <span class="number">420</span>).is_ok());
+        mock.expect_remove_chain()
+            .with(str::starts_with(<span class="string">&quot;MIRRORD_INPUT_&quot;</span>))
+            .times(<span class="number">1</span>)
+            .returning(|<span class="kw">_</span>| <span class="prelude-val">Ok</span>(()));
 
-        <span class="macro">assert!</span>(ipt.remove_redirect(<span class="number">69</span>, <span class="number">420</span>).is_ok());
+        <span class="kw">let </span>ipt = SafeIpTables::create(mock, <span class="bool-val">false</span>)
+            .<span class="kw">await
+            </span>.expect(<span class="string">&quot;Create Failed&quot;</span>);
+
+        <span class="macro">assert!</span>(ipt.add_redirect(<span class="number">69</span>, <span class="number">420</span>).<span class="kw">await</span>.is_ok());
+
+        <span class="macro">assert!</span>(ipt.remove_redirect(<span class="number">69</span>, <span class="number">420</span>).<span class="kw">await</span>.is_ok());
+
+        <span class="macro">assert!</span>(ipt.cleanup().<span class="kw">await</span>.is_ok());
     }
 
-    <span class="attr">#[test]
-    </span><span class="kw">fn </span>linkerd() {
+    <span class="attr">#[tokio::test]
+    </span><span class="kw">async fn </span>linkerd() {
         <span class="kw">let </span><span class="kw-2">mut </span>mock = MockIPTables::new();
 
         mock.expect_list_rules()
@@ -787,55 +636,132 @@
             .returning(|<span class="kw">_</span>| <span class="prelude-val">Ok</span>(<span class="macro">vec!</span>[<span class="string">&quot;-j PROXY_INIT_OUTPUT&quot;</span>.to_owned()]));
 
         mock.expect_list_rules()
+            .with(eq(<span class="string">&quot;PROXY_INIT_REDIRECT&quot;</span>))
+            .returning(|<span class="kw">_</span>| {
+                <span class="prelude-val">Ok</span>(<span class="macro">vec!</span>[
+                    <span class="string">&quot;-N PROXY_INIT_REDIRECT&quot;</span>.to_owned(),
+                    <span class="string">&quot;-A PROXY_INIT_REDIRECT -p tcp -m multiport --dports 22 -j RETURN&quot;</span>.to_owned(),
+                    <span class="string">&quot;-A PROXY_INIT_REDIRECT -p tcp -j REDIRECT --to-port 4143&quot;</span>.to_owned(),
+                ])
+            });
+
+        mock.expect_list_rules()
             .with(eq(<span class="string">&quot;PROXY_INIT_OUTPUT&quot;</span>))
-            .returning(|<span class="kw">_</span>| <span class="prelude-val">Ok</span>(<span class="macro">vec!</span>[
-                <span class="string">&quot;-N PROXY_INIT_OUTPUT&quot;</span>.to_owned(),
-                <span class="string">&quot;-A PROXY_INIT_OUTPUT -m owner --uid-owner 2102 -m comment --comment \&quot;proxy-init/ignore-proxy-user-id/1676542558\&quot; -j RETURN&quot;</span>.to_owned(),
-                <span class="string">&quot;-A PROXY_INIT_OUTPUT -o lo -m comment --comment \&quot;proxy-init/ignore-loopback/1676542558\&quot; -j RETURN&quot;</span>.to_owned(),
-            ]));
+            .returning(|<span class="kw">_</span>| {
+                <span class="prelude-val">Ok</span>(<span class="macro">vec!</span>[
+                    <span class="string">&quot;-N PROXY_INIT_OUTPUT&quot;</span>.to_owned(),
+                    <span class="string">&quot;-A PROXY_INIT_OUTPUT -m owner --uid-owner 2102 -m comment --comment \&quot;proxy-init/ignore-proxy-user-id/1676542558\&quot; -j RETURN&quot;
+                        </span>.to_owned(),
+                    <span class="string">&quot;-A PROXY_INIT_OUTPUT -o lo -m comment --comment \&quot;proxy-init/ignore-loopback/1676542558\&quot; -js RETURN&quot;
+                        </span>.to_owned(),
+                ])
+            });
 
         mock.expect_create_chain()
-            .with(str::starts_with(<span class="string">&quot;MIRRORD_REDIRECT_&quot;</span>))
+            .with(str::starts_with(<span class="string">&quot;MIRRORD_INPUT_&quot;</span>))
             .times(<span class="number">1</span>)
             .returning(|<span class="kw">_</span>| <span class="prelude-val">Ok</span>(()));
-
-        mock.expect_remove_chain()
-            .with(str::starts_with(<span class="string">&quot;MIRRORD_REDIRECT_&quot;</span>))
-            .times(<span class="number">1</span>)
-            .returning(|<span class="kw">_</span>| <span class="prelude-val">Ok</span>(()));
-
-        mock.expect_add_rule()
-            .with(eq(<span class="string">&quot;OUTPUT&quot;</span>), str::starts_with(<span class="string">&quot;-j MIRRORD_REDIRECT_&quot;</span>))
-            .times(<span class="number">1</span>)
-            .returning(|<span class="kw">_</span>, <span class="kw">_</span>| <span class="prelude-val">Ok</span>(()));
 
         mock.expect_insert_rule()
             .with(
-                str::starts_with(<span class="string">&quot;MIRRORD_REDIRECT_&quot;</span>),
-                eq(<span class="string">&quot;-o lo -m owner --uid-owner 2102 -m tcp -p tcp --dport 69 -j REDIRECT --to-ports 420&quot;</span>),
+                str::starts_with(<span class="string">&quot;MIRRORD_INPUT_&quot;</span>),
+                eq(<span class="string">&quot;-m multiport -p tcp ! --dports 22 -j RETURN&quot;</span>),
                 eq(<span class="number">1</span>),
             )
             .times(<span class="number">1</span>)
             .returning(|<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>| <span class="prelude-val">Ok</span>(()));
 
+        mock.expect_add_rule()
+            .with(eq(<span class="string">&quot;PREROUTING&quot;</span>), str::starts_with(<span class="string">&quot;-j MIRRORD_INPUT_&quot;</span>))
+            .times(<span class="number">1</span>)
+            .returning(|<span class="kw">_</span>, <span class="kw">_</span>| <span class="prelude-val">Ok</span>(()));
+
+        mock.expect_create_chain()
+            .with(str::starts_with(<span class="string">&quot;MIRRORD_OUTPUT_&quot;</span>))
+            .times(<span class="number">1</span>)
+            .returning(|<span class="kw">_</span>| <span class="prelude-val">Ok</span>(()));
+
+        mock.expect_insert_rule()
+            .with(
+                str::starts_with(<span class="string">&quot;MIRRORD_OUTPUT_&quot;</span>),
+                str::starts_with(<span class="string">&quot;-m owner --gid-owner&quot;</span>),
+                eq(<span class="number">1</span>),
+            )
+            .times(<span class="number">1</span>)
+            .returning(|<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>| <span class="prelude-val">Ok</span>(()));
+
+        mock.expect_add_rule()
+            .with(eq(<span class="string">&quot;OUTPUT&quot;</span>), str::starts_with(<span class="string">&quot;-j MIRRORD_OUTPUT_&quot;</span>))
+            .times(<span class="number">1</span>)
+            .returning(|<span class="kw">_</span>, <span class="kw">_</span>| <span class="prelude-val">Ok</span>(()));
+
+        mock.expect_insert_rule()
+            .with(
+                str::starts_with(<span class="string">&quot;MIRRORD_INPUT_&quot;</span>),
+                eq(<span class="string">&quot;-m tcp -p tcp --dport 69 -j REDIRECT --to-ports 420&quot;</span>),
+                eq(<span class="number">2</span>),
+            )
+            .times(<span class="number">1</span>)
+            .returning(|<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>| <span class="prelude-val">Ok</span>(()));
+
+        mock.expect_insert_rule()
+            .with(
+                str::starts_with(<span class="string">&quot;MIRRORD_OUTPUT_&quot;</span>),
+                eq(
+                    <span class="string">&quot;-o lo -m owner --uid-owner 2102 -m tcp -p tcp --dport 69 -j REDIRECT --to-ports 420&quot;</span>,
+                ),
+                eq(<span class="number">2</span>),
+            )
+            .times(<span class="number">1</span>)
+            .returning(|<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>| <span class="prelude-val">Ok</span>(()));
+
         mock.expect_remove_rule()
-            .with(eq(<span class="string">&quot;OUTPUT&quot;</span>), str::starts_with(<span class="string">&quot;-j MIRRORD_REDIRECT_&quot;</span>))
+            .with(
+                str::starts_with(<span class="string">&quot;MIRRORD_INPUT_&quot;</span>),
+                eq(<span class="string">&quot;-m tcp -p tcp --dport 69 -j REDIRECT --to-ports 420&quot;</span>),
+            )
             .times(<span class="number">1</span>)
             .returning(|<span class="kw">_</span>, <span class="kw">_</span>| <span class="prelude-val">Ok</span>(()));
 
         mock.expect_remove_rule()
             .with(
-                str::starts_with(<span class="string">&quot;MIRRORD_REDIRECT_&quot;</span>),
-                eq(<span class="string">&quot;-o lo -m owner --uid-owner 2102 -m tcp -p tcp --dport 69 -j REDIRECT --to-ports 420&quot;</span>),
+                str::starts_with(<span class="string">&quot;MIRRORD_OUTPUT_&quot;</span>),
+                eq(
+                    <span class="string">&quot;-o lo -m owner --uid-owner 2102 -m tcp -p tcp --dport 69 -j REDIRECT --to-ports 420&quot;</span>,
+                ),
             )
             .times(<span class="number">1</span>)
             .returning(|<span class="kw">_</span>, <span class="kw">_</span>| <span class="prelude-val">Ok</span>(()));
 
-        <span class="kw">let </span>ipt = SafeIpTables::new(mock, <span class="bool-val">false</span>).expect(<span class="string">&quot;Create Failed&quot;</span>);
+        mock.expect_remove_rule()
+            .with(eq(<span class="string">&quot;PREROUTING&quot;</span>), str::starts_with(<span class="string">&quot;-j MIRRORD_INPUT_&quot;</span>))
+            .times(<span class="number">1</span>)
+            .returning(|<span class="kw">_</span>, <span class="kw">_</span>| <span class="prelude-val">Ok</span>(()));
 
-        <span class="macro">assert!</span>(ipt.add_redirect(<span class="number">69</span>, <span class="number">420</span>).is_ok());
+        mock.expect_remove_chain()
+            .with(str::starts_with(<span class="string">&quot;MIRRORD_INPUT_&quot;</span>))
+            .times(<span class="number">1</span>)
+            .returning(|<span class="kw">_</span>| <span class="prelude-val">Ok</span>(()));
 
-        <span class="macro">assert!</span>(ipt.remove_redirect(<span class="number">69</span>, <span class="number">420</span>).is_ok());
+        mock.expect_remove_rule()
+            .with(eq(<span class="string">&quot;OUTPUT&quot;</span>), str::starts_with(<span class="string">&quot;-j MIRRORD_OUTPUT_&quot;</span>))
+            .times(<span class="number">1</span>)
+            .returning(|<span class="kw">_</span>, <span class="kw">_</span>| <span class="prelude-val">Ok</span>(()));
+
+        mock.expect_remove_chain()
+            .with(str::starts_with(<span class="string">&quot;MIRRORD_OUTPUT_&quot;</span>))
+            .times(<span class="number">1</span>)
+            .returning(|<span class="kw">_</span>| <span class="prelude-val">Ok</span>(()));
+
+        <span class="kw">let </span>ipt = SafeIpTables::create(mock, <span class="bool-val">false</span>)
+            .<span class="kw">await
+            </span>.expect(<span class="string">&quot;Create Failed&quot;</span>);
+
+        <span class="macro">assert!</span>(ipt.add_redirect(<span class="number">69</span>, <span class="number">420</span>).<span class="kw">await</span>.is_ok());
+
+        <span class="macro">assert!</span>(ipt.remove_redirect(<span class="number">69</span>, <span class="number">420</span>).<span class="kw">await</span>.is_ok());
+
+        <span class="macro">assert!</span>(ipt.cleanup().<span class="kw">await</span>.is_ok());
     }
 }
 </code></pre></div>

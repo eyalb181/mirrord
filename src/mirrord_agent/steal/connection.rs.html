@@ -660,6 +660,13 @@
 <a href="#660" id="660">660</a>
 <a href="#661" id="661">661</a>
 <a href="#662" id="662">662</a>
+<a href="#663" id="663">663</a>
+<a href="#664" id="664">664</a>
+<a href="#665" id="665">665</a>
+<a href="#666" id="666">666</a>
+<a href="#667" id="667">667</a>
+<a href="#668" id="668">668</a>
+<a href="#669" id="669">669</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     collections::HashSet,
     io,
@@ -883,6 +890,8 @@
             }
         }
 
+        <span class="self">self</span>.iptables()<span class="question-mark">?</span>.cleanup().<span class="kw">await</span><span class="question-mark">?</span>;
+
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -996,8 +1005,8 @@
                 <span class="comment">// Should not happen.
                 </span><span class="macro">debug_assert!</span>(<span class="bool-val">false</span>);
                 <span class="macro">error!</span>(<span class="string">&quot;Internal error: subscriptions of closed client still present.&quot;</span>);
-                <span class="self">self</span>.close_client(client_id)
-            }
+                <span class="self">self</span>.close_client(client_id).<span class="kw">await
+            </span>}
         }
     }
 
@@ -1056,16 +1065,14 @@
     }
 
     <span class="doccomment">/// Initialize iptables member, which creates an iptables chain for our rules.
-    </span><span class="kw">fn </span>init_iptables(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">async fn </span>init_iptables(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span>flush_connections = std::env::var(<span class="string">&quot;MIRRORD_AGENT_STEALER_FLUSH_CONNECTIONS&quot;</span>)
             .ok()
             .and_then(|var| var.parse::&lt;bool&gt;().ok())
             .unwrap_or_default();
+        <span class="kw">let </span>iptables = iptables::new(<span class="bool-val">false</span>).unwrap();
 
-        <span class="self">self</span>.iptables = <span class="prelude-val">Some</span>(SafeIpTables::new(
-            iptables::new(<span class="bool-val">false</span>).unwrap(),
-            flush_connections,
-        )<span class="question-mark">?</span>);
+        <span class="self">self</span>.iptables = <span class="prelude-val">Some</span>(SafeIpTables::create(iptables, flush_connections).<span class="kw">await</span><span class="question-mark">?</span>);
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -1077,7 +1084,7 @@
     </span><span class="kw">async fn </span>port_subscribe(<span class="kw-2">&amp;mut </span><span class="self">self</span>, client_id: ClientId, port_steal: StealType) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">if </span><span class="self">self</span>.iptables.is_none() {
             <span class="comment">// TODO: make the initialization internal to SafeIpTables.
-            </span><span class="self">self</span>.init_iptables()<span class="question-mark">?</span>;
+            </span><span class="self">self</span>.init_iptables().<span class="kw">await</span><span class="question-mark">?</span>;
         }
         <span class="kw">let </span><span class="kw-2">mut </span>first_subscriber = <span class="bool-val">false</span>;
 
@@ -1125,7 +1132,7 @@
 
         <span class="kw">if </span>first_subscriber &amp;&amp; <span class="kw">let </span><span class="prelude-val">Ok</span>(port) = steal_port {
             <span class="self">self</span>.iptables()<span class="question-mark">?
-                </span>.add_stealer_iptables_rules(port, <span class="self">self</span>.stealer.local_addr()<span class="question-mark">?</span>.port()).<span class="kw">await</span><span class="question-mark">?</span>;
+                </span>.add_redirect(port, <span class="self">self</span>.stealer.local_addr()<span class="question-mark">?</span>.port()).<span class="kw">await</span><span class="question-mark">?</span>;
         }
 
         <span class="self">self</span>.send_message_to_single_client(<span class="kw-2">&amp;</span>client_id, DaemonTcp::SubscribeResult(steal_port))
@@ -1137,7 +1144,11 @@
     /// Removes `port` from [`TcpConnectionStealer::iptables`] rules, and unsubscribes the layer
     /// with `client_id`.
     </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
-    </span><span class="kw">fn </span>port_unsubscribe(<span class="kw-2">&amp;mut </span><span class="self">self</span>, client_id: ClientId, port: Port) -&gt; <span class="prelude-ty">Result</span>&lt;(), AgentError&gt; {
+    </span><span class="kw">async fn </span>port_unsubscribe(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        client_id: ClientId,
+        port: Port,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), AgentError&gt; {
         <span class="kw">let </span>port_unsubscribed = <span class="kw">match </span><span class="self">self</span>.port_subscriptions.get_mut(<span class="kw-2">&amp;</span>port) {
             <span class="prelude-val">Some</span>(HttpFiltered(manager)) =&gt; {
                 manager.remove_client(<span class="kw-2">&amp;</span>client_id);
@@ -1152,7 +1163,8 @@
         <span class="kw">if </span>port_unsubscribed {
             <span class="comment">// No remaining subscribers on this port.
             </span><span class="self">self</span>.iptables()<span class="question-mark">?
-                </span>.remove_stealer_iptables_rules(port, <span class="self">self</span>.stealer.local_addr()<span class="question-mark">?</span>.port())<span class="question-mark">?</span>;
+                </span>.remove_redirect(port, <span class="self">self</span>.stealer.local_addr()<span class="question-mark">?</span>.port())
+                .<span class="kw">await</span><span class="question-mark">?</span>;
 
             <span class="self">self</span>.port_subscriptions.remove(<span class="kw-2">&amp;</span>port);
             <span class="kw">if </span><span class="self">self</span>.port_subscriptions.is_empty() {
@@ -1178,10 +1190,10 @@
     /// their redirection rules from [`TcpConnectionStealer::iptables`] and all their open
     /// connections.
     </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
-    </span><span class="kw">fn </span>close_client(<span class="kw-2">&amp;mut </span><span class="self">self</span>, client_id: ClientId) -&gt; <span class="prelude-ty">Result</span>&lt;(), AgentError&gt; {
+    </span><span class="kw">async fn </span>close_client(<span class="kw-2">&amp;mut </span><span class="self">self</span>, client_id: ClientId) -&gt; <span class="prelude-ty">Result</span>&lt;(), AgentError&gt; {
         <span class="kw">let </span>ports = <span class="self">self</span>.get_client_ports(client_id);
         <span class="kw">for </span>port <span class="kw">in </span>ports.iter() {
-            <span class="self">self</span>.port_unsubscribe(client_id, <span class="kw-2">*</span>port)<span class="question-mark">?
+            <span class="self">self</span>.port_unsubscribe(client_id, <span class="kw-2">*</span>port).<span class="kw">await</span><span class="question-mark">?
         </span>}
 
         <span class="comment">// Close and remove all remaining connections of the closed client.
@@ -1203,14 +1215,16 @@
         message: DaemonTcp,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), AgentError&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(sender) = <span class="self">self</span>.clients.get(client_id) {
-            sender.send(message).<span class="kw">await</span>.map_err(|fail| {
+            <span class="kw">if let </span><span class="prelude-val">Err</span>(fail) = sender.send(message).<span class="kw">await </span>{
                 <span class="macro">warn!</span>(
                     <span class="string">&quot;Failed to send message to client {} with {:#?}!&quot;</span>,
                     client_id, fail
                 );
-                <span class="kw">let _ </span>= <span class="self">self</span>.close_client(<span class="kw-2">*</span>client_id);
-                fail
-            })<span class="question-mark">?</span>;
+
+                <span class="kw">let _ </span>= <span class="self">self</span>.close_client(<span class="kw-2">*</span>client_id).<span class="kw">await</span>;
+
+                <span class="kw">return </span><span class="prelude-val">Err</span>(fail.into());
+            }
         }
 
         <span class="prelude-val">Ok</span>(())
@@ -1313,8 +1327,8 @@
             Command::PortSubscribe(port_steal) =&gt; {
                 <span class="self">self</span>.port_subscribe(client_id, port_steal).<span class="kw">await</span><span class="question-mark">?
             </span>}
-            Command::PortUnsubscribe(port) =&gt; <span class="self">self</span>.port_unsubscribe(client_id, port)<span class="question-mark">?</span>,
-            Command::ClientClose =&gt; <span class="self">self</span>.close_client(client_id)<span class="question-mark">?</span>,
+            Command::PortUnsubscribe(port) =&gt; <span class="self">self</span>.port_unsubscribe(client_id, port).<span class="kw">await</span><span class="question-mark">?</span>,
+            Command::ClientClose =&gt; <span class="self">self</span>.close_client(client_id).<span class="kw">await</span><span class="question-mark">?</span>,
             Command::ResponseData(tcp_data) =&gt; <span class="self">self</span>.forward_data(tcp_data).<span class="kw">await</span><span class="question-mark">?</span>,
             Command::HttpResponse(response) =&gt; <span class="self">self</span>.http_response(response).<span class="kw">await</span>,
         }

@@ -676,6 +676,12 @@
 <a href="#676" id="676">676</a>
 <a href="#677" id="677">677</a>
 <a href="#678" id="678">678</a>
+<a href="#679" id="679">679</a>
+<a href="#680" id="680">680</a>
+<a href="#681" id="681">681</a>
+<a href="#682" id="682">682</a>
+<a href="#683" id="683">683</a>
+<a href="#684" id="684">684</a>
 </pre><pre class="rust"><code><span class="attr">#![feature(result_option_inspect)]
 #![feature(hash_drain_filter)]
 #![feature(once_cell)]
@@ -720,7 +726,10 @@
     runtime::{get_container, Container, ContainerRuntime},
     steal::{
         connection::TcpConnectionStealer,
-        ip_tables::{IPTableFormatter, SafeIpTables, MIRRORD_IPTABLE_CHAIN_ENV},
+        ip_tables::{
+            SafeIpTables, IPTABLE_MESH, IPTABLE_MESH_ENV, IPTABLE_PREROUTING,
+            IPTABLE_PREROUTING_ENV,
+        },
         StealerCommand,
     },
     util::{run_thread_in_namespace, ClientId, IndexAllocator},
@@ -1264,6 +1273,7 @@
 
     <span class="macro">trace!</span>(<span class="string">&quot;Agent shutting down.&quot;</span>);
     drop(cancel_guard);
+
     <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = sniffer_task.join().map_err(|<span class="kw">_</span>| AgentError::JoinTask)<span class="question-mark">? </span>{
         <span class="macro">error!</span>(<span class="string">&quot;start_agent -&gt; sniffer task failed with error: {}&quot;</span>, err);
     }
@@ -1276,11 +1286,12 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">async fn </span>clear_iptable_chain(chain_name: String) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+<span class="kw">async fn </span>clear_iptable_chain() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">let </span>ipt = iptables::new(<span class="bool-val">false</span>).unwrap();
-    <span class="kw">let </span>formatter = IPTableFormatter::detect(<span class="kw-2">&amp;</span>ipt)<span class="question-mark">?</span>;
 
-    SafeIpTables::remove_chain(<span class="kw-2">&amp;</span>ipt, <span class="kw-2">&amp;</span>formatter, <span class="kw-2">&amp;</span>chain_name)
+    SafeIpTables::load(ipt, <span class="bool-val">false</span>).<span class="kw">await</span><span class="question-mark">?</span>.cleanup().<span class="kw">await</span><span class="question-mark">?</span>;
+
+    <span class="prelude-val">Ok</span>(())
 }
 
 <span class="kw">fn </span>spawn_child_agent() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
@@ -1302,14 +1313,13 @@
     <span class="kw">let </span>state = State::new(<span class="kw-2">&amp;</span>args).<span class="kw">await</span><span class="question-mark">?</span>;
     <span class="kw">let </span>pid = state.get_container_info().<span class="kw">await</span><span class="question-mark">?</span>.map(|c| c.pid);
 
-    <span class="kw">let </span>chain_name = SafeIpTables::&lt;iptables::IPTables&gt;::get_chain_name();
-
-    std::env::set_var(MIRRORD_IPTABLE_CHAIN_ENV, <span class="kw-2">&amp;</span>chain_name);
+    std::env::set_var(IPTABLE_PREROUTING_ENV, IPTABLE_PREROUTING.as_str());
+    std::env::set_var(IPTABLE_MESH_ENV, IPTABLE_MESH.as_str());
 
     <span class="kw">let </span>result = spawn_child_agent();
 
     <span class="kw">let _ </span>= run_thread_in_namespace(
-        clear_iptable_chain(chain_name),
+        clear_iptable_chain(),
         <span class="string">&quot;clear iptables&quot;</span>.to_owned(),
         pid,
         <span class="string">&quot;net&quot;</span>,
@@ -1334,7 +1344,9 @@
 
     <span class="macro">debug!</span>(<span class="string">&quot;main -&gt; Initializing mirrord-agent.&quot;</span>);
 
-    <span class="kw">let </span>agent_result = <span class="kw">if </span>std::env::var(MIRRORD_IPTABLE_CHAIN_ENV).is_ok() {
+    <span class="kw">let </span>agent_result = <span class="kw">if </span>std::env::var(IPTABLE_PREROUTING_ENV).is_ok()
+        &amp;&amp; std::env::var(IPTABLE_MESH_ENV).is_ok()
+    {
         start_agent().<span class="kw">await
     </span>} <span class="kw">else </span>{
         start_iptable_guard().<span class="kw">await
