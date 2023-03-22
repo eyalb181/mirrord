@@ -283,8 +283,6 @@
 <a href="#283" id="283">283</a>
 <a href="#284" id="284">284</a>
 <a href="#285" id="285">285</a>
-<a href="#286" id="286">286</a>
-<a href="#287" id="287">287</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     collections::{HashMap, HashSet},
     io::{<span class="self">self</span>},
@@ -302,8 +300,8 @@
         AccessFileRequest, AccessFileResponse, CloseDirRequest, CloseFileRequest, FdOpenDirRequest,
         OpenDirResponse, OpenFileRequest, OpenFileResponse, OpenRelativeFileRequest,
         ReadDirRequest, ReadDirResponse, ReadFileRequest, ReadFileResponse, ReadLimitedFileRequest,
-        ReadLineFileRequest, SeekFileRequest, SeekFileResponse, WriteFileRequest,
-        WriteFileResponse, WriteLimitedFileRequest, XstatRequest, XstatResponse,
+        SeekFileRequest, SeekFileResponse, WriteFileRequest, WriteFileResponse,
+        WriteLimitedFileRequest, XstatRequest, XstatResponse,
     },
     outgoing::{
         tcp::{DaemonTcpOutgoing, LayerTcpOutgoing},
@@ -329,7 +327,6 @@
     Open(OpenFileRequest),
     OpenRelative(OpenRelativeFileRequest),
     Read(ReadFileRequest),
-    ReadLine(ReadLineFileRequest),
     ReadLimited(ReadLimitedFileRequest),
     Seek(SeekFileRequest),
     Write(WriteFileRequest),
@@ -365,7 +362,6 @@
 </span><span class="kw">pub enum </span>FileResponse {
     Open(RemoteResult&lt;OpenFileResponse&gt;),
     Read(RemoteResult&lt;ReadFileResponse&gt;),
-    ReadLine(RemoteResult&lt;ReadFileResponse&gt;),
     ReadLimited(RemoteResult&lt;ReadFileResponse&gt;),
     Write(RemoteResult&lt;WriteFileResponse&gt;),
     WriteLimited(RemoteResult&lt;WriteFileResponse&gt;),

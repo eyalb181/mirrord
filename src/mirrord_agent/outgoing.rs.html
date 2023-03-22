@@ -221,13 +221,10 @@
     outgoing::{tcp::<span class="kw-2">*</span>, <span class="kw-2">*</span>},
     ConnectionId, RemoteError, ResponseError,
 };
+<span class="kw">use </span>socket_stream::SocketStream;
 <span class="kw">use </span>streammap_ext::StreamMap;
 <span class="kw">use </span>tokio::{
-    io::AsyncWriteExt,
-    net::{
-        tcp::{OwnedReadHalf, OwnedWriteHalf},
-        TcpStream,
-    },
+    io::{split, AsyncWriteExt, ReadHalf, WriteHalf},
     select,
     sync::mpsc::{<span class="self">self</span>, Receiver, Sender},
     time::timeout,
@@ -241,6 +238,7 @@
     util::{run_thread_in_namespace, IndexAllocator},
 };
 
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>socket_stream;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>udp;
 
 <span class="kw">type </span>Layer = LayerTcpOutgoing;
@@ -263,29 +261,30 @@
 </span><span class="kw">async fn </span>layer_recv(
     layer_message: LayerTcpOutgoing,
     allocator: <span class="kw-2">&amp;mut </span>IndexAllocator&lt;ConnectionId&gt;,
-    writers: <span class="kw-2">&amp;mut </span>HashMap&lt;ConnectionId, OwnedWriteHalf&gt;,
-    readers: <span class="kw-2">&amp;mut </span>StreamMap&lt;ConnectionId, ReaderStream&lt;OwnedReadHalf&gt;&gt;,
+    writers: <span class="kw-2">&amp;mut </span>HashMap&lt;ConnectionId, WriteHalf&lt;SocketStream&gt;&gt;,
+    readers: <span class="kw-2">&amp;mut </span>StreamMap&lt;ConnectionId, ReaderStream&lt;ReadHalf&lt;SocketStream&gt;&gt;&gt;,
     daemon_tx: Sender&lt;DaemonTcpOutgoing&gt;,
+    pid: <span class="prelude-ty">Option</span>&lt;u64&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">match </span>layer_message {
-        <span class="comment">// [user] -&gt; [layer] -&gt; [agent] -&gt; [layer]
-        // `user` is asking us to connect to some remote host.
+        <span class="comment">// [user] -&gt; [layer] -&gt; [agent] -&gt; [remote host]
+        // user is asking us to connect to some remote host.
         </span>LayerTcpOutgoing::Connect(LayerConnect { remote_address }) =&gt; {
             <span class="comment">// TODO(alex): `timeout` here works around the issue where golang tries to connect to an
             // invalid `IP:port` combination, and hangs until the go socket times out.
             </span><span class="kw">let </span>daemon_connect = timeout(
                 Duration::from_millis(<span class="number">3000</span>),
-                TcpStream::connect(remote_address),
+                SocketStream::connect(remote_address.clone(), pid),
             )
             .<span class="kw">await
             </span>.map_err(|elapsed| {
                 <span class="macro">warn!</span>(<span class="string">&quot;interceptor_task -&gt; Elapsed connect error {:#?}&quot;</span>, elapsed);
-                ResponseError::Remote(RemoteError::ConnectTimedOut(remote_address))
+                ResponseError::Remote(RemoteError::ConnectTimedOut(remote_address.clone()))
             })
             .map_err(From::from)
             .and_then(|remote_stream| {
                 <span class="kw">let </span>remote_stream = remote_stream<span class="question-mark">?</span>;
-                <span class="kw">let </span>local_address = remote_stream.local_addr()<span class="question-mark">?</span>;
+                <span class="kw">let </span>agent_address = remote_stream.local_addr()<span class="question-mark">?</span>;
                 <span class="kw">let </span>connection_id = allocator
                     .next_index()
                     .ok_or_else(|| ResponseError::AllocationFailure(<span class="string">&quot;layer_recv&quot;</span>.to_string()))
@@ -293,14 +292,14 @@
 
                 <span class="comment">// Split the `remote_stream` so we can keep reading
                 // and writing from multiple hosts without blocking.
-                </span><span class="kw">let </span>(read_half, write_half) = remote_stream.into_split();
+                </span><span class="kw">let </span>(read_half, write_half) = split(remote_stream);
                 writers.insert(connection_id, write_half);
                 readers.insert(connection_id, ReaderStream::new(read_half));
 
                 <span class="prelude-val">Ok</span>(DaemonConnect {
                     connection_id,
                     remote_address,
-                    local_address,
+                    local_address: agent_address,
                 })
             });
 
@@ -347,7 +346,7 @@
         <span class="kw">let </span>(daemon_tx, daemon_rx) = mpsc::channel(<span class="number">1000</span>);
 
         <span class="kw">let </span>task = run_thread_in_namespace(
-            <span class="self">Self</span>::interceptor_task(layer_rx, daemon_tx),
+            <span class="self">Self</span>::interceptor_task(layer_rx, daemon_tx, pid),
             <span class="string">&quot;TcpOutgoing&quot;</span>.to_string(),
             pid,
             <span class="string">&quot;net&quot;</span>,
@@ -365,13 +364,14 @@
     </span><span class="kw">async fn </span>interceptor_task(
         <span class="kw-2">mut </span>layer_rx: Receiver&lt;Layer&gt;,
         daemon_tx: Sender&lt;Daemon&gt;,
+        pid: <span class="prelude-ty">Option</span>&lt;u64&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>allocator: IndexAllocator&lt;ConnectionId&gt; = IndexAllocator::new();
 
         <span class="comment">// TODO: Right now we&#39;re manually keeping these 2 maps in sync (aviram suggested using
         // `Weak` for `writers`).
-        </span><span class="kw">let </span><span class="kw-2">mut </span>writers: HashMap&lt;ConnectionId, OwnedWriteHalf&gt; = HashMap::default();
-        <span class="kw">let </span><span class="kw-2">mut </span>readers: StreamMap&lt;ConnectionId, ReaderStream&lt;OwnedReadHalf&gt;&gt; =
+        </span><span class="kw">let </span><span class="kw-2">mut </span>writers: HashMap&lt;ConnectionId, WriteHalf&lt;SocketStream&gt;&gt; = HashMap::default();
+        <span class="kw">let </span><span class="kw-2">mut </span>readers: StreamMap&lt;ConnectionId, ReaderStream&lt;ReadHalf&lt;SocketStream&gt;&gt;&gt; =
             StreamMap::default();
 
         <span class="kw">loop </span>{
@@ -380,7 +380,7 @@
 
                 <span class="comment">// [layer] -&gt; [agent]
                 </span><span class="prelude-val">Some</span>(layer_message) = layer_rx.recv() =&gt; {
-                    layer_recv(layer_message, <span class="kw-2">&amp;mut </span>allocator, <span class="kw-2">&amp;mut </span>writers, <span class="kw-2">&amp;mut </span>readers, daemon_tx.clone()).<span class="kw">await</span><span class="question-mark">?
+                    layer_recv(layer_message, <span class="kw-2">&amp;mut </span>allocator, <span class="kw-2">&amp;mut </span>writers, <span class="kw-2">&amp;mut </span>readers, daemon_tx.clone(), pid).<span class="kw">await</span><span class="question-mark">?
                 </span>}
 
                 <span class="comment">// [remote] -&gt; [agent] -&gt; [layer] -&gt; [user]

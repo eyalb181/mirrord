@@ -805,6 +805,8 @@
 <a href="#805" id="805">805</a>
 <a href="#806" id="806">806</a>
 <a href="#807" id="807">807</a>
+<a href="#808" id="808">808</a>
+<a href="#809" id="809">809</a>
 </pre><pre class="rust"><code><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
 </span><span class="kw">use </span>core::ffi::{c_size_t, c_ssize_t};
 <span class="doccomment">/// FFI functions that override the `libc` calls (see `file` module documentation on how to
@@ -823,7 +825,6 @@
 </span><span class="kw">use </span>errno::{set_errno, Errno};
 <span class="kw">use </span>libc::{
     <span class="self">self</span>, c_char, c_int, c_void, dirent, off_t, size_t, ssize_t, stat, AT_EACCESS, AT_FDCWD, DIR,
-    FILE,
 };
 <span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
 </span><span class="kw">use </span>libc::{EBADF, EINVAL, ENOENT, ENOTDIR};
@@ -838,22 +839,21 @@
 <span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
 </span><span class="kw">use </span>tracing::{error, info, warn};
 
-<span class="kw">use super</span>::{ops::<span class="kw-2">*</span>, OpenOptionsInternalExt, OPEN_FILES};
+<span class="kw">use super</span>::{ops::<span class="kw-2">*</span>, OpenOptionsInternalExt};
 <span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::error::HookError::ResponseError;
 <span class="kw">use crate</span>::{
-    close_layer_fd,
     detour::{Detour, DetourGuard},
     error::HookError,
     file::ops::{access, lseek, open, read, write},
     hooks::HookManager,
-    replace, FN_CLOSE,
+    replace,
 };
 
 <span class="doccomment">/// Implementation of open_detour, used in open_detour and openat_detour
 /// We ignore mode in case we don&#39;t bypass the call.
 </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
-</span><span class="kw">unsafe fn </span>open_logic(raw_path: <span class="kw-2">*const </span>c_char, open_flags: c_int, mode: c_int) -&gt; RawFd {
+</span><span class="kw">unsafe fn </span>open_logic(raw_path: <span class="kw-2">*const </span>c_char, open_flags: c_int, mode: c_int) -&gt; Detour&lt;RawFd&gt; {
     <span class="kw">let </span>rawish_path = (!raw_path.is_null()).then(|| CStr::from_ptr(raw_path));
     <span class="kw">let </span>open_options = OpenOptionsInternalExt::from_flags(open_flags);
 
@@ -863,7 +863,7 @@
         open_options
     );
 
-    open(rawish_path, open_options).unwrap_or_bypass_with(|<span class="kw">_</span>| FN_OPEN(raw_path, open_flags, mode))
+    open(rawish_path, open_options)
 }
 
 <span class="doccomment">/// Hook for `libc::open`.
@@ -881,32 +881,27 @@
         FN_OPEN(raw_path, open_flags, mode)
     } <span class="kw">else </span>{
         open_logic(raw_path, open_flags, mode)
+            .unwrap_or_bypass_with(|<span class="kw">_</span>| FN_OPEN(raw_path, open_flags, mode))
     }
 }
 
-<span class="doccomment">/// Hook for `libc::fopen`.
+<span class="doccomment">/// Hook for `libc::open$NOCANCEL`.
 ///
 /// **Bypassed** by `raw_path`s that match `IGNORE_FILES` regex.
-</span><span class="attr">#[hook_guard_fn]
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>fopen_detour(
+</span><span class="attr">#[hook_fn]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>_open_nocancel_detour(
     raw_path: <span class="kw-2">*const </span>c_char,
-    raw_mode: <span class="kw-2">*const </span>c_char,
-) -&gt; <span class="kw-2">*mut </span>FILE {
-    <span class="kw">let </span>rawish_path = (!raw_path.is_null()).then(|| CStr::from_ptr(raw_path));
-    <span class="kw">let </span>rawish_mode = (!raw_mode.is_null()).then(|| CStr::from_ptr(raw_mode));
-
-    fopen(rawish_path, rawish_mode).unwrap_or_bypass_with(|<span class="kw">_</span>| FN_FOPEN(raw_path, raw_mode))
-}
-
-<span class="doccomment">/// Hook for `libc::fdopen`.
-///
-/// Converts a `RawFd` into `*mut FILE` only for files that are already being managed by
-/// mirrord-layer.
-</span><span class="attr">#[hook_guard_fn]
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>fdopen_detour(fd: RawFd, raw_mode: <span class="kw-2">*const </span>c_char) -&gt; <span class="kw-2">*mut </span>FILE {
-    <span class="kw">let </span>rawish_mode = (!raw_mode.is_null()).then(|| CStr::from_ptr(raw_mode));
-
-    fdopen(fd, rawish_mode).unwrap_or_bypass_with(|<span class="kw">_</span>| FN_FDOPEN(fd, raw_mode))
+    open_flags: c_int,
+    <span class="kw-2">mut </span>args: ...
+) -&gt; RawFd {
+    <span class="kw">let </span>mode: c_int = args.arg();
+    <span class="kw">let </span>guard = DetourGuard::new();
+    <span class="kw">if </span>guard.is_none() {
+        FN__OPEN_NOCANCEL(raw_path, open_flags, mode)
+    } <span class="kw">else </span>{
+        open_logic(raw_path, open_flags, mode)
+            .unwrap_or_bypass_with(|<span class="kw">_</span>| FN__OPEN_NOCANCEL(raw_path, open_flags, mode))
+    }
 }
 
 <span class="attr">#[hook_guard_fn]
@@ -994,6 +989,19 @@
 
     openat(fd, rawish_path, open_options)
         .unwrap_or_bypass_with(|<span class="kw">_</span>| FN_OPENAT(fd, raw_path, open_flags))
+}
+
+<span class="attr">#[hook_guard_fn]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>_openat_nocancel_detour(
+    fd: RawFd,
+    raw_path: <span class="kw-2">*const </span>c_char,
+    open_flags: c_int,
+) -&gt; RawFd {
+    <span class="kw">let </span>rawish_path = (!raw_path.is_null()).then(|| CStr::from_ptr(raw_path));
+    <span class="kw">let </span>open_options: OpenOptionsInternal = OpenOptionsInternalExt::from_flags(open_flags);
+
+    openat(fd, rawish_path, open_options)
+        .unwrap_or_bypass_with(|<span class="kw">_</span>| FN__OPENAT_NOCANCEL(fd, raw_path, open_flags))
 }
 
 <span class="doccomment">/// Hook for getdents64, for Go&#39;s `os.ReadDir` on Linux.
@@ -1090,22 +1098,13 @@
         .unwrap_or_bypass_with(|<span class="kw">_</span>| FN_READ(fd, out_buffer, count))
 }
 
-<span class="doccomment">/// Hook for `libc::fread`.
-///
-/// Reads `element_size * number_of_elements` bytes into `out_buffer`, only for `*mut FILE`s that
-/// are being managed by mirrord-layer.
-</span><span class="attr">#[hook_guard_fn]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>fread_detour(
+<span class="attr">#[hook_guard_fn]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>_read_nocancel_detour(
+    fd: RawFd,
     out_buffer: <span class="kw-2">*mut </span>c_void,
-    element_size: size_t,
-    number_of_elements: size_t,
-    file_stream: <span class="kw-2">*mut </span>FILE,
-) -&gt; size_t {
-    <span class="comment">// Extract the fd from stream and check if it&#39;s managed by us, or should be bypassed.
-    </span><span class="kw">let </span>fd = fileno_logic(file_stream);
-    <span class="kw">let </span>read_amount = (element_size * number_of_elements) <span class="kw">as </span>u64;
-
-    read(fd, read_amount)
+    count: size_t,
+) -&gt; ssize_t {
+    read(fd, count <span class="kw">as </span>u64)
         .map(|read_file| {
             <span class="kw">let </span>ReadFileResponse { bytes, read_amount } = read_file;
 
@@ -1117,54 +1116,11 @@
                 ptr::copy(read_ptr, out_buffer, read_amount <span class="kw">as </span>usize);
             }
 
-            <span class="comment">// TODO: The function fread() does not distinguish between end-of-file and error,
-            // and callers must use feof(3) and ferror(3) to determine which occurred.
-            </span>read_amount <span class="kw">as </span>usize
+            <span class="comment">// WARN: Must be careful when it comes to `EOF`, incorrect handling may appear as the
+            // `read` call being repeated.
+            </span>ssize_t::try_from(read_amount).unwrap()
         })
-        .unwrap_or_bypass_with(|<span class="kw">_</span>| {
-            FN_FREAD(out_buffer, element_size, number_of_elements, file_stream)
-        })
-}
-
-<span class="doccomment">/// Reads at most `capacity - 1` characters. Reading stops on `&#39;\n&#39;`, `EOF` or on error. On success,
-/// it appends `&#39;\0&#39;` to the end of the string (thus the limit on `capacity`).
-</span><span class="attr">#[hook_guard_fn]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>fgets_detour(
-    out_buffer: <span class="kw-2">*mut </span>c_char,
-    capacity: c_int,
-    file_stream: <span class="kw-2">*mut </span>FILE,
-) -&gt; <span class="kw-2">*mut </span>c_char {
-    <span class="comment">// Extract the fd from stream and check if it&#39;s managed by us, or should be bypassed.
-    </span><span class="kw">let </span>fd = fileno_logic(file_stream);
-
-    <span class="comment">// `fgets` reads 1 LESS character than specified by `capacity`, so instead of having
-    // branching code to check if this is an `fgets` call elsewhere, we just subtract 1 from
-    // `capacity` here.
-    </span><span class="kw">let </span>buffer_size = capacity - <span class="number">1</span>;
-
-    fgets(fd, buffer_size <span class="kw">as </span>usize)
-        .map(|read_file| {
-            <span class="kw">let </span>ReadFileResponse { bytes, read_amount } = read_file;
-
-            <span class="comment">// There is no distinction between reading 0 bytes or if we hit EOF, but we only
-            // copy to buffer if we have something to copy.
-            //
-            // Callers can check for EOF by using `ferror`.
-            </span><span class="kw">if </span>read_amount &gt; <span class="number">0 </span>{
-                <span class="kw">let </span>bytes_slice = <span class="kw-2">&amp;</span>bytes[<span class="number">0</span>..buffer_size.min(read_amount <span class="kw">as </span>i32) <span class="kw">as </span>usize];
-                <span class="kw">let </span>eof = <span class="macro">vec!</span>[<span class="number">0</span>; <span class="number">1</span>];
-
-                <span class="comment">// Append &#39;\0&#39; to comply with `fgets`.
-                </span><span class="kw">let </span>read = [bytes_slice, <span class="kw-2">&amp;</span>eof].concat();
-
-                ptr::copy(read.as_ptr().cast(), out_buffer, read.len());
-
-                out_buffer
-            } <span class="kw">else </span>{
-                ptr::null_mut()
-            }
-        })
-        .unwrap_or_bypass_with(|<span class="kw">_</span>| FN_FGETS(out_buffer, capacity, file_stream))
+        .unwrap_or_bypass_with(|<span class="kw">_</span>| FN__READ_NOCANCEL(fd, out_buffer, count))
 }
 
 <span class="attr">#[hook_guard_fn]
@@ -1194,6 +1150,32 @@
 }
 
 <span class="attr">#[hook_guard_fn]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>_pread_nocancel_detour(
+    fd: RawFd,
+    out_buffer: <span class="kw-2">*mut </span>c_void,
+    amount_to_read: size_t,
+    offset: off_t,
+) -&gt; ssize_t {
+    pread(fd, amount_to_read <span class="kw">as </span>u64, offset <span class="kw">as </span>u64)
+        .map(|read_file| {
+            <span class="kw">let </span>ReadFileResponse { bytes, read_amount } = read_file;
+            <span class="kw">let </span>fixed_read = (amount_to_read <span class="kw">as </span>u64).min(read_amount);
+
+            <span class="comment">// There is no distinction between reading 0 bytes or if we hit EOF, but we only
+            // copy to buffer if we have something to copy.
+            //
+            // Callers can check for EOF by using `ferror`.
+            </span><span class="kw">if </span>read_amount &gt; <span class="number">0 </span>{
+                <span class="kw">let </span>bytes_slice = <span class="kw-2">&amp;</span>bytes[<span class="number">0</span>..fixed_read <span class="kw">as </span>usize];
+
+                ptr::copy(bytes_slice.as_ptr().cast(), out_buffer, bytes_slice.len());
+            }
+            fixed_read <span class="kw">as </span>ssize_t
+        })
+        .unwrap_or_bypass_with(|<span class="kw">_</span>| FN__PREAD_NOCANCEL(fd, out_buffer, amount_to_read, offset))
+}
+
+<span class="attr">#[hook_guard_fn]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>pwrite_detour(
     fd: RawFd,
     in_buffer: <span class="kw-2">*const </span>c_void,
@@ -1209,6 +1191,24 @@
             written_amount <span class="kw">as </span>ssize_t
         })
         .unwrap_or_bypass_with(|<span class="kw">_</span>| FN_PWRITE(fd, in_buffer, amount_to_write, offset))
+}
+
+<span class="attr">#[hook_guard_fn]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>_pwrite_nocancel_detour(
+    fd: RawFd,
+    in_buffer: <span class="kw-2">*const </span>c_void,
+    amount_to_write: size_t,
+    offset: off_t,
+) -&gt; ssize_t {
+    <span class="comment">// Convert the given buffer into a u8 slice, upto the amount to write.
+    </span><span class="kw">let </span>casted_in_buffer: <span class="kw-2">&amp;</span>[u8] = slice::from_raw_parts(in_buffer.cast(), amount_to_write);
+
+    pwrite(fd, casted_in_buffer, offset <span class="kw">as </span>u64)
+        .map(|write_response| {
+            <span class="kw">let </span>WriteFileResponse { written_amount } = write_response;
+            written_amount <span class="kw">as </span>ssize_t
+        })
+        .unwrap_or_bypass_with(|<span class="kw">_</span>| FN__PWRITE_NOCANCEL(fd, in_buffer, amount_to_write, offset))
 }
 
 <span class="doccomment">/// Hook for `libc::lseek`.
@@ -1247,6 +1247,20 @@
     write_logic(fd, buffer, count)
 }
 
+<span class="attr">#[hook_guard_fn]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>_write_nocancel_detour(
+    fd: RawFd,
+    buffer: <span class="kw-2">*const </span>c_void,
+    count: size_t,
+) -&gt; ssize_t {
+    <span class="comment">// WARN: Be veeery careful here, you cannot construct the `Vec` directly, as the buffer
+    // allocation is handled on the C side.
+    </span><span class="kw">let </span>write_bytes =
+        (!buffer.is_null()).then(|| slice::from_raw_parts(buffer <span class="kw">as </span><span class="kw-2">*const </span>u8, count).to_vec());
+
+    write(fd, write_bytes).unwrap_or_bypass_with(|<span class="kw">_</span>| FN__WRITE_NOCANCEL(fd, buffer, count))
+}
+
 <span class="doccomment">/// Implementation of access_detour, used in access_detour and faccessat_detour
 </span><span class="kw">unsafe fn </span>access_logic(raw_path: <span class="kw-2">*const </span>c_char, mode: c_int) -&gt; c_int {
     <span class="kw">let </span>rawish_path = (!raw_path.is_null()).then(|| CStr::from_ptr(raw_path));
@@ -1273,57 +1287,6 @@
     } <span class="kw">else </span>{
         FN_FACCESSAT(dirfd, pathname, mode, flags)
     }
-}
-
-<span class="doccomment">/// Used to distinguish between an error or `EOF` (especially relevant for `fgets`).
-</span><span class="attr">#[hook_guard_fn]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>ferror_detour(file_stream: <span class="kw-2">*mut </span>FILE) -&gt; c_int {
-    <span class="comment">// Extract the fd from stream and check if it&#39;s managed by us, or should be bypassed.
-    </span><span class="kw">let </span>fd = fileno_logic(file_stream);
-
-    <span class="comment">// We&#39;re only interested in files that are handled by `mirrord-agent`.
-    </span><span class="kw">let </span>remote_fd = OPEN_FILES.lock().unwrap().get(<span class="kw-2">&amp;</span>fd).map(|file| file.fd);
-    <span class="kw">if </span>remote_fd.is_some() {
-        std::io::Error::last_os_error()
-            .raw_os_error()
-            .unwrap_or_default()
-    } <span class="kw">else </span>{
-        FN_FERROR(file_stream)
-    }
-}
-
-<span class="attr">#[hook_guard_fn]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>fclose_detour(file_stream: <span class="kw-2">*mut </span>FILE) -&gt; c_int {
-    <span class="kw">let </span>(res, fd) = <span class="kw">match </span>open_file_stream_fd(file_stream) {
-        <span class="prelude-val">Some</span>(local_fd) =&gt; (FN_CLOSE(local_fd), local_fd),
-        <span class="prelude-val">None </span>=&gt; (FN_FCLOSE(file_stream), fileno_logic(file_stream)),
-    };
-
-    close_layer_fd(fd);
-    res
-}
-
-<span class="doccomment">/// Hook for `libc::fileno`.
-///
-/// Converts a `*mut FILE` stream into an fd.
-</span><span class="attr">#[hook_guard_fn]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>fileno_detour(file_stream: <span class="kw-2">*mut </span>FILE) -&gt; c_int {
-    fileno_logic(file_stream)
-}
-
-<span class="doccomment">/// Implementation of fileno_detour, used in fileno_detour and fread_detour
-</span><span class="kw">unsafe fn </span>fileno_logic(file_stream: <span class="kw-2">*mut </span>FILE) -&gt; c_int {
-    open_file_stream_fd(file_stream).unwrap_or_else(|| FN_FILENO(file_stream))
-}
-
-<span class="kw">unsafe fn </span>open_file_stream_fd(file_stream: <span class="kw-2">*mut </span>FILE) -&gt; <span class="prelude-ty">Option</span>&lt;RawFd&gt; {
-    <span class="kw">let </span>local_fd = <span class="kw-2">*</span>(file_stream <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>);
-
-    OPEN_FILES
-        .lock()
-        .unwrap()
-        .contains_key(<span class="kw-2">&amp;</span>local_fd)
-        .then_some(local_fd)
 }
 
 <span class="doccomment">/// Tries to convert input to type O, if it fails it returns the max value of O.
@@ -1501,11 +1464,31 @@
 </span><span class="doccomment">/// Convenience function to setup file hooks (`x_detour`) with `frida_gum`.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>enable_file_hooks(hook_manager: <span class="kw-2">&amp;mut </span>HookManager) {
     <span class="macro">replace!</span>(hook_manager, <span class="string">&quot;open&quot;</span>, open_detour, FnOpen, FN_OPEN);
+    <span class="macro">replace!</span>(
+        hook_manager,
+        <span class="string">&quot;_openat$NOCANCEL&quot;</span>,
+        _open_nocancel_detour,
+        Fn_open_nocancel,
+        FN__OPEN_NOCANCEL
+    );
+
     <span class="macro">replace!</span>(hook_manager, <span class="string">&quot;openat&quot;</span>, openat_detour, FnOpenat, FN_OPENAT);
-    <span class="macro">replace!</span>(hook_manager, <span class="string">&quot;fopen&quot;</span>, fopen_detour, FnFopen, FN_FOPEN);
-    <span class="macro">replace!</span>(hook_manager, <span class="string">&quot;fdopen&quot;</span>, fdopen_detour, FnFdopen, FN_FDOPEN);
+    <span class="macro">replace!</span>(
+        hook_manager,
+        <span class="string">&quot;_openat$NOCANCEL&quot;</span>,
+        _openat_nocancel_detour,
+        Fn_openat_nocancel,
+        FN__OPENAT_NOCANCEL
+    );
 
     <span class="macro">replace!</span>(hook_manager, <span class="string">&quot;read&quot;</span>, read_detour, FnRead, FN_READ);
+    <span class="macro">replace!</span>(
+        hook_manager,
+        <span class="string">&quot;_read$NOCANCEL&quot;</span>,
+        _read_nocancel_detour,
+        Fn_read_nocancel,
+        FN__READ_NOCANCEL
+    );
 
     <span class="macro">replace!</span>(
         hook_manager,
@@ -1514,15 +1497,36 @@
         FnClosedir,
         FN_CLOSEDIR
     );
-    <span class="macro">replace!</span>(hook_manager, <span class="string">&quot;fread&quot;</span>, fread_detour, FnFread, FN_FREAD);
-    <span class="macro">replace!</span>(hook_manager, <span class="string">&quot;fgets&quot;</span>, fgets_detour, FnFgets, FN_FGETS);
+
     <span class="macro">replace!</span>(hook_manager, <span class="string">&quot;pread&quot;</span>, pread_detour, FnPread, FN_PREAD);
-    <span class="macro">replace!</span>(hook_manager, <span class="string">&quot;ferror&quot;</span>, ferror_detour, FnFerror, FN_FERROR);
-    <span class="macro">replace!</span>(hook_manager, <span class="string">&quot;fclose&quot;</span>, fclose_detour, FnFclose, FN_FCLOSE);
-    <span class="macro">replace!</span>(hook_manager, <span class="string">&quot;fileno&quot;</span>, fileno_detour, FnFileno, FN_FILENO);
+    <span class="macro">replace!</span>(
+        hook_manager,
+        <span class="string">&quot;_pread$NOCANCEL&quot;</span>,
+        _pread_nocancel_detour,
+        Fn_pread_nocancel,
+        FN__PREAD_NOCANCEL
+    );
+
     <span class="macro">replace!</span>(hook_manager, <span class="string">&quot;lseek&quot;</span>, lseek_detour, FnLseek, FN_LSEEK);
+
     <span class="macro">replace!</span>(hook_manager, <span class="string">&quot;write&quot;</span>, write_detour, FnWrite, FN_WRITE);
+    <span class="macro">replace!</span>(
+        hook_manager,
+        <span class="string">&quot;_write$NOCANCEL&quot;</span>,
+        _write_nocancel_detour,
+        Fn_write_nocancel,
+        FN__WRITE_NOCANCEL
+    );
+
     <span class="macro">replace!</span>(hook_manager, <span class="string">&quot;pwrite&quot;</span>, pwrite_detour, FnPwrite, FN_PWRITE);
+    <span class="macro">replace!</span>(
+        hook_manager,
+        <span class="string">&quot;_pwrite$NOCANCEL&quot;</span>,
+        _pwrite_nocancel_detour,
+        Fn_pwrite_nocancel,
+        FN__PWRITE_NOCANCEL
+    );
+
     <span class="macro">replace!</span>(hook_manager, <span class="string">&quot;access&quot;</span>, access_detour, FnAccess, FN_ACCESS);
     <span class="macro">replace!</span>(
         hook_manager,

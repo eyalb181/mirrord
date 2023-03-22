@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rstest_macros-0.16.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-f2fc7b5fd698d27d.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-5f7299aa2b503fb1.css"><link rel="stylesheet" disabled href="../../static.files/dark-dfb18ef8114bb428.css"><link rel="stylesheet" disabled href="../../static.files/ayu-4047a6aaddd3789d.css"><script id="default-settings" ></script><script src="../../static.files/storage-ff4706381ddb2707.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-02cbe07fc548e88c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../rstest_macros/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rstest_macros-0.17.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-f2fc7b5fd698d27d.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-5f7299aa2b503fb1.css"><link rel="stylesheet" disabled href="../../static.files/dark-dfb18ef8114bb428.css"><link rel="stylesheet" disabled href="../../static.files/ayu-4047a6aaddd3789d.css"><script id="default-settings" ></script><script src="../../static.files/storage-ff4706381ddb2707.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-02cbe07fc548e88c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../rstest_macros/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1057,6 +1057,25 @@
 <a href="#1057" id="1057">1057</a>
 <a href="#1058" id="1058">1058</a>
 <a href="#1059" id="1059">1059</a>
+<a href="#1060" id="1060">1060</a>
+<a href="#1061" id="1061">1061</a>
+<a href="#1062" id="1062">1062</a>
+<a href="#1063" id="1063">1063</a>
+<a href="#1064" id="1064">1064</a>
+<a href="#1065" id="1065">1065</a>
+<a href="#1066" id="1066">1066</a>
+<a href="#1067" id="1067">1067</a>
+<a href="#1068" id="1068">1068</a>
+<a href="#1069" id="1069">1069</a>
+<a href="#1070" id="1070">1070</a>
+<a href="#1071" id="1071">1071</a>
+<a href="#1072" id="1072">1072</a>
+<a href="#1073" id="1073">1073</a>
+<a href="#1074" id="1074">1074</a>
+<a href="#1075" id="1075">1075</a>
+<a href="#1076" id="1076">1076</a>
+<a href="#1077" id="1077">1077</a>
+<a href="#1078" id="1078">1078</a>
 </pre><pre class="rust"><code><span class="attr">#![cfg_attr(use_proc_macro_diagnostic, feature(proc_macro_diagnostic))]
 </span><span class="kw">extern crate </span>proc_macro;
 
@@ -1076,7 +1095,7 @@
 
 <span class="kw">use </span>syn::{parse_macro_input, ItemFn};
 
-<span class="kw">use </span><span class="kw">crate</span>::parse::{fixture::FixtureInfo, future::ReplaceFutureAttribute, rstest::RsTestInfo};
+<span class="kw">use </span><span class="kw">crate</span>::parse::{fixture::FixtureInfo, rstest::RsTestInfo};
 <span class="kw">use </span>parse::ExtendWithFunctionAttrs;
 <span class="kw">use </span>quote::ToTokens;
 
@@ -1373,14 +1392,10 @@
     <span class="kw">let </span><span class="kw-2">mut </span>info: FixtureInfo = <span class="macro">parse_macro_input!</span>(args <span class="kw">as </span>FixtureInfo);
     <span class="kw">let </span><span class="kw-2">mut </span>fixture = <span class="macro">parse_macro_input!</span>(input <span class="kw">as </span>ItemFn);
 
-    <span class="kw">let </span>replace_result = ReplaceFutureAttribute::replace(<span class="kw-2">&amp;mut </span>fixture);
     <span class="kw">let </span>extend_result = info.extend_with_function_attrs(<span class="kw-2">&amp;mut </span>fixture);
 
     <span class="kw">let </span><span class="kw-2">mut </span>errors = error::fixture(<span class="kw-2">&amp;</span>fixture, <span class="kw-2">&amp;</span>info);
 
-    <span class="kw">if let </span><span class="prelude-val">Err</span>(attrs_errors) = replace_result {
-        attrs_errors.to_tokens(<span class="kw-2">&amp;mut </span>errors);
-    }
     <span class="kw">if let </span><span class="prelude-val">Err</span>(attrs_errors) = extend_result {
         attrs_errors.to_tokens(<span class="kw-2">&amp;mut </span>errors);
     }
@@ -1790,6 +1805,33 @@
 ///     assert_eq!(expected, base.await / div.await);
 /// }
 /// ```
+///
+/// As you noted you should `.await` all _future_ values and this some times can be really boring.
+/// In this case you can use `#[timeout(awt)]` to _awaiting_ an input or annotating your function
+/// with `#[awt]` attributes to globally `.await` all your _future_ inputs. Previous code can be
+/// simplified like follow:
+///
+/// ```
+/// use rstest::*;
+/// # #[fixture]
+/// # async fn base() -&gt; u32 { 42 }
+///
+/// #[rstest]
+/// #[case(21, async { 2 })]
+/// #[case(6, async { 7 })]
+/// #[awt]
+/// async fn global(#[future] base: u32, #[case] expected: u32, #[future] #[case] div: u32) {
+///     assert_eq!(expected, base / div);
+/// }
+///
+/// #[rstest]
+/// #[case(21, async { 2 })]
+/// #[case(6, async { 7 })]
+/// async fn single(#[future] base: u32, #[case] expected: u32, #[future(awt)] #[case] div: u32) {
+///     assert_eq!(expected, base.await / div);
+/// }
+/// ```
+///
 /// ### Test `#[timeout()]`
 ///
 /// You can define an execution timeout for your tests with `#[timeout(&lt;duration&gt;)]` attribute. Timeouts
@@ -2091,14 +2133,10 @@
     <span class="kw">let </span><span class="kw-2">mut </span>test = <span class="macro">parse_macro_input!</span>(input <span class="kw">as </span>ItemFn);
     <span class="kw">let </span><span class="kw-2">mut </span>info = <span class="macro">parse_macro_input!</span>(args <span class="kw">as </span>RsTestInfo);
 
-    <span class="kw">let </span>replace_result = ReplaceFutureAttribute::replace(<span class="kw-2">&amp;mut </span>test);
     <span class="kw">let </span>extend_result = info.extend_with_function_attrs(<span class="kw-2">&amp;mut </span>test);
 
     <span class="kw">let </span><span class="kw-2">mut </span>errors = error::rstest(<span class="kw-2">&amp;</span>test, <span class="kw-2">&amp;</span>info);
 
-    <span class="kw">if let </span><span class="prelude-val">Err</span>(attrs_errors) = replace_result {
-        attrs_errors.to_tokens(<span class="kw-2">&amp;mut </span>errors);
-    }
     <span class="kw">if let </span><span class="prelude-val">Err</span>(attrs_errors) = extend_result {
         attrs_errors.to_tokens(<span class="kw-2">&amp;mut </span>errors);
     }

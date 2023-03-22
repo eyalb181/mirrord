@@ -61,16 +61,16 @@
 <a href="#61" id="61">61</a>
 <a href="#62" id="62">62</a>
 <a href="#63" id="63">63</a>
+<a href="#64" id="64">64</a>
+<a href="#65" id="65">65</a>
 </pre><pre class="rust"><code><span class="kw">use </span>core::fmt;
-<span class="kw">use </span>std::{
-    net::SocketAddr,
-    ops::{Deref, DerefMut},
-};
+<span class="kw">use </span>std::ops::{Deref, DerefMut};
 
 <span class="kw">use </span>mirrord_protocol::{
     outgoing::{DaemonConnect, DaemonRead, LayerClose, LayerConnect, LayerWrite},
     ConnectionId,
 };
+<span class="kw">use </span>socket2::SockAddr;
 
 <span class="kw">use </span><span class="kw">crate</span>::common::ResponseChannel;
 
@@ -78,15 +78,19 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>udp;
 
 <span class="doccomment">/// Wrapper type for the (layer) socket address that intercepts the user&#39;s socket messages.
+///
+/// (user-app) user_app_address &lt;--&gt; layer_address (layer) &lt;--&gt; agent &lt;--&gt; remote-peer
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>RemoteConnection {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) mirror_address: SocketAddr,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) local_address: SocketAddr,
+    <span class="doccomment">/// The socket that is held by mirrord.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) layer_address: SockAddr,
+    <span class="doccomment">/// The socket that is held by the user application.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) user_app_address: SockAddr,
 }
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Connect {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) remote_address: SocketAddr,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) remote_address: SockAddr,
     <span class="kw">pub</span>(<span class="kw">crate</span>) channel_tx: ResponseChannel&lt;RemoteConnection&gt;,
 }
 

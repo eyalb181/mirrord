@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rstest_macros-0.16.0/src/render/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-f2fc7b5fd698d27d.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-5f7299aa2b503fb1.css"><link rel="stylesheet" disabled href="../../../static.files/dark-dfb18ef8114bb428.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-4047a6aaddd3789d.css"><script id="default-settings" ></script><script src="../../../static.files/storage-ff4706381ddb2707.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-02cbe07fc548e88c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../rstest_macros/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rstest_macros-0.17.0/src/render/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-f2fc7b5fd698d27d.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-5f7299aa2b503fb1.css"><link rel="stylesheet" disabled href="../../../static.files/dark-dfb18ef8114bb428.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-4047a6aaddd3789d.css"><script id="default-settings" ></script><script src="../../../static.files/storage-ff4706381ddb2707.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-02cbe07fc548e88c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../rstest_macros/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -432,33 +432,12 @@
 <a href="#432" id="432">432</a>
 <a href="#433" id="433">433</a>
 <a href="#434" id="434">434</a>
-<a href="#435" id="435">435</a>
-<a href="#436" id="436">436</a>
-<a href="#437" id="437">437</a>
-<a href="#438" id="438">438</a>
-<a href="#439" id="439">439</a>
-<a href="#440" id="440">440</a>
-<a href="#441" id="441">441</a>
-<a href="#442" id="442">442</a>
-<a href="#443" id="443">443</a>
-<a href="#444" id="444">444</a>
-<a href="#445" id="445">445</a>
-<a href="#446" id="446">446</a>
-<a href="#447" id="447">447</a>
-<a href="#448" id="448">448</a>
-<a href="#449" id="449">449</a>
-<a href="#450" id="450">450</a>
-<a href="#451" id="451">451</a>
-<a href="#452" id="452">452</a>
-<a href="#453" id="453">453</a>
-<a href="#454" id="454">454</a>
-<a href="#455" id="455">455</a>
-<a href="#456" id="456">456</a>
 </pre><pre class="rust"><code><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>fixture;
 <span class="kw">mod </span>test;
 <span class="kw">mod </span>wrapper;
 
 <span class="kw">use </span>std::collections::HashMap;
+
 <span class="kw">use </span>syn::token::Async;
 
 <span class="kw">use </span>proc_macro2::{Span, TokenStream};
@@ -483,9 +462,13 @@
 <span class="kw">use </span>wrapper::WrapByModule;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>fixture::render <span class="kw">as </span>fixture;
+
+<span class="kw">use </span><span class="self">self</span>::apply_argumets::ApplyArgumets;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>apply_argumets;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>inject;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>single(<span class="kw-2">mut </span>test: ItemFn, info: RsTestInfo) -&gt; TokenStream {
+    test.apply_argumets(<span class="kw-2">&amp;</span>info.arguments);
     <span class="kw">let </span>resolver = resolver::fixtures::get(info.data.fixtures());
     <span class="kw">let </span>args = test.sig.inputs.iter().cloned().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
     <span class="kw">let </span>attrs = std::mem::take(<span class="kw-2">&amp;mut </span>test.attrs);
@@ -512,8 +495,13 @@
     )
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parametrize(test: ItemFn, info: RsTestInfo) -&gt; TokenStream {
-    <span class="kw">let </span>RsTestInfo { data, attributes } = info;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parametrize(<span class="kw-2">mut </span>test: ItemFn, info: RsTestInfo) -&gt; TokenStream {
+    <span class="kw">let </span>RsTestInfo {
+        data,
+        attributes,
+        arguments,
+    } = info;
+    test.apply_argumets(<span class="kw-2">&amp;</span>arguments);
     <span class="kw">let </span>resolver_fixtures = resolver::fixtures::get(data.fixtures());
 
     <span class="kw">let </span>rendered_cases = cases_data(<span class="kw-2">&amp;</span>data, test.sig.ident.span())
@@ -595,10 +583,13 @@
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>matrix(test: ItemFn, info: RsTestInfo) -&gt; TokenStream {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>matrix(<span class="kw-2">mut </span>test: ItemFn, info: RsTestInfo) -&gt; TokenStream {
     <span class="kw">let </span>RsTestInfo {
-        data, attributes, ..
+        data,
+        attributes,
+        arguments,
     } = info;
+    test.apply_argumets(<span class="kw-2">&amp;</span>arguments);
     <span class="kw">let </span>span = test.sig.ident.span();
 
     <span class="kw">let </span>cases = cases_data(<span class="kw-2">&amp;</span>data, span).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
@@ -677,7 +668,7 @@
 ///
 </span><span class="comment">// Ok I need some refactoring here but now that not a real issue
 </span><span class="attr">#[allow(clippy::too_many_arguments)]
-</span><span class="kw">fn </span>single_test_case&lt;<span class="lifetime">&#39;a</span>&gt;(
+</span><span class="kw">fn </span>single_test_case(
     name: <span class="kw-2">&amp;</span>Ident,
     testfn_name: <span class="kw-2">&amp;</span>Ident,
     args: <span class="kw-2">&amp;</span>[FnArg],
@@ -686,7 +677,7 @@
     asyncness: <span class="prelude-ty">Option</span>&lt;Async&gt;,
     test_impl: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ItemFn&gt;,
     resolver: <span class="kw">impl </span>Resolver,
-    attributes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>RsTestAttributes,
+    attributes: <span class="kw-2">&amp;</span>RsTestAttributes,
     generic_types: <span class="kw-2">&amp;</span>[Ident],
 ) -&gt; TokenStream {
     <span class="kw">let </span>(attrs, trace_me): (Vec&lt;<span class="kw">_</span>&gt;, Vec&lt;<span class="kw">_</span>&gt;) =
@@ -825,7 +816,7 @@
 
 <span class="kw">impl</span>&lt;D: std::fmt::Display&gt; DisplayLen <span class="kw">for </span>D {
     <span class="kw">fn </span>display_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
-        <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="self">self</span>).len()
+        <span class="macro">format!</span>(<span class="string">&quot;{self}&quot;</span>).len()
     }
 }
 
@@ -833,14 +824,9 @@
     <span class="kw">let </span>description = case
         .description
         .as_ref()
-        .map(|d| <span class="macro">format!</span>(<span class="string">&quot;_{}&quot;</span>, d))
+        .map(|d| <span class="macro">format!</span>(<span class="string">&quot;_{d}&quot;</span>))
         .unwrap_or_default();
-    <span class="macro">format!</span>(
-        <span class="string">&quot;case_{:0len$}{d}&quot;</span>,
-        index,
-        len = display_len,
-        d = description
-    )
+    <span class="macro">format!</span>(<span class="string">&quot;case_{index:0display_len$}{description}&quot;</span>)
 }
 
 <span class="kw">fn </span>cases_data(
@@ -879,36 +865,6 @@
         .chars()
         .filter(|<span class="kw-2">&amp;</span>c| is_xid_continue(c))
         .collect()
-}
-
-<span class="attr">#[cfg(test)]
-</span><span class="kw">mod </span>tests {
-    <span class="kw">use </span><span class="kw">crate</span>::test::ToAst;
-
-    <span class="kw">use super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use </span><span class="kw">crate</span>::test::{assert_eq, <span class="kw-2">*</span>};
-
-    <span class="attr">#[rstest]
-    #[case(<span class="string">&quot;1&quot;</span>, <span class="string">&quot;1&quot;</span>)]
-    #[case(<span class="string">r#&quot;&quot;1&quot;&quot;#</span>, <span class="string">&quot;__1__&quot;</span>)]
-    #[case(<span class="string">r#&quot;Some::SomeElse&quot;#</span>, <span class="string">&quot;Some__SomeElse&quot;</span>)]
-    #[case(<span class="string">r#&quot;&quot;minnie&quot;.to_owned()&quot;#</span>, <span class="string">&quot;__minnie___to_owned__&quot;</span>)]
-    #[case(
-        <span class="string">r#&quot;vec![1 ,   2, 
-    3]&quot;#</span>,
-        <span class="string">&quot;vec__1_2_3_&quot;
-    </span>)]
-    #[case(
-        <span class="string">r#&quot;some_macro!(&quot;first&quot;, {second}, [third])&quot;#</span>,
-        <span class="string">&quot;some_macro____first____second___third__&quot;
-    </span>)]
-    #[case(<span class="string">r#&quot;&#39;x&#39;&quot;#</span>, <span class="string">&quot;__x__&quot;</span>)]
-    #[case::ops(<span class="string">r#&quot;a*b+c/d-e%f^g&quot;#</span>, <span class="string">&quot;a_b_c_d_e_f_g&quot;</span>)]
-    </span><span class="kw">fn </span>sanitaze_ident_name(<span class="attr">#[case] </span>expression: <span class="kw">impl </span>AsRef&lt;str&gt;, <span class="attr">#[case] </span>expected: <span class="kw">impl </span>AsRef&lt;str&gt;) {
-        <span class="kw">let </span>expression: Expr = expression.as_ref().ast();
-
-        <span class="macro">assert_eq!</span>(expected.as_ref(), sanitize_ident(<span class="kw-2">&amp;</span>expression));
-    }
 }
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rstest_macros" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (001a77fac 2023-01-30)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-7c23ac01f615ce90.css" ></div></body></html>

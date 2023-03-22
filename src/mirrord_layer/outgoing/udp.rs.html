@@ -327,6 +327,18 @@
 <a href="#327" id="327">327</a>
 <a href="#328" id="328">328</a>
 <a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     collections::HashMap,
     future::Future,
@@ -336,8 +348,12 @@
 
 <span class="kw">use </span>futures::TryFutureExt;
 <span class="kw">use </span>mirrord_protocol::{
-    outgoing::udp::{DaemonUdpOutgoing, LayerUdpOutgoing},
+    outgoing::{
+        udp::{DaemonUdpOutgoing, LayerUdpOutgoing},
+        SocketAddress,
+    },
     ClientMessage, ConnectionId,
+    ResponseError::NotImplemented,
 };
 <span class="kw">use </span>tokio::{
     net::UdpSocket,
@@ -545,7 +561,9 @@
 
                 <span class="prelude-val">Ok</span>(tx
                     .send(ClientMessage::UdpOutgoing(LayerUdpOutgoing::Connect(
-                        LayerConnect { remote_address },
+                        LayerConnect {
+                            remote_address: remote_address.try_into()<span class="question-mark">?</span>,
+                        },
                     )))
                     .<span class="kw">await</span><span class="question-mark">?</span>)
             }
@@ -582,14 +600,20 @@
                             <span class="kw">let _ </span>= DetourGuard::new();
 
                             <span class="kw">let </span>mirror_socket = <span class="kw">match </span>remote_address {
-                                SocketAddr::V4(<span class="kw">_</span>) =&gt; UdpSocket::bind(SocketAddr::new(
-                                    IpAddr::V4(Ipv4Addr::UNSPECIFIED),
-                                    <span class="number">0</span>,
-                                )),
-                                SocketAddr::V6(<span class="kw">_</span>) =&gt; UdpSocket::bind(SocketAddr::new(
-                                    IpAddr::V6(Ipv6Addr::UNSPECIFIED),
-                                    <span class="number">0</span>,
-                                )),
+                                SocketAddress::Ip(SocketAddr::V4(<span class="kw">_</span>)) =&gt; UdpSocket::bind(
+                                    SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), <span class="number">0</span>),
+                                ),
+                                SocketAddress::Ip(SocketAddr::V6(<span class="kw">_</span>)) =&gt; UdpSocket::bind(
+                                    SocketAddr::new(IpAddr::V6(Ipv6Addr::UNSPECIFIED), <span class="number">0</span>),
+                                ),
+                                SocketAddress::Unix(<span class="kw">_</span>) =&gt; {
+                                    <span class="comment">// This should never happen. If we&#39;re here - the agent reported
+                                    // a UDP connection to a remote unix socket. The layer does not
+                                    // request such a thing, so either there was a bug earlier in
+                                    // the layer, the agent is rogue, or this code is outdated.
+                                    </span><span class="macro">error!</span>(<span class="string">&quot;Datagrams over unix sockets are not supported.&quot;</span>);
+                                    <span class="prelude-val">Err</span>(NotImplemented)<span class="question-mark">?
+                                </span>}
                             }
                             .<span class="kw">await</span><span class="question-mark">?</span>;
 
@@ -597,11 +621,11 @@
                         },
                     )
                     .<span class="kw">await
-                    </span>.and_then(|(connection_id, socket, local_address)| {
+                    </span>.and_then(|(connection_id, socket, user_app_address)| {
                         <span class="kw">let </span>(remote_tx, remote_rx) = channel::&lt;Vec&lt;u8&gt;&gt;(<span class="number">1000</span>);
 
                         <span class="kw">let _ </span>= DetourGuard::new();
-                        <span class="kw">let </span>mirror_address = socket.local_addr()<span class="question-mark">?</span>;
+                        <span class="kw">let </span>layer_address = socket.local_addr()<span class="question-mark">?</span>;
 
                         <span class="comment">// user and interceptor sockets are connected to each other, so now we spawn
                         // a new task to pair their reads/writes.
@@ -616,8 +640,8 @@
                             .insert(connection_id, ConnectionMirror(remote_tx));
 
                         <span class="prelude-val">Ok</span>(RemoteConnection {
-                            local_address,
-                            mirror_address,
+                            user_app_address: user_app_address.try_into()<span class="question-mark">?</span>,
+                            layer_address: layer_address.into(),
                         })
                     });
 

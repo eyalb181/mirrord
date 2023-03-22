@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["SocketStream","An enum that can mostly be used like tokio’s [`TcpStream`] and [`UnixStream`], but can hold either of them."]]};

@@ -310,20 +310,120 @@
 <a href="#310" id="310">310</a>
 <a href="#311" id="311">311</a>
 <a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     collections::HashMap,
+    env::temp_dir,
     future::Future,
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
 };
 
 <span class="kw">use </span>futures::TryFutureExt;
 <span class="kw">use </span>mirrord_protocol::{
-    outgoing::{tcp::<span class="kw-2">*</span>, DaemonConnect, DaemonRead, LayerClose, LayerConnect, LayerWrite},
+    outgoing::{
+        tcp::<span class="kw-2">*</span>, DaemonConnect, DaemonRead, LayerClose, LayerConnect, LayerWrite, SocketAddress,
+    },
     ClientMessage, ConnectionId,
 };
+<span class="kw">use </span>rand::{distributions::Alphanumeric, Rng};
+<span class="kw">use </span>socket2::{Domain, Socket, Type};
 <span class="kw">use </span>tokio::{
-    io::{AsyncReadExt, AsyncWriteExt},
-    net::TcpListener,
+    fs::create_dir_all,
+    io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt},
+    net::{TcpStream, UnixStream},
     select,
     sync::mpsc::{channel, Receiver, Sender},
     task,
@@ -333,6 +433,9 @@
 
 <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <span class="kw">use crate</span>::{common::ResponseDeque, detour::DetourGuard, error::LayerError};
+
+<span class="doccomment">/// For unix socket addresses, relative to the temp dir (`/tmp/mirrord-bin/...`).
+</span><span class="kw">pub const </span>UNIX_STREAMS_DIRNAME: <span class="kw-2">&amp;</span>str = <span class="string">&quot;mirrord-unix-sockets&quot;</span>;
 
 <span class="doccomment">/// Hook messages handled by `TcpOutgoingHandler`.
 ///
@@ -376,19 +479,76 @@
 }
 
 <span class="kw">impl </span>TcpOutgoingHandler {
-    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(layer_tx, mirror_listener, remote_rx))]
+    <span class="doccomment">/// # Arguments
+    ///
+    /// * `layer_tx` - A channel for sending data from the local app to the main task (to be
+    ///   forwarded to the agent).
+    /// * `layer_socket` - A bound and listening socket that the user application will connect to
+    ///   (instead of to its actual remote target).
+    /// * `remote_rx` - A channel for reading incoming data that was forwarded from the remote peer.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(layer_tx, layer_socket, remote_rx))]
     </span><span class="kw">async fn </span>interceptor_task(
         layer_tx: Sender&lt;LayerTcpOutgoing&gt;,
         connection_id: ConnectionId,
-        mirror_listener: TcpListener,
+        layer_socket: Socket,
         remote_rx: Receiver&lt;Vec&lt;u8&gt;&gt;,
     ) {
+        <span class="kw">let </span>remote_stream = ReceiverStream::new(remote_rx);
+
         <span class="comment">// Accepts the user&#39;s socket connection, and finally becomes the interceptor socket.
-        </span><span class="kw">let </span>(<span class="kw-2">mut </span>mirror_stream, <span class="kw">_</span>) = mirror_listener.accept().<span class="kw">await</span>.unwrap();
+        </span><span class="kw">let </span>(mirror_stream, <span class="kw">_</span>) = layer_socket
+            .accept()
+            .inspect_err(|err| <span class="macro">error!</span>(<span class="string">&quot;{err}&quot;</span>))
+            .unwrap();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>remote_stream = ReceiverStream::new(remote_rx);
-        <span class="kw">let </span><span class="kw-2">mut </span>buffer = <span class="macro">vec!</span>[<span class="number">0</span>; <span class="number">1024</span>];
+        mirror_stream
+            .set_nonblocking(<span class="bool-val">true</span>)
+            .inspect_err(|err| <span class="macro">error!</span>(<span class="string">&quot;Error {err:?} when trying to set stream to nonblocking.&quot;</span>))
+            .unwrap();
 
+        <span class="comment">// We unwrap local_addr, because the socket must be bound at this point, so local_addr must
+        // succeed.
+        </span><span class="kw">let </span>local_addr = mirror_stream.local_addr().unwrap();
+        <span class="kw">if </span>local_addr.is_unix() {
+            <span class="kw">let </span>mirror_stream = UnixStream::from_std(mirror_stream.into())
+                .map_err(|err| <span class="macro">error!</span>(<span class="string">&quot;Invalid unix stream socket address: {err:?}&quot;</span>))
+                .unwrap();
+            <span class="self">Self</span>::forward_bidirectionally(layer_tx, connection_id, mirror_stream, remote_stream)
+                .<span class="kw">await</span>;
+        } <span class="kw">else if </span>local_addr.is_ipv6() || local_addr.is_ipv4() {
+            <span class="kw">let </span>mirror_stream = TcpStream::from_std(mirror_stream.into())
+                .map_err(|err| <span class="macro">error!</span>(<span class="string">&quot;Invalid IP socket address: {err:?}&quot;</span>))
+                .unwrap();
+            <span class="self">Self</span>::forward_bidirectionally(layer_tx, connection_id, mirror_stream, remote_stream)
+                .<span class="kw">await</span>;
+        } <span class="kw">else </span>{
+            <span class="macro">error!</span>(<span class="string">&quot;Unsupported socket address family, not intercepting.&quot;</span>)
+        }
+    }
+
+    <span class="doccomment">/// Forward in both directions data between the user application and the main layer task (that
+    /// forwards it to the agent, that sends it to the remote target).
+    ///
+    /// ```
+    ///      layer_tx ◄──────
+    ///                     layer_to_user_stream ◄───────► user app
+    /// remote_stream ───────►
+    /// ```
+    ///
+    /// # Arguments
+    ///
+    /// * `layer_tx` - A channel for sending data from the local app to the main layer task (to be
+    ///   forwarded to the agent).
+    /// * `layer_to_user_stream` - An outgoing stream (could be UNIX, TCP/IP, or anything that&#39;s
+    ///   async read and write) between the user app and the layer.
+    /// * `remote_stream` - A [`ReceiverStream`] to read the response data forwarded from the agent
+    ///   (to be forwarded to `layer_to_user_stream`).
+    </span><span class="kw">async fn </span>forward_bidirectionally&lt;T: AsyncRead + AsyncWrite + Unpin&gt;(
+        layer_tx: Sender&lt;LayerTcpOutgoing&gt;,
+        connection_id: ConnectionId,
+        <span class="kw-2">mut </span>layer_to_user_stream: T,
+        <span class="kw-2">mut </span>remote_stream: ReceiverStream&lt;Vec&lt;u8&gt;&gt;,
+    ) {
         <span class="comment">// Sends a message to close the remote stream in `agent`, when it&#39;s
         // being closed in `layer`.
         //
@@ -403,13 +563,15 @@
             }
         };
 
+        <span class="kw">let </span><span class="kw-2">mut </span>buffer = <span class="macro">vec!</span>[<span class="number">0</span>; <span class="number">1024</span>];
+
         <span class="kw">loop </span>{
             <span class="macro">select! </span>{
                 biased; <span class="comment">// To allow local socket to be read before being closed
 
                 // Reads data that the user is sending from their socket to mirrord&#39;s interceptor
                 // socket.
-                </span>read = mirror_stream.read(<span class="kw-2">&amp;mut </span>buffer) =&gt; {
+                </span>read = layer_to_user_stream.read(<span class="kw-2">&amp;mut </span>buffer) =&gt; {
                     <span class="kw">match </span>read {
                         <span class="prelude-val">Err</span>(fail) <span class="kw">if </span>fail.kind() == std::io::ErrorKind::WouldBlock =&gt; {
                             <span class="kw">continue</span>;
@@ -446,7 +608,7 @@
                             <span class="comment">// Writes the data sent by `agent` (that came from the actual remote
                             // stream) to our interceptor socket. When the user tries to read the
                             // remote data, this&#39;ll be what they receive.
-                            </span><span class="kw">if let </span><span class="prelude-val">Err</span>(fail) = mirror_stream.write_all(<span class="kw-2">&amp;</span>bytes).<span class="kw">await </span>{
+                            </span><span class="kw">if let </span><span class="prelude-val">Err</span>(fail) = layer_to_user_stream.write_all(<span class="kw-2">&amp;</span>bytes).<span class="kw">await </span>{
                                 <span class="macro">trace!</span>(<span class="string">&quot;Failed writing to mirror_stream with {:#?}!&quot;</span>, fail);
                                 <span class="kw">break</span>;
                             }
@@ -485,6 +647,8 @@
                 // suggests using a `HashMap`).
                 </span><span class="self">self</span>.connect_queue.push_back(channel_tx);
 
+                <span class="kw">let </span>remote_address = remote_address.try_into()<span class="question-mark">?</span>;
+                <span class="macro">trace!</span>(<span class="string">&quot;TCP Outgoing connection to {remote_address}.&quot;</span>);
                 <span class="prelude-val">Ok</span>(tx
                     .send(ClientMessage::TcpOutgoing(LayerTcpOutgoing::Connect(
                         LayerConnect { remote_address },
@@ -525,30 +689,54 @@
                          }| <span class="kw">async move </span>{
                             <span class="kw">let _ </span>= DetourGuard::new();
 
-                            <span class="comment">// Creates the listener that will wait for the user&#39;s socket
-                            // connection.
-                            </span><span class="kw">let </span>mirror_listener = <span class="kw">match </span>remote_address {
-                                SocketAddr::V4(<span class="kw">_</span>) =&gt; {
-                                    TcpListener::bind(SocketAddr::new(
-                                        IpAddr::V4(Ipv4Addr::UNSPECIFIED),
-                                        <span class="number">0</span>,
-                                    ))
-                                    .<span class="kw">await</span><span class="question-mark">?
-                                </span>}
-                                SocketAddr::V6(<span class="kw">_</span>) =&gt; {
-                                    TcpListener::bind(SocketAddr::new(
-                                        IpAddr::V6(Ipv6Addr::UNSPECIFIED),
-                                        <span class="number">0</span>,
-                                    ))
-                                    .<span class="kw">await</span><span class="question-mark">?
-                                </span>}
-                            };
+                            <span class="comment">// Socket held by the layer, waiting for the user application to
+                            // connect to it.
+                            </span><span class="kw">let </span>layer_socket = <span class="kw">match </span>remote_address {
+                                SocketAddress::Ip(SocketAddr::V4(<span class="kw">_</span>)) =&gt; {
+                                    <span class="kw">let </span>socket = Socket::new(Domain::IPV4, Type::STREAM, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
+                                    socket.bind(
+                                        <span class="kw-2">&amp;</span>(SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), <span class="number">0</span>)
+                                            .into()),
+                                    )<span class="question-mark">?</span>;
+                                    socket
+                                }
+                                SocketAddress::Ip(SocketAddr::V6(<span class="kw">_</span>)) =&gt; {
+                                    <span class="kw">let </span>socket = Socket::new(Domain::IPV6, Type::STREAM, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
+                                    socket.bind(
+                                        <span class="kw-2">&amp;</span>(SocketAddr::new(IpAddr::V6(Ipv6Addr::UNSPECIFIED), <span class="number">0</span>)
+                                            .into()),
+                                    )<span class="question-mark">?</span>;
+                                    socket
+                                }
+                                SocketAddress::Unix(<span class="kw">_</span>) =&gt; {
+                                    <span class="kw">let </span>socket = Socket::new(Domain::UNIX, Type::STREAM, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
+                                    <span class="kw">let </span>tmp_dir = temp_dir().join(UNIX_STREAMS_DIRNAME);
+                                    <span class="kw">if </span>!tmp_dir.exists() {
+                                        create_dir_all(<span class="kw-2">&amp;</span>tmp_dir).<span class="kw">await</span><span class="question-mark">?</span>;
+                                    }
+                                    <span class="kw">let </span>random_string: String = rand::thread_rng()
+                                        .sample_iter(<span class="kw-2">&amp;</span>Alphanumeric)
+                                        .take(<span class="number">16</span>)
+                                        .map(char::from)
+                                        .collect();
+                                    <span class="kw">let </span>pathname = tmp_dir.join(random_string);
 
-                            <span class="prelude-val">Ok</span>((connection_id, mirror_listener, local_address))
+                                    <span class="kw">let </span>addr = SockAddr::unix(pathname)<span class="question-mark">?</span>;
+                                    <span class="comment">// Could theoretically fail if we generated the same random
+                                    // string for two connections, but that&#39;s rather unlikely.
+                                    </span>socket.bind(<span class="kw-2">&amp;</span>addr)<span class="question-mark">?</span>;
+                                    socket
+                                }
+                            };
+                            <span class="comment">// We are only accepting one connection on this socket, so setting
+                            // backlog to 1.
+                            </span>layer_socket.listen(<span class="number">1</span>)<span class="question-mark">?</span>;
+
+                            <span class="prelude-val">Ok</span>((connection_id, layer_socket, local_address.try_into()<span class="question-mark">?</span>))
                         },
                     )
                     .<span class="kw">await
-                    </span>.and_then(|(connection_id, listener, local_address)| {
+                    </span>.and_then(|(connection_id, socket, user_app_address)| {
                         <span class="comment">// Incoming remote channel (in the direction of agent -&gt; layer).
                         // When the layer gets data from the agent, it writes it in via the
                         // remote_tx end. the interceptor_task then reads
@@ -559,7 +747,7 @@
                         </span><span class="kw">let </span>(remote_tx, remote_rx) = channel::&lt;Vec&lt;u8&gt;&gt;(<span class="number">1000</span>);
 
                         <span class="kw">let _ </span>= DetourGuard::new();
-                        <span class="kw">let </span>mirror_address = listener.local_addr()<span class="question-mark">?</span>;
+                        <span class="kw">let </span>layer_address = socket.local_addr()<span class="question-mark">?</span>;
 
                         <span class="self">self</span>.mirrors
                             .insert(connection_id, ConnectionMirror(remote_tx));
@@ -569,13 +757,13 @@
                         </span>task::spawn(TcpOutgoingHandler::interceptor_task(
                             <span class="self">self</span>.layer_tx.clone(),
                             connection_id,
-                            listener,
+                            socket,
                             remote_rx,
                         ));
 
                         <span class="prelude-val">Ok</span>(RemoteConnection {
-                            local_address,
-                            mirror_address,
+                            user_app_address,
+                            layer_address,
                         })
                     });
 

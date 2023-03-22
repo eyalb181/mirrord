@@ -226,17 +226,26 @@
 <a href="#226" id="226">226</a>
 <a href="#227" id="227">227</a>
 <a href="#228" id="228">228</a>
-</pre><pre class="rust"><code><span class="kw">use </span>std::{
-    io,
-    net::{AddrParseError, SocketAddr},
-};
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+</pre><pre class="rust"><code><span class="kw">use </span>std::{io, net::AddrParseError};
 
 <span class="kw">use </span>bincode::{Decode, Encode};
 <span class="kw">use </span>thiserror::Error;
 <span class="kw">use </span>tracing::warn;
 <span class="kw">use </span>trust_dns_resolver::error::{ResolveError, ResolveErrorKind};
 
-<span class="kw">use crate</span>::{tcp::Filter, Port};
+<span class="kw">use crate</span>::{outgoing::SocketAddress, tcp::Filter, Port};
+
+<span class="attr">#[derive(Encode, Decode, Debug, PartialEq, Clone, Eq, Error)]
+</span><span class="kw">pub enum </span>SerializationError {
+    <span class="attr">#[error(<span class="string">&quot;Could not convert the socket address into a supported owned address type.&quot;</span>)]
+    </span>SocketAddress,
+}
 
 <span class="attr">#[derive(Encode, Decode, Debug, PartialEq, Clone, Eq, Error)]
 </span><span class="kw">pub enum </span>ResponseError {
@@ -263,6 +272,9 @@
 
     <span class="attr">#[error(<span class="string">&quot;Could not subscribe to port `{0}`, as it is being stolen by another mirrord client.&quot;</span>)]
     </span>PortAlreadyStolen(Port),
+
+    <span class="attr">#[error(<span class="string">&quot;Operation is not yet supported by mirrord.&quot;</span>)]
+    </span>NotImplemented,
 }
 
 <span class="attr">#[derive(Encode, Decode, Debug, PartialEq, Clone, Eq, Error)]
@@ -274,12 +286,12 @@
     </span>AddressParsing(String),
 
     <span class="attr">#[error(<span class="string">&quot;Failed operation to `SocketAddr` with `{0}`!&quot;</span>)]
-    </span>InvalidAddress(SocketAddr),
+    </span>InvalidAddress(SocketAddress),
 
     <span class="doccomment">/// Especially relevant for the outgoing traffic feature, when `golang` attempts to connect
     /// on both IPv6 and IPv4.
-    </span><span class="attr">#[error(<span class="string">&quot;Connect call to `SocketAddr` `{0}` timed out!&quot;</span>)]
-    </span>ConnectTimedOut(SocketAddr),
+    </span><span class="attr">#[error(<span class="string">&quot;Connect call to `SocketAddress` `{0}` timed out!&quot;</span>)]
+    </span>ConnectTimedOut(SocketAddress),
 
     <span class="attr">#[error(<span class="string">r#&quot;Got bad regex &quot;{0}&quot; for http filter subscriptions. Regex error: `{1}`.&quot;#</span>)]
     </span>BadHttpFilterRegex(Filter, String),

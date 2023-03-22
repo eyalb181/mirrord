@@ -289,13 +289,53 @@
 <a href="#289" id="289">289</a>
 <a href="#290" id="290">290</a>
 <a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{env::VarError, ptr, str::ParseBoolError};
 
 <span class="kw">use </span>errno::set_errno;
 <span class="kw">use </span>ignore_codes::<span class="kw-2">*</span>;
 <span class="kw">use </span>libc::{c_char, DIR, FILE};
 <span class="kw">use </span>mirrord_config::config::ConfigError;
-<span class="kw">use </span>mirrord_protocol::{tcp::LayerTcp, ClientMessage, ConnectionId, ResponseError};
+<span class="kw">use </span>mirrord_protocol::{
+    tcp::LayerTcp, ClientMessage, ConnectionId, ResponseError, SerializationError,
+};
 <span class="attr">#[cfg(target_os = <span class="string">&quot;macos&quot;</span>)]
 </span><span class="kw">use </span>mirrord_sip::SipError;
 <span class="kw">use </span>thiserror::Error;
@@ -370,6 +410,15 @@
 
     <span class="attr">#[error(<span class="string">&quot;mirrord-layer: IPv6 can&#39;t be used with mirrord&quot;</span>)]
     </span>SocketUnsuportedIpv6,
+
+    <span class="comment">// `From` implemented below, not with `#[from]` so that when new variants of
+    // `SerializationError` are added, they are mapped into different variants of
+    // `LayerError`.
+    </span><span class="attr">#[error(
+        <span class="string">&quot;mirrord-layer: user application is trying to connect to an address that is not a \
+        supported IP or unix socket address.&quot;
+    </span>)]
+    </span>UnsupportedSocketType,
 }
 
 <span class="doccomment">/// Errors internal to mirrord-layer.
@@ -460,6 +509,31 @@
 
     <span class="attr">#[error(<span class="string">&quot;mirrord-layer: local app closed the connection with mirrord.&quot;</span>)]
     </span>AppClosedConnection(ClientMessage),
+
+    <span class="comment">// `From` implemented below, not with `#[from]` so that when new variants of
+    // `SerializationError` are added, they are mapped into different variants of
+    // `LayerError`.
+    </span><span class="attr">#[error(
+        <span class="string">&quot;mirrord-layer: user application is trying to connect to an address that is not a \
+        supported IP or unix socket address.&quot;
+    </span>)]
+    </span>UnsupportedSocketType,
+}
+
+<span class="kw">impl </span>From&lt;SerializationError&gt; <span class="kw">for </span>LayerError {
+    <span class="kw">fn </span>from(err: SerializationError) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span>err {
+            SerializationError::SocketAddress =&gt; LayerError::UnsupportedSocketType,
+        }
+    }
+}
+
+<span class="kw">impl </span>From&lt;SerializationError&gt; <span class="kw">for </span>HookError {
+    <span class="kw">fn </span>from(err: SerializationError) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span>err {
+            SerializationError::SocketAddress =&gt; HookError::UnsupportedSocketType,
+        }
+    }
 }
 
 <span class="comment">// Cannot have a generic `From&lt;T&gt;` implementation for this error, so explicitly implemented here.
@@ -521,6 +595,7 @@
                 // never appears as HookError::ResponseError(PortAlreadyStolen(_)).
                 // this could be changed by waiting for the Subscribed response from agent.
                 </span>ResponseError::PortAlreadyStolen(_port) =&gt; libc::EINVAL,
+                ResponseError::NotImplemented =&gt; libc::EINVAL,
             },
             HookError::DNSNoName =&gt; libc::EFAULT,
             HookError::Utf8(<span class="kw">_</span>) =&gt; libc::EINVAL,
@@ -529,6 +604,7 @@
             <span class="attr">#[cfg(target_os = <span class="string">&quot;macos&quot;</span>)]
             </span>HookError::FailedSipPatch(<span class="kw">_</span>) =&gt; libc::EACCES,
             HookError::SocketUnsuportedIpv6 =&gt; libc::EAFNOSUPPORT,
+            HookError::UnsupportedSocketType =&gt; libc::EAFNOSUPPORT,
         };
 
         set_errno(errno::Errno(libc_error));

@@ -375,6 +375,45 @@
 <a href="#375" id="375">375</a>
 <a href="#376" id="376">376</a>
 <a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
 </pre><pre class="rust"><code><span class="kw">use </span>alloc::ffi::CString;
 <span class="kw">use </span>core::{cmp, ffi::CStr, mem};
 <span class="kw">use </span>std::{
@@ -428,6 +467,19 @@
     connect(sockfd, raw_address, address_length)
         .map(From::from)
         .unwrap_or_bypass_with(|<span class="kw">_</span>| FN_CONNECT(sockfd, raw_address, address_length))
+}
+
+<span class="doccomment">/// Hook for `_connect$NOCANCEL` (for macos, see
+/// [this](https://opensource.apple.com/source/xnu/xnu-4570.41.2/libsyscall/Platforms/MacOSX/x86_64/syscall.map.auto.html)).
+</span><span class="attr">#[hook_guard_fn]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>_connect_nocancel_detour(
+    sockfd: RawFd,
+    raw_address: <span class="kw-2">*const </span>sockaddr,
+    address_length: socklen_t,
+) -&gt; c_int {
+    connect(sockfd, raw_address, address_length)
+        .map(From::from)
+        .unwrap_or_bypass_with(|<span class="kw">_</span>| FN__CONNECT_NOCANCEL(sockfd, raw_address, address_length))
 }
 
 <span class="attr">#[hook_guard_fn]
@@ -520,6 +572,18 @@
     <span class="macro">tracing::trace!</span>(<span class="string">&quot;uv__accept4_detour -&gt; sockfd {:#?}&quot;</span>, sockfd);
 
     accept4_detour(sockfd, address, address_len, flags)
+}
+
+<span class="doccomment">/// Hook for `_accept$NOCANCEL` (for macos, see
+/// [this](https://opensource.apple.com/source/xnu/xnu-4570.41.2/libsyscall/Platforms/MacOSX/x86_64/syscall.map.auto.html)).
+</span><span class="attr">#[hook_guard_fn]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>_accept_nocancel_detour(
+    sockfd: c_int,
+    address: <span class="kw-2">*mut </span>sockaddr,
+    address_len: <span class="kw-2">*mut </span>socklen_t,
+) -&gt; c_int {
+    <span class="kw">let </span>accept_result = FN__ACCEPT_NOCANCEL(sockfd, address, address_len);
+    accept(sockfd, address, address_len, accept_result).unwrap_or_bypass(accept_result)
 }
 
 <span class="doccomment">/// &lt;https://github.com/metalbear-co/mirrord/issues/184&gt;
@@ -681,6 +745,13 @@
         FnConnect,
         FN_CONNECT
     );
+    <span class="macro">replace!</span>(
+        hook_manager,
+        <span class="string">&quot;_connect$NOCANCEL&quot;</span>,
+        _connect_nocancel_detour,
+        Fn_connect_nocancel,
+        FN__CONNECT_NOCANCEL
+    );
 
     <span class="macro">replace!</span>(hook_manager, <span class="string">&quot;fcntl&quot;</span>, fcntl_detour, FnFcntl, FN_FCNTL);
     <span class="macro">replace!</span>(hook_manager, <span class="string">&quot;dup&quot;</span>, dup_detour, FnDup, FN_DUP);
@@ -733,6 +804,13 @@
     }
 
     <span class="macro">replace!</span>(hook_manager, <span class="string">&quot;accept&quot;</span>, accept_detour, FnAccept, FN_ACCEPT);
+    <span class="macro">replace!</span>(
+        hook_manager,
+        <span class="string">&quot;_accept$NOCANCEL&quot;</span>,
+        _accept_nocancel_detour,
+        Fn_accept_nocancel,
+        FN__ACCEPT_NOCANCEL
+    );
 
     <span class="kw">if </span>enabled_remote_dns {
         <span class="macro">replace!</span>(

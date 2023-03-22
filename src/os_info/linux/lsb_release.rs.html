@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/os_info-3.6.0/src/linux/lsb_release.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lsb_release.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-f2fc7b5fd698d27d.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-5f7299aa2b503fb1.css"><link rel="stylesheet" disabled href="../../../static.files/dark-dfb18ef8114bb428.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-4047a6aaddd3789d.css"><script id="default-settings" ></script><script src="../../../static.files/storage-ff4706381ddb2707.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-02cbe07fc548e88c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../os_info/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/os_info-3.7.0/src/linux/lsb_release.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lsb_release.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-f2fc7b5fd698d27d.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-5f7299aa2b503fb1.css"><link rel="stylesheet" disabled href="../../../static.files/dark-dfb18ef8114bb428.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-4047a6aaddd3789d.css"><script id="default-settings" ></script><script src="../../../static.files/storage-ff4706381ddb2707.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-02cbe07fc548e88c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../os_info/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -482,6 +482,40 @@
 <a href="#482" id="482">482</a>
 <a href="#483" id="483">483</a>
 <a href="#484" id="484">484</a>
+<a href="#485" id="485">485</a>
+<a href="#486" id="486">486</a>
+<a href="#487" id="487">487</a>
+<a href="#488" id="488">488</a>
+<a href="#489" id="489">489</a>
+<a href="#490" id="490">490</a>
+<a href="#491" id="491">491</a>
+<a href="#492" id="492">492</a>
+<a href="#493" id="493">493</a>
+<a href="#494" id="494">494</a>
+<a href="#495" id="495">495</a>
+<a href="#496" id="496">496</a>
+<a href="#497" id="497">497</a>
+<a href="#498" id="498">498</a>
+<a href="#499" id="499">499</a>
+<a href="#500" id="500">500</a>
+<a href="#501" id="501">501</a>
+<a href="#502" id="502">502</a>
+<a href="#503" id="503">503</a>
+<a href="#504" id="504">504</a>
+<a href="#505" id="505">505</a>
+<a href="#506" id="506">506</a>
+<a href="#507" id="507">507</a>
+<a href="#508" id="508">508</a>
+<a href="#509" id="509">509</a>
+<a href="#510" id="510">510</a>
+<a href="#511" id="511">511</a>
+<a href="#512" id="512">512</a>
+<a href="#513" id="513">513</a>
+<a href="#514" id="514">514</a>
+<a href="#515" id="515">515</a>
+<a href="#516" id="516">516</a>
+<a href="#517" id="517">517</a>
+<a href="#518" id="518">518</a>
 </pre><pre class="rust"><code><span class="comment">// spell-checker:ignore codename, noarch, rhel, ootpa, maipo
 
 </span><span class="kw">use </span>std::process::Command;
@@ -500,8 +534,10 @@
     };
 
     <span class="kw">let </span>os_type = <span class="kw">match </span>release.distribution.as_ref().map(String::as_ref) {
+        <span class="prelude-val">Some</span>(<span class="string">&quot;Alpaquita&quot;</span>) =&gt; Type::Alpaquita,
         <span class="prelude-val">Some</span>(<span class="string">&quot;Amazon&quot;</span>) | <span class="prelude-val">Some</span>(<span class="string">&quot;AmazonAMI&quot;</span>) =&gt; Type::Amazon,
         <span class="prelude-val">Some</span>(<span class="string">&quot;Arch&quot;</span>) =&gt; Type::Arch,
+        <span class="prelude-val">Some</span>(<span class="string">&quot;Artix&quot;</span>) =&gt; Type::Artix,
         <span class="prelude-val">Some</span>(<span class="string">&quot;CentOS&quot;</span>) =&gt; Type::CentOS,
         <span class="prelude-val">Some</span>(<span class="string">&quot;Debian&quot;</span>) =&gt; Type::Debian,
         <span class="prelude-val">Some</span>(<span class="string">&quot;EndeavourOS&quot;</span>) =&gt; Type::EndeavourOS,
@@ -509,6 +545,7 @@
         <span class="prelude-val">Some</span>(<span class="string">&quot;Garuda&quot;</span>) =&gt; Type::Garuda,
         <span class="prelude-val">Some</span>(<span class="string">&quot;Gentoo&quot;</span>) =&gt; Type::Gentoo,
         <span class="prelude-val">Some</span>(<span class="string">&quot;Linuxmint&quot;</span>) =&gt; Type::Mint,
+        <span class="prelude-val">Some</span>(<span class="string">&quot;MaboxLinux&quot;</span>) =&gt; Type::Mabox,
         <span class="prelude-val">Some</span>(<span class="string">&quot;ManjaroLinux&quot;</span>) =&gt; Type::Manjaro,
         <span class="prelude-val">Some</span>(<span class="string">&quot;Mariner&quot;</span>) =&gt; Type::Mariner,
         <span class="prelude-val">Some</span>(<span class="string">&quot;NixOS&quot;</span>) =&gt; Type::NixOS,
@@ -595,9 +632,25 @@
     }
 
     <span class="attr">#[test]
+    </span><span class="kw">fn </span>alpaquita() {
+        <span class="kw">let </span>parse_results = parse(alpaquita_file());
+        <span class="macro">assert_eq!</span>(parse_results.distribution, <span class="prelude-val">Some</span>(<span class="string">&quot;Alpaquita&quot;</span>.to_string()));
+        <span class="macro">assert_eq!</span>(parse_results.version, <span class="prelude-val">Some</span>(<span class="string">&quot;23&quot;</span>.to_string()));
+        <span class="macro">assert_eq!</span>(parse_results.codename, <span class="prelude-val">None</span>);
+    }
+
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>arch() {
         <span class="kw">let </span>parse_results = parse(arch_file());
         <span class="macro">assert_eq!</span>(parse_results.distribution, <span class="prelude-val">Some</span>(<span class="string">&quot;Arch&quot;</span>.to_string()));
+        <span class="macro">assert_eq!</span>(parse_results.version, <span class="prelude-val">Some</span>(<span class="string">&quot;rolling&quot;</span>.to_string()));
+        <span class="macro">assert_eq!</span>(parse_results.codename, <span class="prelude-val">None</span>);
+    }
+
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>artix() {
+        <span class="kw">let </span>parse_results = parse(artix_file());
+        <span class="macro">assert_eq!</span>(parse_results.distribution, <span class="prelude-val">Some</span>(<span class="string">&quot;Artix&quot;</span>.to_string()));
         <span class="macro">assert_eq!</span>(parse_results.version, <span class="prelude-val">Some</span>(<span class="string">&quot;rolling&quot;</span>.to_string()));
         <span class="macro">assert_eq!</span>(parse_results.codename, <span class="prelude-val">None</span>);
     }
@@ -782,10 +835,25 @@
          &quot;
     </span>}
 
+    <span class="kw">fn </span>alpaquita_file() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+        <span class="string">&quot;\nDistributor ID: Alpaquita\n\
+        Description:    BellSoft Alpaquita Linux Stream 23 (musl)\n\
+        Release:        23\n\
+        Codename:       n/a&quot;
+    </span>}
+
     <span class="kw">fn </span>arch_file() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
         <span class="string">&quot;\nLSB Version:	1.4\n\
          Distributor ID:	Arch\n\
          Description:	Arch Linux\n\
+         Release:	rolling\n\
+         Codename:	n/a&quot;
+    </span>}
+
+    <span class="kw">fn </span>artix_file() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+        <span class="string">&quot;\nLSB Version:	n/a\n\
+         Distributor ID:	Artix\n\
+         Description:	Artix Linux\n\
          Release:	rolling\n\
          Codename:	n/a&quot;
     </span>}

@@ -379,6 +379,15 @@
 <a href="#379" id="379">379</a>
 <a href="#380" id="380">380</a>
 <a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
 </pre><pre class="rust"><code><span class="doccomment">//! The layer uses features from this module to check if it should bypass one of its hooks, and call
 //! the original [`libc`] function.
 //!
@@ -502,6 +511,9 @@
     <span class="doccomment">/// Either an invalid socket domain, or one that we don&#39;t handle.
     </span>Domain(i32),
 
+    <span class="doccomment">/// Unix socket to address that was not configured to be connected remotely.
+    </span>UnixSocket(<span class="prelude-ty">Option</span>&lt;String&gt;),
+
     <span class="doccomment">/// We could not find this [`RawFd`] in neither [`OPEN_FILES`](crate::file::OPEN_FILES), nor
     /// [`SOCKETS`](crate::socket::SOCKETS).
     </span>LocalFdNotFound(RawFd),
@@ -560,6 +572,12 @@
 
     <span class="doccomment">/// Socket is connecting to localhots and we&#39;re asked to ignore it.
     </span>IgnoreLocalhost(u16),
+
+    <span class="doccomment">/// Hooked connect from a bound mirror socket.
+    </span>MirrorConnect,
+
+    <span class="doccomment">/// Hooked a `connect` to a target that is disabled in the configuration.
+    </span>DisabledOutgoing,
 }
 
 <span class="doccomment">/// [`ControlFlow`](std::ops::ControlFlow)-like enum to be used by hooks.

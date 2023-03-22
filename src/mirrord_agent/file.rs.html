@@ -736,9 +736,6 @@
 <a href="#736" id="736">736</a>
 <a href="#737" id="737">737</a>
 <a href="#738" id="738">738</a>
-<a href="#739" id="739">739</a>
-<a href="#740" id="740">740</a>
-<a href="#741" id="741">741</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     <span class="self">self</span>,
     collections::{hash_map::Entry, HashMap},
@@ -759,8 +756,8 @@
         FdOpenDirRequest, GetDEnts64Request, GetDEnts64Response, OpenDirResponse, OpenFileRequest,
         OpenFileResponse, OpenOptionsInternal, OpenRelativeFileRequest, ReadDirRequest,
         ReadDirResponse, ReadFileRequest, ReadFileResponse, ReadLimitedFileRequest,
-        ReadLineFileRequest, SeekFileRequest, SeekFileResponse, WriteFileRequest,
-        WriteFileResponse, WriteLimitedFileRequest, XstatRequest, XstatResponse,
+        SeekFileRequest, SeekFileResponse, WriteFileRequest, WriteFileResponse,
+        WriteLimitedFileRequest, XstatRequest, XstatResponse,
     },
     FileRequest, FileResponse, RemoteResult, ResponseError,
 };
@@ -802,10 +799,17 @@
     index_allocator: IndexAllocator&lt;u64&gt;,
 }
 
+<span class="kw">pub fn </span>get_root_path_from_optional_pid(pid: <span class="prelude-ty">Option</span>&lt;u64&gt;) -&gt; PathBuf {
+    <span class="kw">match </span>pid {
+        <span class="prelude-val">Some</span>(pid) =&gt; PathBuf::from(<span class="string">&quot;/proc&quot;</span>).join(pid.to_string()).join(<span class="string">&quot;root&quot;</span>),
+        <span class="prelude-val">None </span>=&gt; PathBuf::from(<span class="string">&quot;/&quot;</span>),
+    }
+}
+
 <span class="doccomment">/// Resolve a path that might contain symlinks from a specific container to a path accessible from
 /// the root host
 </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
-</span><span class="kw">fn </span>resolve_path&lt;P: AsRef&lt;Path&gt; + std::fmt::Debug, R: AsRef&lt;Path&gt; + std::fmt::Debug&gt;(
+</span><span class="kw">pub fn </span>resolve_path&lt;P: AsRef&lt;Path&gt; + std::fmt::Debug, R: AsRef&lt;Path&gt; + std::fmt::Debug&gt;(
     path: P,
     root_path: R,
 ) -&gt; std::io::Result&lt;PathBuf&gt; {
@@ -885,13 +889,6 @@
                 <span class="kw">let </span>read_result = <span class="self">self</span>.read(remote_fd, buffer_size);
                 <span class="prelude-val">Some</span>(FileResponse::Read(read_result))
             }
-            FileRequest::ReadLine(ReadLineFileRequest {
-                remote_fd,
-                buffer_size,
-            }) =&gt; {
-                <span class="kw">let </span>read_result = <span class="self">self</span>.read_line(remote_fd, buffer_size);
-                <span class="prelude-val">Some</span>(FileResponse::ReadLine(read_result))
-            }
             FileRequest::ReadLimited(ReadLimitedFileRequest {
                 remote_fd,
                 buffer_size,
@@ -962,10 +959,7 @@
 
     <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
     </span><span class="kw">pub fn </span>new(pid: <span class="prelude-ty">Option</span>&lt;u64&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>root_path = <span class="kw">match </span>pid {
-            <span class="prelude-val">Some</span>(pid) =&gt; PathBuf::from(<span class="string">&quot;/proc&quot;</span>).join(pid.to_string()).join(<span class="string">&quot;root&quot;</span>),
-            <span class="prelude-val">None </span>=&gt; PathBuf::from(<span class="string">&quot;/&quot;</span>),
-        };
+        <span class="kw">let </span>root_path = get_root_path_from_optional_pid(pid);
         <span class="macro">trace!</span>(<span class="string">&quot;Agent root path &gt;&gt; {root_path:?}&quot;</span>);
         <span class="self">Self </span>{
             open_files: HashMap::new(),
