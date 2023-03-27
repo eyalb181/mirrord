@@ -667,6 +667,10 @@
 <a href="#667" id="667">667</a>
 <a href="#668" id="668">668</a>
 <a href="#669" id="669">669</a>
+<a href="#670" id="670">670</a>
+<a href="#671" id="671">671</a>
+<a href="#672" id="672">672</a>
+<a href="#673" id="673">673</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     collections::HashSet,
     io,
@@ -889,8 +893,6 @@
                 }
             }
         }
-
-        <span class="self">self</span>.iptables()<span class="question-mark">?</span>.cleanup().<span class="kw">await</span><span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(())
     }
@@ -1167,10 +1169,16 @@
                 .<span class="kw">await</span><span class="question-mark">?</span>;
 
             <span class="self">self</span>.port_subscriptions.remove(<span class="kw-2">&amp;</span>port);
-            <span class="kw">if </span><span class="self">self</span>.port_subscriptions.is_empty() {
-                <span class="comment">// Was this the last client?
-                </span><span class="self">self</span>.iptables = <span class="prelude-val">None</span>; <span class="comment">// The Drop impl of iptables cleans up.
-            </span>}
+
+            <span class="comment">// Cleanup iptables if not stealing any ports anymore.
+            </span><span class="kw">if </span><span class="self">self</span>.port_subscriptions.is_empty() {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(safe_iptables) = <span class="self">self</span>.iptables.as_ref() {
+                    <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = safe_iptables.cleanup().<span class="kw">await </span>{
+                        <span class="macro">error!</span>(<span class="string">&quot;Error in iptables cleanup: {e}&quot;</span>);
+                    }
+                }
+                <span class="self">self</span>.iptables = <span class="prelude-val">None</span>;
+            }
         }
         <span class="prelude-val">Ok</span>(())
     }

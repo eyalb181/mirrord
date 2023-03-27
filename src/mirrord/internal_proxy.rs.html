@@ -195,6 +195,11 @@
 <a href="#195" id="195">195</a>
 <a href="#196" id="196">196</a>
 <a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Internal proxy is accepting connection from local layers and forward it to agent
 //! while having 1:1 relationship - each layer connection is another agent connection.
 //!
@@ -208,6 +213,7 @@
 //! or let the [`OperatorApi`] handle the connection.
 
 </span><span class="kw">use </span>std::{
+    io::ErrorKind,
     net::{Ipv4Addr, SocketAddrV4},
     time::Duration,
 };
@@ -259,6 +265,10 @@
                             <span class="macro">trace!</span>(<span class="string">&quot;Error sending layer message to agent: {err:#?}&quot;</span>);
                             <span class="kw">break</span>;
                         }
+                    },
+                    <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="kw-2">ref </span>error)) <span class="kw">if </span>error.kind() == ErrorKind::ConnectionReset =&gt; {
+                        <span class="macro">trace!</span>(<span class="string">&quot;layer connection reset&quot;</span>);
+                        <span class="kw">break</span>;
                     },
                     <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(fail)) =&gt; {
                         <span class="macro">error!</span>(<span class="string">&quot;Error receiving layer message: {fail:#?}&quot;</span>);

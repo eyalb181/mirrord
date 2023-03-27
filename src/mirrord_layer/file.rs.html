@@ -662,6 +662,7 @@
 <a href="#662" id="662">662</a>
 <a href="#663" id="663">663</a>
 <a href="#664" id="664">664</a>
+<a href="#665" id="665">665</a>
 </pre><pre class="rust"><code><span class="doccomment">/// File operations on remote pod.
 ///
 /// Read-only file operations are enabled by default, you can turn it off by setting
@@ -680,6 +681,7 @@
     sync::{Arc, LazyLock, Mutex},
 };
 
+<span class="kw">use </span>dashmap::DashMap;
 <span class="kw">use </span>libc::{c_int, O_ACCMODE, O_APPEND, O_CREAT, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY};
 <span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
 </span><span class="kw">use </span>mirrord_protocol::file::{GetDEnts64Request, GetDEnts64Response};
@@ -718,8 +720,8 @@
 /// We use Arc so we can support dup more nicely, this means that if user
 /// Opens file `A`, receives fd 1, then dups, receives 2 - both stay open, until both are closed.
 /// Previously in such scenario we would close the remote, causing issues.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>OPEN_FILES: LazyLock&lt;Mutex&lt;HashMap&lt;LocalFd, Arc&lt;ops::RemoteFile&gt;&gt;&gt;&gt; =
-    LazyLock::new(|| Mutex::new(HashMap::with_capacity(<span class="number">4</span>)));
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>OPEN_FILES: LazyLock&lt;DashMap&lt;LocalFd, Arc&lt;ops::RemoteFile&gt;&gt;&gt; =
+    LazyLock::new(|| DashMap::with_capacity(<span class="number">4</span>));
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>OPEN_DIRS: LazyLock&lt;Mutex&lt;HashMap&lt;DirStreamFd, RemoteFd&gt;&gt;&gt; =
     LazyLock::new(|| Mutex::new(HashMap::with_capacity(<span class="number">4</span>)));

@@ -528,53 +528,6 @@
 <a href="#528" id="528">528</a>
 <a href="#529" id="529">529</a>
 <a href="#530" id="530">530</a>
-<a href="#531" id="531">531</a>
-<a href="#532" id="532">532</a>
-<a href="#533" id="533">533</a>
-<a href="#534" id="534">534</a>
-<a href="#535" id="535">535</a>
-<a href="#536" id="536">536</a>
-<a href="#537" id="537">537</a>
-<a href="#538" id="538">538</a>
-<a href="#539" id="539">539</a>
-<a href="#540" id="540">540</a>
-<a href="#541" id="541">541</a>
-<a href="#542" id="542">542</a>
-<a href="#543" id="543">543</a>
-<a href="#544" id="544">544</a>
-<a href="#545" id="545">545</a>
-<a href="#546" id="546">546</a>
-<a href="#547" id="547">547</a>
-<a href="#548" id="548">548</a>
-<a href="#549" id="549">549</a>
-<a href="#550" id="550">550</a>
-<a href="#551" id="551">551</a>
-<a href="#552" id="552">552</a>
-<a href="#553" id="553">553</a>
-<a href="#554" id="554">554</a>
-<a href="#555" id="555">555</a>
-<a href="#556" id="556">556</a>
-<a href="#557" id="557">557</a>
-<a href="#558" id="558">558</a>
-<a href="#559" id="559">559</a>
-<a href="#560" id="560">560</a>
-<a href="#561" id="561">561</a>
-<a href="#562" id="562">562</a>
-<a href="#563" id="563">563</a>
-<a href="#564" id="564">564</a>
-<a href="#565" id="565">565</a>
-<a href="#566" id="566">566</a>
-<a href="#567" id="567">567</a>
-<a href="#568" id="568">568</a>
-<a href="#569" id="569">569</a>
-<a href="#570" id="570">570</a>
-<a href="#571" id="571">571</a>
-<a href="#572" id="572">572</a>
-<a href="#573" id="573">573</a>
-<a href="#574" id="574">574</a>
-<a href="#575" id="575">575</a>
-<a href="#576" id="576">576</a>
-<a href="#577" id="577">577</a>
 </pre><pre class="rust"><code><span class="kw">use </span>core::ffi::CStr;
 <span class="kw">use </span>std::{ffi::CString, io::SeekFrom, os::unix::io::RawFd, path::PathBuf};
 
@@ -607,6 +560,52 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(fd: u64, path: String) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ fd, path }
     }
+
+    <span class="doccomment">/// Sends a [`FileOperation::Open`] message, opening the file in the agent.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>remote_open(
+        path: PathBuf,
+        open_options: OpenOptionsInternal,
+    ) -&gt; Detour&lt;OpenFileResponse&gt; {
+        <span class="kw">let </span>(file_channel_tx, file_channel_rx) = oneshot::channel();
+        <span class="kw">let </span>requesting_file = Open {
+            path,
+            open_options,
+            file_channel_tx,
+        };
+
+        blocking_send_file_message(FileOperation::Open(requesting_file))<span class="question-mark">?</span>;
+
+        Detour::Success(file_channel_rx.blocking_recv()<span class="question-mark">??</span>)
+    }
+
+    <span class="doccomment">/// Sends a [`FileOperation::Read`] message, reading the file in the agent.
+    ///
+    /// Blocking request and wait on already found remote_fd
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>remote_read(remote_fd: u64, read_amount: u64) -&gt; Detour&lt;ReadFileResponse&gt; {
+        <span class="kw">let </span>(file_channel_tx, file_channel_rx) = oneshot::channel();
+
+        <span class="comment">// Limit read size because if we read too much it can lead to a timeout
+        // Seems also that bincode doesn&#39;t do well with large buffers
+        </span><span class="kw">let </span>read_amount = std::cmp::min(read_amount, MAX_READ_SIZE);
+        <span class="kw">let </span>reading_file = Read {
+            remote_fd,
+            buffer_size: read_amount,
+            start_from: <span class="number">0</span>,
+            file_channel_tx,
+        };
+
+        blocking_send_file_message(FileOperation::Read(reading_file))<span class="question-mark">?</span>;
+
+        Detour::Success(file_channel_rx.blocking_recv()<span class="question-mark">??</span>)
+    }
+
+    <span class="doccomment">/// Sends a [`FileOperation::Close`] message, closing the file in the agent.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>remote_close(fd: u64) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        blocking_send_file_message(FileOperation::Close(Close { fd }))
+    }
 }
 
 <span class="kw">impl </span>Drop <span class="kw">for </span>RemoteFile {
@@ -617,9 +616,7 @@
         // operation to complete. The write operation is hooked and at some point tries to lock
         // `OPEN_FILES`, which means the thread deadlocks with itself (we call
         // `OPEN_FILES.lock()?.remove()` and then while still locked, `OPEN_FILES.lock()` again)
-        </span><span class="kw">let </span>closing_file = Close { fd: <span class="self">self</span>.fd };
-
-        blocking_send_file_message(FileOperation::Close(closing_file)).expect(
+        </span><span class="self">Self</span>::remote_close(<span class="self">self</span>.fd).expect(
             <span class="string">&quot;mirrord failed to send close file message to main layer thread. Error: {err:?}&quot;</span>,
         );
     }
@@ -643,8 +640,7 @@
     <span class="comment">// don&#39;t add a trace here since it causes deadlocks in some cases.
     </span>Detour::Success(
         OPEN_FILES
-            .lock()<span class="question-mark">?
-            </span>.get(<span class="kw-2">&amp;</span>local_fd)
+            .get(<span class="kw-2">&amp;</span>local_fd)
             .map(|remote_file| remote_file.fd)
             <span class="comment">// Bypass if we&#39;re not managing the relative part.
             </span>.ok_or(Bypass::LocalFdNotFound(local_fd))<span class="question-mark">?</span>,
@@ -683,36 +679,11 @@
 </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;error&quot;</span>)]
 </span><span class="kw">fn </span>close_remote_file_on_failure(fd: u64) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="macro">error!</span>(<span class="string">&quot;Call to `libc::shm_open` resulted in an error, closing the file remotely!&quot;</span>);
-
-    blocking_send_file_message(FileOperation::Close(Close { fd }))<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>(())
+    RemoteFile::remote_close(fd)
 }
 
 <span class="kw">fn </span>blocking_send_file_message(message: FileOperation) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     blocking_send_hook_message(HookMessage::File(message))
-}
-
-<span class="doccomment">/// Converts a [`CStr`] path into a [`&amp;str`], or bypasses when this fails.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>str_from_rawish(rawish_path: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>CStr&gt;) -&gt; Detour&lt;<span class="kw-2">&amp;</span>str&gt; {
-    <span class="kw">let </span>path = rawish_path
-        .map(CStr::to_str)
-        .transpose()
-        .map_err(|fail| {
-            <span class="macro">warn!</span>(
-                <span class="string">&quot;Failed converting `rawish_path` from `CStr` with {:#?}&quot;</span>,
-                fail
-            );
-
-            Bypass::CStrConversion
-        })<span class="question-mark">?
-        </span>.ok_or(HookError::NullPointer)<span class="question-mark">?</span>;
-
-    Detour::Success(path)
-}
-
-<span class="doccomment">/// Converts a [`CStr`] path into a [`PathBuf`], or bypasses when this fails.
-</span><span class="kw">fn </span>path_from_rawish(rawish_path: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>CStr&gt;) -&gt; Detour&lt;PathBuf&gt; {
-    str_from_rawish(rawish_path).map(PathBuf::from)
 }
 
 <span class="doccomment">/// Blocking wrapper around `libc::open` call.
@@ -727,8 +698,8 @@
 /// _local_ and _remote_ file association, plus **inserting** it into the storage for
 /// [`OPEN_FILES`].
 </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>open(rawish_path: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>CStr&gt;, open_options: OpenOptionsInternal) -&gt; Detour&lt;RawFd&gt; {
-    <span class="kw">let </span>path = path_from_rawish(rawish_path)<span class="question-mark">?</span>;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>open(path: Detour&lt;PathBuf&gt;, open_options: OpenOptionsInternal) -&gt; Detour&lt;RawFd&gt; {
+    <span class="kw">let </span>path = path<span class="question-mark">?</span>;
 
     <span class="kw">if </span>path.is_relative() {
         <span class="comment">// Calls with non absolute paths are sent to libc::open.
@@ -737,17 +708,7 @@
 
     <span class="macro">should_ignore!</span>(path, open_options.is_write());
 
-    <span class="kw">let </span>(file_channel_tx, file_channel_rx) = oneshot::channel();
-
-    <span class="kw">let </span>requesting_file = Open {
-        path: path.clone(),
-        open_options,
-        file_channel_tx,
-    };
-
-    blocking_send_file_message(FileOperation::Open(requesting_file))<span class="question-mark">?</span>;
-
-    <span class="kw">let </span>OpenFileResponse { fd: remote_fd } = file_channel_rx.blocking_recv()<span class="question-mark">??</span>;
+    <span class="kw">let </span>OpenFileResponse { fd: remote_fd } = RemoteFile::remote_open(path.clone(), open_options)<span class="question-mark">?</span>;
 
     <span class="comment">// TODO: Need a way to say &quot;open a directory&quot;, right now `is_dir` always returns false.
     // This requires having a fake directory name (`/fake`, for example), instead of just converting
@@ -755,41 +716,12 @@
     </span><span class="kw">let </span>fake_local_file_name = CString::new(remote_fd.to_string())<span class="question-mark">?</span>;
     <span class="kw">let </span>local_file_fd = <span class="kw">unsafe </span>{ create_local_fake_file(fake_local_file_name, remote_fd) }<span class="question-mark">?</span>;
 
-    OPEN_FILES.lock().unwrap().insert(
+    OPEN_FILES.insert(
         local_file_fd,
         Arc::new(RemoteFile::new(remote_fd, path.display().to_string())),
     );
 
     Detour::Success(local_file_fd)
-}
-
-<span class="doccomment">/// Calls [`open`] and returns a [`FILE`] pointer based on the **local** `fd`.
-</span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>fopen(rawish_path: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>CStr&gt;, rawish_mode: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>CStr&gt;) -&gt; Detour&lt;<span class="kw-2">*mut </span>FILE&gt; {
-    <span class="kw">let </span>open_options: OpenOptionsInternal = rawish_mode
-        .map(CStr::to_str)
-        .transpose()
-        .map_err(|fail| {
-            <span class="macro">warn!</span>(
-                <span class="string">&quot;Failed converting `rawish_mode` from `CStr` with {:#?}&quot;</span>,
-                fail
-            );
-
-            Bypass::CStrConversion
-        })<span class="question-mark">?
-        </span>.map(String::from)
-        .map(OpenOptionsInternalExt::from_mode)
-        .unwrap_or_default();
-
-    <span class="kw">let </span>local_file_fd = open(rawish_path, open_options)<span class="question-mark">?</span>;
-    <span class="kw">let </span>result = OPEN_FILES
-        .lock()<span class="question-mark">?
-        </span>.get_key_value(<span class="kw-2">&amp;</span>local_file_fd)
-        .ok_or(Bypass::LocalFdNotFound(local_file_fd))
-        <span class="comment">// Convert the fd into a `*FILE`, this is be ok as long as `OPEN_FILES` holds the fd.
-        </span>.map(|(local_fd, <span class="kw">_</span>)| local_fd <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*mut </span><span class="kw">_</span>)<span class="question-mark">?</span>;
-
-    Detour::Success(result)
 }
 
 <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
@@ -814,11 +746,9 @@
     <span class="comment">// TODO: Check that the constraint: remote file must have the same mode stuff that is passed
     // here.
     </span><span class="kw">let </span>result = OPEN_FILES
-        .lock()<span class="question-mark">?
-        </span>.get_key_value(<span class="kw-2">&amp;</span>fd)
+        .get(<span class="kw-2">&amp;</span>fd)
         .ok_or(Bypass::LocalFdNotFound(fd))
-        .inspect(|(local_fd, remote_fd)| <span class="macro">trace!</span>(<span class="string">&quot;fdopen -&gt; {local_fd:#?} {remote_fd:#?}&quot;</span>))
-        .map(|(local_fd, <span class="kw">_</span>)| local_fd <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*mut </span><span class="kw">_</span>)<span class="question-mark">?</span>;
+        .map(|<span class="kw">_</span>| fd <span class="kw">as </span><span class="kw-2">*const </span>RawFd <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>)<span class="question-mark">?</span>;
 
     Detour::Success(result)
 }
@@ -829,11 +759,7 @@
     <span class="comment">// usize == ptr size
     // we don&#39;t return a pointer to an address that contains DIR
 
-    </span><span class="kw">let </span>remote_file_fd = OPEN_FILES
-        .lock()<span class="question-mark">?
-        </span>.get(<span class="kw-2">&amp;</span>fd)
-        .ok_or(Bypass::LocalFdNotFound(fd))<span class="question-mark">?
-        </span>.fd;
+    </span><span class="kw">let </span>remote_file_fd = OPEN_FILES.get(<span class="kw-2">&amp;</span>fd).ok_or(Bypass::LocalFdNotFound(fd))<span class="question-mark">?</span>.fd;
 
     <span class="kw">let </span>(dir_channel_tx, dir_channel_rx) = oneshot::channel();
 
@@ -853,7 +779,7 @@
         </span>.insert(local_dir_fd <span class="kw">as </span>usize, remote_dir_fd);
 
     <span class="comment">// According to docs, when using fdopendir, the fd is now managed by OS - i.e closed
-    </span>OPEN_FILES.lock()<span class="question-mark">?</span>.remove(<span class="kw-2">&amp;</span>fd);
+    </span>OPEN_FILES.remove(<span class="kw-2">&amp;</span>fd);
 
     Detour::Success(local_dir_fd <span class="kw">as </span>usize)
 }
@@ -896,15 +822,15 @@
 <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>openat(
     fd: RawFd,
-    rawish_path: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>CStr&gt;,
+    path: Detour&lt;PathBuf&gt;,
     open_options: OpenOptionsInternal,
 ) -&gt; Detour&lt;RawFd&gt; {
-    <span class="kw">let </span>path = path_from_rawish(rawish_path)<span class="question-mark">?</span>;
+    <span class="kw">let </span>path = path<span class="question-mark">?</span>;
 
     <span class="comment">// `openat` behaves the same as `open` when the path is absolute. When called with AT_FDCWD, the
     // call is propagated to `open`.
     </span><span class="kw">if </span>path.is_absolute() || fd == AT_FDCWD {
-        open(rawish_path, open_options)
+        open(Detour::Success(path), open_options)
     } <span class="kw">else </span>{
         <span class="comment">// Relative path requires special handling, we must identify the relative part (relative to
         // what).
@@ -925,7 +851,7 @@
         <span class="kw">let </span>fake_local_file_name = CString::new(remote_fd.to_string())<span class="question-mark">?</span>;
         <span class="kw">let </span>local_file_fd = <span class="kw">unsafe </span>{ create_local_fake_file(fake_local_file_name, remote_fd) }<span class="question-mark">?</span>;
 
-        OPEN_FILES.lock()<span class="question-mark">?</span>.insert(
+        OPEN_FILES.insert(
             local_file_fd,
             Arc::new(RemoteFile::new(remote_fd, path.display().to_string())),
         );
@@ -939,27 +865,7 @@
 /// **Bypassed** when trying to load system files, and files from the current working directory, see
 /// `open`.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>read(local_fd: RawFd, read_amount: u64) -&gt; Detour&lt;ReadFileResponse&gt; {
-    get_remote_fd(local_fd).and_then(|remote_fd| remote_read(remote_fd, read_amount))
-}
-
-<span class="doccomment">/// Blocking request and wait on already found remote_fd
-</span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
-</span><span class="kw">fn </span>remote_read(remote_fd: u64, read_amount: u64) -&gt; Detour&lt;ReadFileResponse&gt; {
-    <span class="kw">let </span>(file_channel_tx, file_channel_rx) = oneshot::channel();
-
-    <span class="comment">// Limit read size because if we read too much it can lead to a timeout
-    // Seems also that bincode doesn&#39;t do well with large buffers
-    </span><span class="kw">let </span>read_amount = std::cmp::min(read_amount, MAX_READ_SIZE);
-    <span class="kw">let </span>reading_file = Read {
-        remote_fd,
-        buffer_size: read_amount,
-        start_from: <span class="number">0</span>,
-        file_channel_tx,
-    };
-
-    blocking_send_file_message(FileOperation::Read(reading_file))<span class="question-mark">?</span>;
-
-    Detour::Success(file_channel_rx.blocking_recv()<span class="question-mark">??</span>)
+    get_remote_fd(local_fd).and_then(|remote_fd| RemoteFile::remote_read(remote_fd, read_amount))
 }
 
 <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
@@ -1048,8 +954,8 @@
 }
 
 <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>access(rawish_path: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>CStr&gt;, mode: u8) -&gt; Detour&lt;c_int&gt; {
-    <span class="kw">let </span>path = path_from_rawish(rawish_path)<span class="question-mark">?</span>;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>access(path: Detour&lt;PathBuf&gt;, mode: u8) -&gt; Detour&lt;c_int&gt; {
+    <span class="kw">let </span>path = path<span class="question-mark">?</span>;
 
     <span class="macro">should_ignore!</span>(path, <span class="bool-val">false</span>);
 
@@ -1080,7 +986,7 @@
 /// and non existing argument (For error handling)
 </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>xstat(
-    rawish_path: <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>CStr&gt;&gt;,
+    rawish_path: <span class="prelude-ty">Option</span>&lt;Detour&lt;PathBuf&gt;&gt;,
     fd: <span class="prelude-ty">Option</span>&lt;RawFd&gt;,
     follow_symlink: bool,
 ) -&gt; Detour&lt;XstatResponse&gt; {
@@ -1088,7 +994,7 @@
     </span><span class="kw">let </span>(path, fd) = <span class="kw">match </span>(rawish_path, fd) {
         <span class="comment">// fstatat
         </span>(<span class="prelude-val">Some</span>(path), <span class="prelude-val">Some</span>(fd)) =&gt; {
-            <span class="kw">let </span>path = path_from_rawish(path)<span class="question-mark">?</span>;
+            <span class="kw">let </span>path = path<span class="question-mark">?</span>;
             <span class="kw">let </span>fd = {
                 <span class="kw">if </span>fd == AT_FDCWD {
                     <span class="kw">if </span>path.is_relative() {
@@ -1106,7 +1012,7 @@
         }
         <span class="comment">// lstat/stat
         </span>(<span class="prelude-val">Some</span>(path), <span class="prelude-val">None</span>) =&gt; {
-            <span class="kw">let </span>path = path_from_rawish(path)<span class="question-mark">?</span>;
+            <span class="kw">let </span>path = path<span class="question-mark">?</span>;
             <span class="kw">if </span>path.is_relative() {
                 <span class="comment">// Calls with non absolute paths are sent to libc::open.
                 </span><span class="kw">return </span>Detour::Bypass(Bypass::RelativePath(path));

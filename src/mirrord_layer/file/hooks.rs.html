@@ -791,22 +791,6 @@
 <a href="#791" id="791">791</a>
 <a href="#792" id="792">792</a>
 <a href="#793" id="793">793</a>
-<a href="#794" id="794">794</a>
-<a href="#795" id="795">795</a>
-<a href="#796" id="796">796</a>
-<a href="#797" id="797">797</a>
-<a href="#798" id="798">798</a>
-<a href="#799" id="799">799</a>
-<a href="#800" id="800">800</a>
-<a href="#801" id="801">801</a>
-<a href="#802" id="802">802</a>
-<a href="#803" id="803">803</a>
-<a href="#804" id="804">804</a>
-<a href="#805" id="805">805</a>
-<a href="#806" id="806">806</a>
-<a href="#807" id="807">807</a>
-<a href="#808" id="808">808</a>
-<a href="#809" id="809">809</a>
 </pre><pre class="rust"><code><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
 </span><span class="kw">use </span>core::ffi::{c_size_t, c_ssize_t};
 <span class="doccomment">/// FFI functions that override the `libc` calls (see `file` module documentation on how to
@@ -814,12 +798,7 @@
 ///
 /// NOTICE: If a file operation fails, it might be because it depends on some `libc` function
 /// that is not being hooked (`strace` the program to check).
-</span><span class="kw">use </span>std::{
-    ffi::{CStr, CString},
-    os::unix::io::RawFd,
-    ptr, slice,
-    time::Duration,
-};
+</span><span class="kw">use </span>std::{ffi::CString, os::unix::io::RawFd, ptr, slice, time::Duration};
 
 <span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
 </span><span class="kw">use </span>errno::{set_errno, Errno};
@@ -830,7 +809,7 @@
 </span><span class="kw">use </span>libc::{EBADF, EINVAL, ENOENT, ENOTDIR};
 <span class="kw">use </span>mirrord_layer_macro::{hook_fn, hook_guard_fn};
 <span class="kw">use </span>mirrord_protocol::file::{
-    DirEntryInternal, MetadataInternal, OpenOptionsInternal, ReadFileResponse, WriteFileResponse,
+    DirEntryInternal, MetadataInternal, ReadFileResponse, WriteFileResponse,
 };
 <span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
 </span><span class="kw">use </span>mirrord_protocol::ResponseError::{NotDirectory, NotFound};
@@ -843,6 +822,7 @@
 <span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::error::HookError::ResponseError;
 <span class="kw">use crate</span>::{
+    common::CheckedInto,
     detour::{Detour, DetourGuard},
     error::HookError,
     file::ops::{access, lseek, open, read, write},
@@ -854,16 +834,12 @@
 /// We ignore mode in case we don&#39;t bypass the call.
 </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
 </span><span class="kw">unsafe fn </span>open_logic(raw_path: <span class="kw-2">*const </span>c_char, open_flags: c_int, mode: c_int) -&gt; Detour&lt;RawFd&gt; {
-    <span class="kw">let </span>rawish_path = (!raw_path.is_null()).then(|| CStr::from_ptr(raw_path));
+    <span class="kw">let </span>path = raw_path.checked_into();
     <span class="kw">let </span>open_options = OpenOptionsInternalExt::from_flags(open_flags);
 
-    <span class="macro">trace!</span>(
-        <span class="string">&quot;rawish_path {:#?} | open_options {:#?}&quot;</span>,
-        rawish_path,
-        open_options
-    );
+    <span class="macro">trace!</span>(<span class="string">&quot;path {:#?} | open_options {:#?}&quot;</span>, path, open_options);
 
-    open(rawish_path, open_options)
+    open(path, open_options)
 }
 
 <span class="doccomment">/// Hook for `libc::open`.
@@ -984,10 +960,9 @@
     raw_path: <span class="kw-2">*const </span>c_char,
     open_flags: c_int,
 ) -&gt; RawFd {
-    <span class="kw">let </span>rawish_path = (!raw_path.is_null()).then(|| CStr::from_ptr(raw_path));
-    <span class="kw">let </span>open_options: OpenOptionsInternal = OpenOptionsInternalExt::from_flags(open_flags);
+    <span class="kw">let </span>open_options = OpenOptionsInternalExt::from_flags(open_flags);
 
-    openat(fd, rawish_path, open_options)
+    openat(fd, raw_path.checked_into(), open_options)
         .unwrap_or_bypass_with(|<span class="kw">_</span>| FN_OPENAT(fd, raw_path, open_flags))
 }
 
@@ -997,10 +972,9 @@
     raw_path: <span class="kw-2">*const </span>c_char,
     open_flags: c_int,
 ) -&gt; RawFd {
-    <span class="kw">let </span>rawish_path = (!raw_path.is_null()).then(|| CStr::from_ptr(raw_path));
-    <span class="kw">let </span>open_options: OpenOptionsInternal = OpenOptionsInternalExt::from_flags(open_flags);
+    <span class="kw">let </span>open_options = OpenOptionsInternalExt::from_flags(open_flags);
 
-    openat(fd, rawish_path, open_options)
+    openat(fd, raw_path.checked_into(), open_options)
         .unwrap_or_bypass_with(|<span class="kw">_</span>| FN__OPENAT_NOCANCEL(fd, raw_path, open_flags))
 }
 
@@ -1263,9 +1237,7 @@
 
 <span class="doccomment">/// Implementation of access_detour, used in access_detour and faccessat_detour
 </span><span class="kw">unsafe fn </span>access_logic(raw_path: <span class="kw-2">*const </span>c_char, mode: c_int) -&gt; c_int {
-    <span class="kw">let </span>rawish_path = (!raw_path.is_null()).then(|| CStr::from_ptr(raw_path));
-
-    access(rawish_path, mode <span class="kw">as </span>u8).unwrap_or_bypass_with(|<span class="kw">_</span>| FN_ACCESS(raw_path, mode))
+    access(raw_path.checked_into(), mode <span class="kw">as </span>u8).unwrap_or_bypass_with(|<span class="kw">_</span>| FN_ACCESS(raw_path, mode))
 }
 
 <span class="doccomment">/// Hook for `libc::access`.
@@ -1327,8 +1299,7 @@
 <span class="doccomment">/// Hook for `libc::lstat`.
 </span><span class="attr">#[hook_guard_fn]
 </span><span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>lstat_detour(raw_path: <span class="kw-2">*const </span>c_char, out_stat: <span class="kw-2">*mut </span>stat) -&gt; c_int {
-    <span class="kw">let </span>path = (!raw_path.is_null()).then(|| CStr::from_ptr(raw_path));
-    xstat(<span class="prelude-val">Some</span>(path), <span class="prelude-val">None</span>, <span class="bool-val">false</span>)
+    xstat(<span class="prelude-val">Some</span>(raw_path.checked_into()), <span class="prelude-val">None</span>, <span class="bool-val">false</span>)
         .map(|res| {
             <span class="kw">let </span>res = res.metadata;
             fill_stat(out_stat, <span class="kw-2">&amp;</span>res);
@@ -1352,8 +1323,7 @@
 <span class="doccomment">/// Hook for `libc::stat`.
 </span><span class="attr">#[hook_guard_fn]
 </span><span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>stat_detour(raw_path: <span class="kw-2">*const </span>c_char, out_stat: <span class="kw-2">*mut </span>stat) -&gt; c_int {
-    <span class="kw">let </span>path = (!raw_path.is_null()).then(|| CStr::from_ptr(raw_path));
-    xstat(<span class="prelude-val">Some</span>(path), <span class="prelude-val">None</span>, <span class="bool-val">true</span>)
+    xstat(<span class="prelude-val">Some</span>(raw_path.checked_into()), <span class="prelude-val">None</span>, <span class="bool-val">true</span>)
         .map(|res| {
             <span class="kw">let </span>res = res.metadata;
             fill_stat(out_stat, <span class="kw-2">&amp;</span>res);
@@ -1372,8 +1342,7 @@
     <span class="kw">if </span>ver != <span class="number">1 </span>{
         <span class="kw">return </span>FN___XSTAT(ver, raw_path, out_stat);
     }
-    <span class="kw">let </span>path = (!raw_path.is_null()).then(|| CStr::from_ptr(raw_path));
-    xstat(<span class="prelude-val">Some</span>(path), <span class="prelude-val">None</span>, <span class="bool-val">true</span>)
+    xstat(<span class="prelude-val">Some</span>(raw_path.checked_into()), <span class="prelude-val">None</span>, <span class="bool-val">true</span>)
         .map(|res| {
             <span class="kw">let </span>res = res.metadata;
             fill_stat(out_stat, <span class="kw-2">&amp;</span>res);
@@ -1390,8 +1359,7 @@
     flag: c_int,
 ) -&gt; Detour&lt;i32&gt; {
     <span class="kw">let </span>follow_symlink = (flag &amp; libc::AT_SYMLINK_NOFOLLOW) == <span class="number">0</span>;
-    <span class="kw">let </span>path = (!raw_path.is_null()).then(|| CStr::from_ptr(raw_path));
-    xstat(<span class="prelude-val">Some</span>(path), <span class="prelude-val">Some</span>(fd), follow_symlink).map(|res| {
+    xstat(<span class="prelude-val">Some</span>(raw_path.checked_into()), <span class="prelude-val">Some</span>(fd), follow_symlink).map(|res| {
         <span class="kw">let </span>res = res.metadata;
         fill_stat(out_stat, <span class="kw-2">&amp;</span>res);
         <span class="number">0

@@ -719,12 +719,32 @@
 <a href="#719" id="719">719</a>
 <a href="#720" id="720">720</a>
 <a href="#721" id="721">721</a>
+<a href="#722" id="722">722</a>
+<a href="#723" id="723">723</a>
+<a href="#724" id="724">724</a>
+<a href="#725" id="725">725</a>
+<a href="#726" id="726">726</a>
+<a href="#727" id="727">727</a>
+<a href="#728" id="728">728</a>
+<a href="#729" id="729">729</a>
+<a href="#730" id="730">730</a>
+<a href="#731" id="731">731</a>
+<a href="#732" id="732">732</a>
+<a href="#733" id="733">733</a>
+<a href="#734" id="734">734</a>
+<a href="#735" id="735">735</a>
+<a href="#736" id="736">736</a>
+<a href="#737" id="737">737</a>
+<a href="#738" id="738">738</a>
+<a href="#739" id="739">739</a>
+<a href="#740" id="740">740</a>
 </pre><pre class="rust"><code><span class="kw">use </span>alloc::ffi::CString;
 <span class="kw">use </span>core::{ffi::CStr, mem};
 <span class="kw">use </span>std::{
     io,
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
     os::unix::io::RawFd,
+    path::PathBuf,
     ptr,
     sync::{Arc, OnceLock},
 };
@@ -1276,25 +1296,43 @@
 <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>fcntl(orig_fd: c_int, cmd: c_int, fcntl_fd: i32) -&gt; <span class="prelude-ty">Result</span>&lt;(), HookError&gt; {
     <span class="kw">match </span>cmd {
-        libc::F_DUPFD | libc::F_DUPFD_CLOEXEC =&gt; dup(orig_fd, fcntl_fd),
+        libc::F_DUPFD | libc::F_DUPFD_CLOEXEC =&gt; dup::&lt;<span class="bool-val">true</span>&gt;(orig_fd, fcntl_fd),
         <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(()),
     }
 }
 
-<span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>dup(fd: c_int, dup_fd: i32) -&gt; <span class="prelude-ty">Result</span>&lt;(), HookError&gt; {
+<span class="doccomment">/// Managed part of our [`dup_detour`], that clones the `Arc&lt;T&gt;` thing we have keyed by `fd`
+/// ([`UserSocket`], or [`RemoteFile`]).
+///
+/// - `SWITCH_MAP`:
+///
+/// Indicates that we&#39;re switching the `fd` from [`SOCKETS`] to [`OPEN_FILES`] (or vice-versa).
+///
+/// We need this to properly handle some cases in [`fcntl`], [`dup2_detour`], and [`dup3_detour`].
+/// Extra relevant for node on macos.
+</span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>dup&lt;<span class="kw">const </span>SWITCH_MAP: bool&gt;(fd: c_int, dup_fd: i32) -&gt; <span class="prelude-ty">Result</span>&lt;(), HookError&gt; {
     {
         <span class="kw">let </span><span class="kw-2">mut </span>sockets = SOCKETS.lock()<span class="question-mark">?</span>;
         <span class="kw">if let </span><span class="prelude-val">Some</span>(socket) = sockets.get(<span class="kw-2">&amp;</span>fd).cloned() {
             sockets.insert(dup_fd <span class="kw">as </span>RawFd, socket);
+
+            <span class="kw">if </span>SWITCH_MAP {
+                OPEN_FILES.remove(<span class="kw-2">&amp;</span>dup_fd);
+            }
+
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
     } <span class="comment">// Drop sockets, free Mutex.
 
-    </span><span class="kw">let </span><span class="kw-2">mut </span>files = OPEN_FILES.lock()<span class="question-mark">?</span>;
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(file) = files.get(<span class="kw-2">&amp;</span>fd).cloned() {
-        files.insert(dup_fd <span class="kw">as </span>RawFd, file);
+    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(file) = OPEN_FILES.view(<span class="kw-2">&amp;</span>fd, |<span class="kw">_</span>, file| file.clone()) {
+        OPEN_FILES.insert(dup_fd <span class="kw">as </span>RawFd, file);
+
+        <span class="kw">if </span>SWITCH_MAP {
+            SOCKETS.lock()<span class="question-mark">?</span>.remove(<span class="kw-2">&amp;</span>dup_fd);
+        }
     }
+
     <span class="prelude-val">Ok</span>(())
 }
 
@@ -1411,10 +1449,10 @@
 
 <span class="doccomment">/// Retrieves the `hostname` from the agent&#39;s `/etc/hostname` to be used by [`gethostname`]
 </span><span class="kw">fn </span>remote_hostname_string() -&gt; Detour&lt;CString&gt; {
-    <span class="kw">let </span>hostname_path = CString::new(<span class="string">&quot;/etc/hostname&quot;</span>)<span class="question-mark">?</span>;
+    <span class="kw">let </span>hostname_path = PathBuf::from(<span class="string">&quot;/etc/hostname&quot;</span>);
 
     <span class="kw">let </span>hostname_fd = file::ops::open(
-        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>hostname_path),
+        Detour::Success(hostname_path),
         OpenOptionsInternal {
             read: <span class="bool-val">true</span>,
             ..Default::default()

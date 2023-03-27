@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["AgentConnectInfo",""]],"fn":[["create_and_connect","Creates an agent if needed then connects to it."]],"struct":[["AgentConnection",""]]};
+window.SIDEBAR_ITEMS = {"enum":[["AgentConnectInfo",""]],"fn":[["connect_operator",""],["create_and_connect","Creates an agent if needed then connects to it."]],"struct":[["AgentConnection",""]]};

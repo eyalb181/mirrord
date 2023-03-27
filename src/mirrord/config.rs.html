@@ -549,7 +549,7 @@ Join our Discord server https://discord.gg/pSKEdmNZcK or create a GitHub issue&q
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>InternalProxyArgs {
     <span class="doccomment">/// Launch timeout until we get first connection.
     /// If layer doesn&#39;t connect in this time, we timeout and exit.
-    </span><span class="attr">#[arg(short = <span class="string">&#39;t&#39;</span>, default_value_t = <span class="number">2</span>)]
+    </span><span class="attr">#[arg(short = <span class="string">&#39;t&#39;</span>, default_value_t = <span class="number">30</span>)]
     </span><span class="kw">pub </span>timeout: u64,
 
     <span class="doccomment">/// Specify config file to use

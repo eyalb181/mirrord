@@ -613,7 +613,7 @@
     <span class="kw">if </span>dup_result == -<span class="number">1 </span>{
         dup_result
     } <span class="kw">else </span>{
-        <span class="kw">match </span>dup(fd, dup_result) {
+        <span class="kw">match </span>dup::&lt;<span class="bool-val">false</span>&gt;(fd, dup_result) {
             <span class="prelude-val">Ok</span>(()) =&gt; dup_result,
             <span class="prelude-val">Err</span>(e) =&gt; e.into(),
         }
@@ -631,7 +631,7 @@
     <span class="kw">if </span>dup2_result == -<span class="number">1 </span>{
         dup2_result
     } <span class="kw">else </span>{
-        <span class="kw">match </span>dup(oldfd, dup2_result) {
+        <span class="kw">match </span>dup::&lt;<span class="bool-val">true</span>&gt;(oldfd, dup2_result) {
             <span class="prelude-val">Ok</span>(()) =&gt; dup2_result,
             <span class="prelude-val">Err</span>(e) =&gt; e.into(),
         }
@@ -646,7 +646,7 @@
     <span class="kw">if </span>dup3_result == -<span class="number">1 </span>{
         dup3_result
     } <span class="kw">else </span>{
-        <span class="kw">match </span>dup(oldfd, dup3_result) {
+        <span class="kw">match </span>dup::&lt;<span class="bool-val">true</span>&gt;(oldfd, dup3_result) {
             <span class="prelude-val">Ok</span>(()) =&gt; dup3_result,
             <span class="prelude-val">Err</span>(e) =&gt; e.into(),
         }
