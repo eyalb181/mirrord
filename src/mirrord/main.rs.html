@@ -375,6 +375,9 @@
 <a href="#375" id="375">375</a>
 <a href="#376" id="376">376</a>
 <a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
 </pre><pre class="rust"><code><span class="attr">#![feature(let_chains)]
 
 </span><span class="kw">use </span>std::{collections::HashMap, time::Duration};
@@ -401,6 +404,7 @@
 <span class="kw">use </span>serde_json::json;
 <span class="kw">use </span>tracing::{error, info, warn};
 <span class="kw">use </span>tracing_subscriber::{fmt, prelude::<span class="kw-2">*</span>, registry, EnvFilter};
+<span class="kw">use </span>which::which;
 
 <span class="kw">mod </span>config;
 <span class="kw">mod </span>connection;
@@ -744,7 +748,9 @@
             </span>{
                 <span class="kw">if let </span><span class="prelude-val">Ok</span>(latest_version) = Version::parse(<span class="kw-2">&amp;</span>result.text().<span class="kw">await</span>.unwrap()) {
                     <span class="kw">if </span>latest_version &gt; Version::parse(CURRENT_VERSION).unwrap() {
-                        <span class="macro">println!</span>(<span class="string">&quot;New mirrord version available: {latest_version}. To update, run: `curl -fsSL https://raw.githubusercontent.com/metalbear-co/mirrord/main/scripts/install.sh | bash`.&quot;</span>);
+                        <span class="kw">let </span>is_homebrew = which(<span class="string">&quot;mirrord&quot;</span>).ok().map(|mirrord_path| mirrord_path.to_string_lossy().contains(<span class="string">&quot;homebrew&quot;</span>)).unwrap_or_default();
+                        <span class="kw">let </span>command = <span class="kw">if </span>is_homebrew { <span class="string">&quot;brew upgrade metalbear-co/mirrord/mirrord&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;curl -fsSL https://raw.githubusercontent.com/metalbear-co/mirrord/main/scripts/install.sh | bash&quot; </span>};
+                        <span class="macro">println!</span>(<span class="string">&quot;New mirrord version available: {latest_version}. To update, run: `{command:?}`.&quot;</span>);
                         <span class="macro">println!</span>(<span class="string">&quot;To disable version checks, set env variable MIRRORD_CHECK_VERSION to &#39;false&#39;.&quot;</span>)
                     }
                 }
