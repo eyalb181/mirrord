@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"derive":[["CustomResource","A custom derive for kubernetes custom resource definitions."]]};
+window.SIDEBAR_ITEMS = {"derive":["CustomResource"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["ApiResource","Information about a Kubernetes API resource"],["DynamicObject","A dynamic representation of a kubernetes object"],["ParseDynamicObjectError","Failed to parse `DynamicObject` into `Resource`"]]};
+window.SIDEBAR_ITEMS = {"struct":["ApiResource","DynamicObject","ParseDynamicObjectError"]};

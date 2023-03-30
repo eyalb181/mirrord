@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["http_forwarding",""]],"struct":[["TcpStealHandler",""]]};
+window.SIDEBAR_ITEMS = {"mod":["http_forwarding"],"opaque":[""],"static":["CALLSITE","META"],"struct":["TcpStealHandler"]};

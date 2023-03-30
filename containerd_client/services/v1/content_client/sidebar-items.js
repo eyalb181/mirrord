@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["ContentClient","Content provides access to a content addressable storage system."]]};
+window.SIDEBAR_ITEMS = {"struct":["ContentClient"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["rpc",""]]};
+window.SIDEBAR_ITEMS = {"mod":["rpc"]};

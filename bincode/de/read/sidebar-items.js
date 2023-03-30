@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["SliceReader","A reader type for `&[u8]` slices. Implements both [Reader] and [BorrowReader], and thus can be used for borrowed data."]],"trait":[["BorrowReader","A reader for borrowed data. Implementors of this must also implement the [Reader] trait. See the module documentation for more information."],["Reader","A reader for owned data. See the module documentation for more information."]]};
+window.SIDEBAR_ITEMS = {"struct":["SliceReader"],"trait":["BorrowReader","Reader"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["http1","HTTP/1 Server Connections"],["http2","HTTP/2 Server Connections"]]};
+window.SIDEBAR_ITEMS = {"mod":["http1","http2"]};

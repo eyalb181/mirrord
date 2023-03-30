@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bollard-0.13.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-f2fc7b5fd698d27d.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-5f7299aa2b503fb1.css"><link rel="stylesheet" disabled href="../../static.files/dark-dfb18ef8114bb428.css"><link rel="stylesheet" disabled href="../../static.files/ayu-4047a6aaddd3789d.css"><script id="default-settings" ></script><script src="../../static.files/storage-ff4706381ddb2707.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-02cbe07fc548e88c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../bollard/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bollard-0.14.0/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="bollard" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (478cbb42b 2023-03-28)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-9ade54abd4bd73c8.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../bollard/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -266,6 +266,38 @@
 <a href="#266" id="266">266</a>
 <a href="#267" id="267">267</a>
 <a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
 </pre><pre class="rust"><code><span class="doccomment">//! [![crates.io](https://img.shields.io/crates/v/bollard.svg)](https://crates.io/crates/bollard)
 //! [![license](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 //! [![circle-ci](https://circleci.com/gh/fussybeaver/bollard/tree/master.svg?style=svg)](https://circleci.com/gh/fussybeaver/bollard/tree/master)
@@ -278,8 +310,13 @@
 //! [Tokio](https://github.com/tokio-rs/tokio) improvements for an asynchronous API containing
 //! futures, streams and the async/await paradigm.
 //!
-//! The library also features Windows support through Named Pipes and HTTPS support through
-//! optional rustls bindings.
+//! This library features Windows support through [Named
+//! Pipes](https://learn.microsoft.com/en-us/windows/win32/ipc/named-pipes) and HTTPS support through optional
+//! [Rustls](https://github.com/rustls/rustls) bindings. Serialization types for interfacing with
+//! [Docker](https://github.com/moby/moby) and [Buildkit](https://github.com/moby/buildkit) are
+//! generated through OpenAPI, protobuf and upstream documentation.
+//!
+//!
 //!
 //! # Install
 //!
@@ -287,7 +324,7 @@
 //!
 //! ```nocompile
 //! [dependencies]
-//! bollard = &quot;0.13&quot;
+//! bollard = &quot;*&quot;
 //! ```
 //!
 //! # API
@@ -295,20 +332,30 @@
 //!
 //! [API docs](https://docs.rs/bollard/).
 //!
-//! Version 0.13 introduces an optional `chrono` and alternative mutually exclusive `time` feature
-//! flag to represent the date format. This version matches the moby v20.10.16 server API.
+//! ### Latest
 //!
-//! Version 0.11 re-enables Windows Named Pipe support.
+//! Version `0.14` enables a `buildkit` feature for builds using public images (check the
+//! [buildkit example](https://github.com/fussybeaver/bollard/blob/v0.14.0/examples/build_buildkit.rs)
+//! for details on how to configure).
 //!
-//! As of version 0.6, this project now generates API stubs from the upstream Docker-maintained
-//! [Swagger OpenAPI specification](https://docs.docker.com/engine/api/v1.41.yaml). The generated
-//! models are committed to this repository, but packaged in a separate crate
-//! [bollard-stubs](https://crates.io/crates/bollard-stubs).
+//! ## Feature flags
+//!
+//!  - `ssl`: enable SSL support through [Rustls](https://github.com/rustls/rustls)
+//!  - `chrono`: enable [Chrono](https://github.com/chronotope/chrono) for `DateTime` types.
+//!  - `time`: enable [Time 0.3](https://github.com/time-rs/time) for `DateTime` types.
+//!  - `buildkit`: use [Buildkit](https://github.com/moby/buildkit) instead of
+//!    [Docker](https://github.com/moby/moby) when building images.
+//!  - `json_data_content`: Add JSON to errors on serialization failures.
+//!  - `ct_logs`: [Certificate transparency](https://certificate.transparency.dev/howctworks/)
+//!    verification (requires `ssl`).
 //!
 //! ## Version
 //!
-//! The [Docker API](https://docs.docker.com/engine/api/v1.41/) is pegged at version `1.41`. The
-//! library also supports [version
+//! The [Docker API](https://docs.docker.com/engine/api/v1.41/) used by Bollard is using the latest
+//! `1.41` documentation schema published by the [moby](https://github.com/moby/moby) project to
+//! generate its serialization interface.
+//!
+//! This library also supports [version
 //! negotiation](https://docs.rs/bollard/latest/bollard/struct.Docker.html#method.negotiate_version),
 //! to allow downgrading to an older API version.
 //!
@@ -320,9 +367,8 @@
 //!
 //! ### Socket
 //!
-//! The client will connect to the standard unix socket location `/var/run/docker.sock` or windows
-//! named pipe location `//./pipe/docker_engine`. Use the `Docker::connect_with_socket` method API
-//! to parameterise the interface.
+//! The client will connect to the standard unix socket location `/var/run/docker.sock` or Windows
+//! named pipe location `//./pipe/docker_engine`.
 //!
 //! ```rust
 //! use bollard::Docker;
@@ -330,28 +376,33 @@
 //! Docker::connect_with_socket_defaults();
 //! ```
 //!
+//! Use the `Docker::connect_with_socket` method API to parameterise this interface.
+//!
 //! ### Local
 //!
 //! The client will connect to the OS specific handler it is compiled for.
+//!
 //! This is a convenience for localhost environment that should run on multiple
 //! operating systems.
-//! Use the `Docker::connect_with_local` method API to parameterise the interface.
+//!
 //! ```rust
 //! use bollard::Docker;
 //! Docker::connect_with_local_defaults();
 //! ```
 //!
+//! Use the `Docker::connect_with_local` method API to parameterise this interface.
+//!
 //! ### HTTP
 //!
 //! The client will connect to the location pointed to by `DOCKER_HOST` environment variable, or
-//! `localhost:2375` if missing. Use the
-//! `Docker::connect_with_http` method API to
-//! parameterise the interface.
+//! `localhost:2375` if missing.
 //!
 //! ```rust
 //! use bollard::Docker;
 //! Docker::connect_with_http_defaults();
 //! ```
+//!
+//! Use the `Docker::connect_with_http` method API to parameterise the interface.
 //!
 //! ### SSL via Rustls
 //!
@@ -362,14 +413,13 @@
 //! certificates - `key.pem` for the private key, `cert.pem` for the server certificate and
 //! `ca.pem` for the certificate authority chain.
 //!
-//! Use the `Docker::connect_with_ssl` method API
-//! to parameterise the interface.
-//!
 //! ```rust
 //! use bollard::Docker;
 //! #[cfg(feature = &quot;ssl&quot;)]
 //! Docker::connect_with_ssl_defaults();
 //! ```
+//!
+//! Use the `Docker::connect_with_ssl` method API to parameterise the interface.
 //!
 //! ## Examples
 //!
@@ -462,23 +512,27 @@
 //!
 //! # Development
 //!
-//! Contributions are welcome, please observe the following advice.
+//! Contributions are welcome, please observe the following.
 //!
-//! # Building the stubs
+//! ## Building the proto models
 //!
-//! Serialization stubs are generated through the [Swagger
-//! library](https://github.com/swagger-api/swagger-codegen/). To generate these files, use the
-//! following in the `codegen` folder:
+//! Serialization models for the buildkit feature are generated through the [Tonic
+//! library](https://github.com/hyperium/tonic/). To generate these files, use the
+//! following in the `codegen/proto` folder:
 //!
 //! ```bash
-//! mvn -D org.slf4j.simpleLogger.defaultLogLevel=debug clean compiler:compile generate-resources
+//! cargo run --bin gen --features build
 //! ```
 //!
-//! # History
+//! ## Building the swagger models
 //!
-//! This library was originally forked from the [boondock rust
-//! library](https://github.com/faradayio/boondock).  Many thanks to the original authors for the
-//! initial code and inspiration.
+//! Serialization models are generated through the [Swagger
+//! library](https://github.com/swagger-api/swagger-codegen/). To generate these files, use the
+//! following in the `codegen/swagger` folder:
+//!
+//! ```bash
+//! mvn -D org.slf4j.simpleLogger.defaultLogLevel=error compiler:compile generate-resources
+//! ```
 //!
 //! # Integration tests
 //!
@@ -509,6 +563,7 @@
     unused_import_braces,
     unused_qualifications
 )]
+#![allow(clippy::upper_case_acronyms, clippy::derive_partial_eq_without_eq)]
 #![warn(rust_2018_idioms)]
 
 #[macro_use]
@@ -526,13 +581,21 @@
 <span class="kw">mod </span>named_pipe;
 <span class="kw">pub mod </span>network;
 <span class="kw">mod </span>read;
+<span class="kw">pub mod </span>secret;
 <span class="kw">pub mod </span>service;
 <span class="kw">pub mod </span>system;
 <span class="kw">mod </span>uri;
 <span class="kw">pub mod </span>volume;
 
+<span class="kw">pub mod </span>grpc;
+
 <span class="comment">// publicly re-export
 </span><span class="kw">pub use </span><span class="kw">crate</span>::docker::{ClientVersion, Docker, API_DEFAULT_VERSION};
 <span class="kw">pub use </span>bollard_stubs::models;
-</code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="bollard" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (001a77fac 2023-01-30)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-7c23ac01f615ce90.css" ></div></body></html>
+
+<span class="attr">#[cfg(feature = <span class="string">&quot;buildkit&quot;</span>)]
+</span><span class="kw">pub use </span>bollard_buildkit_proto::health;
+
+<span class="attr">#[cfg(feature = <span class="string">&quot;buildkit&quot;</span>)]
+</span><span class="kw">pub use </span>bollard_buildkit_proto::moby;
+</code></pre></div></section></main></body></html>

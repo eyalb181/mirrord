@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["FsModeConfig","Configuration for enabling read-only and read-write file operations. These options are overriden by user specified overrides and mirrord default overrides. If you set LocalWithOverrides then somefiles can be read/write remotely based on our default/user specified. Default option for general file configuration."]]};
+window.SIDEBAR_ITEMS = {"constant":["VARIANTS"],"enum":["FsModeConfig","__Field"],"struct":["__FieldVisitor","__Visitor"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["ConfigError","Error that would be returned from [MirrordConfig::generate_config]"]],"mod":[["deprecated",""],["from_env",""],["source",""],["unstable",""]],"trait":[["FromMirrordConfig","Lookup trait for accessing type implementing [MirrordConfig] from [MirrordConfig::Generated]"],["MirrordConfig","Main configuration creation trait of mirrord-config"]],"type":[["Result",""]]};
+window.SIDEBAR_ITEMS = {"enum":["ConfigError"],"mod":["deprecated","from_env","source","unstable"],"trait":["FromMirrordConfig","MirrordConfig"],"type":["Result"]};

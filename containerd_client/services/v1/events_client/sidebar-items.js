@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["EventsClient",""]]};
+window.SIDEBAR_ITEMS = {"struct":["EventsClient"]};

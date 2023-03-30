@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["DaemonUdpOutgoing",""],["LayerUdpOutgoing",""]]};
+window.SIDEBAR_ITEMS = {"enum":["DaemonUdpOutgoing","LayerUdpOutgoing"]};

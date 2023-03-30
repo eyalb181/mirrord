@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["NamespacesClient","Namespaces provides the ability to manipulate containerd namespaces."]]};
+window.SIDEBAR_ITEMS = {"struct":["NamespacesClient"]};

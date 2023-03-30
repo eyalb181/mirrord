@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["AdvancedFsUserConfig","Advanced user configuration for file operations."],["FsConfig","Advanced user configuration for file operations."]]};
+window.SIDEBAR_ITEMS = {"constant":["FIELDS"],"enum":["__Field"],"struct":["AdvancedFsUserConfig","FsConfig","__FieldVisitor","__Visitor"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["apis",""]]};
+window.SIDEBAR_ITEMS = {"mod":["apis"]};

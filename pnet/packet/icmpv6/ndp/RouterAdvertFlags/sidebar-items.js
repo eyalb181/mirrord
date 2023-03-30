@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":[["ManagedAddressConf","“Managed Address Configuration” flag. This is set when addresses are available via DHCPv6."],["OtherConf","“Other Configuration” flag. This is set when other configuration information is available via DHCPv6."]]};
+window.SIDEBAR_ITEMS = {"constant":["ManagedAddressConf","OtherConf"]};

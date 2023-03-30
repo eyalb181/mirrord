@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bollard-0.13.0/src/docker.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>docker.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-f2fc7b5fd698d27d.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-5f7299aa2b503fb1.css"><link rel="stylesheet" disabled href="../../static.files/dark-dfb18ef8114bb428.css"><link rel="stylesheet" disabled href="../../static.files/ayu-4047a6aaddd3789d.css"><script id="default-settings" ></script><script src="../../static.files/storage-ff4706381ddb2707.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-02cbe07fc548e88c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../bollard/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bollard-0.14.0/src/docker.rs`."><title>docker.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="bollard" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (478cbb42b 2023-03-28)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-9ade54abd4bd73c8.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../bollard/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1161,6 +1161,70 @@
 <a href="#1161" id="1161">1161</a>
 <a href="#1162" id="1162">1162</a>
 <a href="#1163" id="1163">1163</a>
+<a href="#1164" id="1164">1164</a>
+<a href="#1165" id="1165">1165</a>
+<a href="#1166" id="1166">1166</a>
+<a href="#1167" id="1167">1167</a>
+<a href="#1168" id="1168">1168</a>
+<a href="#1169" id="1169">1169</a>
+<a href="#1170" id="1170">1170</a>
+<a href="#1171" id="1171">1171</a>
+<a href="#1172" id="1172">1172</a>
+<a href="#1173" id="1173">1173</a>
+<a href="#1174" id="1174">1174</a>
+<a href="#1175" id="1175">1175</a>
+<a href="#1176" id="1176">1176</a>
+<a href="#1177" id="1177">1177</a>
+<a href="#1178" id="1178">1178</a>
+<a href="#1179" id="1179">1179</a>
+<a href="#1180" id="1180">1180</a>
+<a href="#1181" id="1181">1181</a>
+<a href="#1182" id="1182">1182</a>
+<a href="#1183" id="1183">1183</a>
+<a href="#1184" id="1184">1184</a>
+<a href="#1185" id="1185">1185</a>
+<a href="#1186" id="1186">1186</a>
+<a href="#1187" id="1187">1187</a>
+<a href="#1188" id="1188">1188</a>
+<a href="#1189" id="1189">1189</a>
+<a href="#1190" id="1190">1190</a>
+<a href="#1191" id="1191">1191</a>
+<a href="#1192" id="1192">1192</a>
+<a href="#1193" id="1193">1193</a>
+<a href="#1194" id="1194">1194</a>
+<a href="#1195" id="1195">1195</a>
+<a href="#1196" id="1196">1196</a>
+<a href="#1197" id="1197">1197</a>
+<a href="#1198" id="1198">1198</a>
+<a href="#1199" id="1199">1199</a>
+<a href="#1200" id="1200">1200</a>
+<a href="#1201" id="1201">1201</a>
+<a href="#1202" id="1202">1202</a>
+<a href="#1203" id="1203">1203</a>
+<a href="#1204" id="1204">1204</a>
+<a href="#1205" id="1205">1205</a>
+<a href="#1206" id="1206">1206</a>
+<a href="#1207" id="1207">1207</a>
+<a href="#1208" id="1208">1208</a>
+<a href="#1209" id="1209">1209</a>
+<a href="#1210" id="1210">1210</a>
+<a href="#1211" id="1211">1211</a>
+<a href="#1212" id="1212">1212</a>
+<a href="#1213" id="1213">1213</a>
+<a href="#1214" id="1214">1214</a>
+<a href="#1215" id="1215">1215</a>
+<a href="#1216" id="1216">1216</a>
+<a href="#1217" id="1217">1217</a>
+<a href="#1218" id="1218">1218</a>
+<a href="#1219" id="1219">1219</a>
+<a href="#1220" id="1220">1220</a>
+<a href="#1221" id="1221">1221</a>
+<a href="#1222" id="1222">1222</a>
+<a href="#1223" id="1223">1223</a>
+<a href="#1224" id="1224">1224</a>
+<a href="#1225" id="1225">1225</a>
+<a href="#1226" id="1226">1226</a>
+<a href="#1227" id="1227">1227</a>
 </pre><pre class="rust"><code><span class="attr">#[cfg(feature = <span class="string">&quot;ssl&quot;</span>)]
 </span><span class="kw">use </span>std::fs;
 <span class="kw">use </span>std::future::Future;
@@ -1260,6 +1324,10 @@
     </span>NamedPipe {
         client: Client&lt;NamedPipeConnector&gt;,
     },
+    <span class="attr">#[cfg(test)]
+    </span>Mock {
+        client: Client&lt;yup_hyper_mock::HostToReplyConnector&gt;,
+    },
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Transport {
@@ -1272,6 +1340,8 @@
             </span>Transport::Unix { .. } =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Unix&quot;</span>),
             <span class="attr">#[cfg(windows)]
             </span>Transport::NamedPipe { .. } =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;NamedPipe&quot;</span>),
+            <span class="attr">#[cfg(test)]
+            </span>Transport::Mock { .. } =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Mock&quot;</span>),
         }
     }
 }
@@ -1386,7 +1456,7 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;chrono&quot;</span>)]
+<span class="attr">#[cfg(all(feature = <span class="string">&quot;chrono&quot;</span>, not(feature = <span class="string">&quot;time&quot;</span>)))]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>serialize_as_timestamp&lt;S&gt;(
     opt: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;<span class="kw">crate</span>::models::BollardDate&gt;,
     s: S,
@@ -2009,6 +2079,62 @@
     }
 }
 
+<span class="attr">#[cfg(test)]
+</span><span class="kw">impl </span>Docker {
+    <span class="doccomment">///
+    ///  - `connector`: a `HostToReplyConnector` as defined in `yup_hyper_mock`
+    ///  - `client_addr`: location to connect to.
+    ///  - `timeout`: the read/write timeout (seconds) to use for every hyper connection
+    ///  - `client_version`: the client version to communicate with the server.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// # extern crate bollard;
+    /// # extern crate futures;
+    /// # extern crate yup_hyper_mock;
+    /// # fn main () {
+    /// use bollard::{API_DEFAULT_VERSION, Docker};
+    ///
+    /// use futures::future::Future;
+    ///
+    /// # use yup_hyper_mock::HostToReplyConnector;
+    /// let mut connector = HostToReplyConnector::default();
+    /// connector.m.insert(
+    ///   String::from(&quot;http://127.0.0.1&quot;),
+    ///   &quot;HTTP/1.1 200 OK\r\nServer: mock1\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n&quot;.to_string()
+    /// );
+    /// let connection = Docker::connect_with_mock(connector, &quot;127.0.0.1&quot;.to_string(), 5, API_DEFAULT_VERSION).unwrap();
+    /// connection.ping()
+    ///   .and_then(|_| Ok(println!(&quot;Connected!&quot;)));
+    /// # }
+    /// ```
+    </span><span class="kw">pub fn </span>connect_with_mock(
+        connector: yup_hyper_mock::HostToReplyConnector,
+        client_addr: String,
+        timeout: u64,
+        client_version: <span class="kw-2">&amp;</span>ClientVersion,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Docker, Error&gt; {
+        <span class="kw">let </span>client_builder = Client::builder();
+        <span class="kw">let </span>client = client_builder.build(connector);
+
+        <span class="kw">let </span>(transport, client_type) = (Transport::Mock { client }, ClientType::Http);
+
+        <span class="kw">let </span>docker = Docker {
+            transport: Arc::new(transport),
+            client_type,
+            client_addr,
+            client_timeout: timeout,
+            version: Arc::new((
+                AtomicUsize::new(client_version.major_version),
+                AtomicUsize::new(client_version.minor_version),
+            )),
+        };
+
+        <span class="prelude-val">Ok</span>(docker)
+    }
+}
+
 <span class="kw">impl </span>Docker {
     <span class="doccomment">/// Set the request timeout.
     ///
@@ -2191,7 +2317,7 @@
         <span class="prelude-val">Ok</span>(<span class="self">self</span>)
     }
 
-    <span class="kw">fn </span>process_request(
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>process_request(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         request: <span class="prelude-ty">Result</span>&lt;Request&lt;Body&gt;, Error&gt;,
     ) -&gt; <span class="kw">impl </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;Response&lt;Body&gt;, Error&gt;&gt; {
@@ -2269,6 +2395,8 @@
             </span>Transport::Unix { <span class="kw-2">ref </span>client } =&gt; client.request(req),
             <span class="attr">#[cfg(windows)]
             </span>Transport::NamedPipe { <span class="kw-2">ref </span>client } =&gt; client.request(req),
+            <span class="attr">#[cfg(test)]
+            </span>Transport::Mock { <span class="kw-2">ref </span>client } =&gt; client.request(req),
         };
 
         <span class="kw">match </span>tokio::time::timeout(Duration::from_secs(timeout), request).<span class="kw">await </span>{
@@ -2324,5 +2452,4 @@
         })
     }
 }
-</code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="bollard" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (001a77fac 2023-01-30)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-7c23ac01f615ce90.css" ></div></body></html>
+</code></pre></div></section></main></body></html>

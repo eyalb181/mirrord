@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"attr":[["hook_fn","`#[hook_fn]` annotates the C ffi functions (mirrord’s `_detour`s), and is used to generate the following boilerplate (using `close_detour` as an example):"],["hook_guard_fn","Same as above but calls the original function if detour guard is active."]]};
+window.SIDEBAR_ITEMS = {"attr":["hook_fn","hook_guard_fn"],"static":["_DECLS"]};

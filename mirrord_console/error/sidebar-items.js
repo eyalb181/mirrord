@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["ConsoleError",""]],"type":[["Result",""]]};
+window.SIDEBAR_ITEMS = {"enum":["ConsoleError"],"type":["Result"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["init_logger","Initializes the logger Connects to the console, and sets the global logger to use it."],["logger_task","Background task that does the communication with the console app."],["send_hello","Send hello message, containing information about the connected process."]],"struct":[["ConsoleLogger","Console logger that sends log messages to the console app."]]};
+window.SIDEBAR_ITEMS = {"fn":["init_logger","logger_task","send_hello"],"opaque":[""],"struct":["ConsoleLogger"]};

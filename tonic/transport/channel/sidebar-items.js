@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Channel","A default batteries included `transport` channel."],["Endpoint","Channel builder."],["ResponseFuture","A future that resolves to an HTTP response."]]};
+window.SIDEBAR_ITEMS = {"struct":["Channel","Endpoint","ResponseFuture"]};

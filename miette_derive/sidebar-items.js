@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"derive":[["Diagnostic",""]]};
+window.SIDEBAR_ITEMS = {"derive":["Diagnostic"]};

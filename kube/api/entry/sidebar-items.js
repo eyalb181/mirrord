@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["CommitError","Commit errors"],["CommitValidationError","Pre-commit validation errors"],["Entry","A view into a single object, with enough context to create or update it"]],"struct":[["OccupiedEntry","A view into a single object that exists"],["VacantEntry","A view of an object that does not yet exist"]]};
+window.SIDEBAR_ITEMS = {"enum":["CommitError","CommitValidationError","Entry"],"struct":["OccupiedEntry","VacantEntry"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["RawCapture",""],["RawSocket",""]],"type":[["Packet",""]]};
+window.SIDEBAR_ITEMS = {"struct":["RawCapture","RawSocket"],"type":["Packet"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["store","Create a (Reader, Writer) for a `Store<K>` for a typed resource `K`"]],"struct":[["Store","A readable cache of Kubernetes objects of kind `K`"],["Writer","A writable Store handle"]]};
+window.SIDEBAR_ITEMS = {"fn":["store"],"struct":["Store","Writer"]};

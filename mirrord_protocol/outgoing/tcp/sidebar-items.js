@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["DaemonTcpOutgoing",""],["LayerTcpOutgoing",""]]};
+window.SIDEBAR_ITEMS = {"enum":["DaemonTcpOutgoing","LayerTcpOutgoing"]};

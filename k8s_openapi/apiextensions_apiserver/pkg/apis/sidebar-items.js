@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["apiextensions",""]]};
+window.SIDEBAR_ITEMS = {"mod":["apiextensions"]};

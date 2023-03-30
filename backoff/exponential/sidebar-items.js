@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["ExponentialBackoff",""],["ExponentialBackoffBuilder","Builder for `ExponentialBackoff`."]]};
+window.SIDEBAR_ITEMS = {"struct":["ExponentialBackoff","ExponentialBackoffBuilder"]};

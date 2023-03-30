@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["group","Discovers all APIs available under a certain group at all versions"],["pinned_group","Discovers all APIs available under a certain group at a pinned version"],["pinned_kind","Single discovery for a single GVK"]]};
+window.SIDEBAR_ITEMS = {"fn":["group","pinned_group","pinned_kind"]};

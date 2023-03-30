@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["authority","For `http::uri::Authority`"],["header_map","For `http::HeaderMap`"],["method","For `http::Method`"],["status_code","For `http::StatusCode`"],["uri","For `http::Uri`"],["version","For `http::uri::Authority`"]]};
+window.SIDEBAR_ITEMS = {"mod":["authority","header_map","method","status_code","uri","version"]};

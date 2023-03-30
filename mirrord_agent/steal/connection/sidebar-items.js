@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["StealSubscription","The subscriptions to steal traffic from a specific port."]],"struct":[["TcpConnectionStealer","Created once per agent during initialization."]]};
+window.SIDEBAR_ITEMS = {"constant":["BRANCHES"],"enum":["StealSubscription"],"opaque":[""],"static":["CALLSITE","META"],"struct":["TcpConnectionStealer"]};

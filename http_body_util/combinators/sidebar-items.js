@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["BoxBody","A boxed [`Body`] trait object."],["Collect","Future that resolves into a `Collected`."],["Frame","Future that resolves to the next frame from a `Body`."],["MapErr","Body returned by the `map_err` combinator."],["MapFrame","Body returned by the `map_data` combinator."],["UnsyncBoxBody","A boxed [`Body`] trait object that is !Sync."]]};
+window.SIDEBAR_ITEMS = {"struct":["BoxBody","Collect","Frame","MapErr","MapFrame","UnsyncBoxBody"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["PreroutingRedirect",""]],"trait":[["Redirect",""]]};
+window.SIDEBAR_ITEMS = {"struct":["PreroutingRedirect"],"trait":["Redirect"]};

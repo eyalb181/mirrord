@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["WatchEvent","A raw event returned from a watch query"]],"struct":[["Bookmark","Slimed down K for [`WatchEvent::Bookmark`] due to #285."],["BookmarkMeta","Slimed down Metadata for WatchEvent::Bookmark"]]};
+window.SIDEBAR_ITEMS = {"enum":["WatchEvent"],"struct":["Bookmark","BookmarkMeta"]};

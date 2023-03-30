@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["ClearLine","Clear the current line."],["CursorUp","Move the cursor up a line."]]};
+window.SIDEBAR_ITEMS = {"struct":["ClearLine","CursorUp"]};

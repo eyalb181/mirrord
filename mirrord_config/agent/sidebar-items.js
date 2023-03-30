@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["AgentConfig","Configuration for the mirrord-agent pod that is spawned in the Kubernetes cluster."],["AgentFileConfig","Configuration for the mirrord-agent pod that is spawned in the Kubernetes cluster."]]};
+window.SIDEBAR_ITEMS = {"constant":["FIELDS"],"enum":["__Field"],"struct":["AgentConfig","AgentFileConfig","__FieldVisitor","__Visitor"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["meta",""]]};
+window.SIDEBAR_ITEMS = {"mod":["meta"]};

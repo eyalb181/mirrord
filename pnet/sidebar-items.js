@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["packet","Support for packet parsing and manipulation."],["util","Miscellaneous utilities for low-level networking."]]};
+window.SIDEBAR_ITEMS = {"externcrate":["ipnetwork"],"mod":["datalink","packet","transport","util"]};

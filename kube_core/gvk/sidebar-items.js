@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["GroupVersion","Core information about a family of API Resources"],["GroupVersionKind","Core information about an API Resource."],["GroupVersionResource","Represents a type-erased object resource."],["ParseGroupVersionError","Failed to parse group version"]]};
+window.SIDEBAR_ITEMS = {"struct":["GroupVersion","GroupVersionKind","GroupVersionResource","ParseGroupVersionError"]};

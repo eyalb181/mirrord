@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["intstr",""]]};
+window.SIDEBAR_ITEMS = {"mod":["intstr"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"macro":[["hook_symbol","Used by `go_hooks` to hook go syscalls with `HookManager::hook_symbol_main_module`."]]};
+window.SIDEBAR_ITEMS = {"macro":["hook_symbol"]};

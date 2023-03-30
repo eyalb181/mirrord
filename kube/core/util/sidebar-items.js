@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"trait":[["Restart","Restartable Resource marker trait"]]};
+window.SIDEBAR_ITEMS = {"trait":["Restart"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Builder","A configuration builder for HTTP/1 server connections."],["Connection","A future binding an http1 connection with a Service."],["Parts","Deconstructed parts of a `Connection`."]]};
+window.SIDEBAR_ITEMS = {"struct":["Builder","Connection","Parts"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["LeasesClient","Leases service manages resources leases within the metadata store."]]};
+window.SIDEBAR_ITEMS = {"struct":["LeasesClient"]};

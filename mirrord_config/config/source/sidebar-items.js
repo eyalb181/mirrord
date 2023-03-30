@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Or",""]],"trait":[["MirrordConfigSource",""]]};
+window.SIDEBAR_ITEMS = {"struct":["Or"],"trait":["MirrordConfigSource"]};

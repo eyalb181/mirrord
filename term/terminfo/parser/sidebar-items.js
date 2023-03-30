@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["compiled","ncurses-compatible compiled terminfo format parsing (term(5))"]]};
+window.SIDEBAR_ITEMS = {"mod":["compiled"]};

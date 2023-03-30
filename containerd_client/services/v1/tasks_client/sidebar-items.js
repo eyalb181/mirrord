@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["TasksClient",""]]};
+window.SIDEBAR_ITEMS = {"struct":["TasksClient"]};

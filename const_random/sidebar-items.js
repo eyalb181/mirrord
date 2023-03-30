@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"macro":[["const_random","Random constants"]]};
+window.SIDEBAR_ITEMS = {"macro":["const_random"]};

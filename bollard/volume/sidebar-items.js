@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["CreateVolumeOptions","Volume configuration used in the Create Volume API"],["ListVolumesOptions","Parameters used in the List Volume API"],["PruneVolumesOptions","Parameters used in the Prune Volumes API"],["RemoveVolumeOptions","Parameters used in the Remove Volume API"]]};
+window.SIDEBAR_ITEMS = {"struct":["CreateVolumeOptions","ListVolumesOptions","PruneVolumesOptions","RemoveVolumeOptions"]};

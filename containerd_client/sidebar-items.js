@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["connect","Connect creates a unix channel to containerd GRPC socket."]],"macro":[["with_namespace","Help to inject namespace into request."]],"mod":[["events","Generated event types."],["google","Generated `google.rpc` types, containerd services typically use some of these types."],["services","Generated `containerd.services.*` services."],["types","Generated `containerd.types` types."]]};
+window.SIDEBAR_ITEMS = {"fn":["connect"],"macro":["with_namespace"],"mod":["events","google","services","types"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["client",""],["crd",""],["license",""],["setup","Operator Setup functinality"]]};
+window.SIDEBAR_ITEMS = {"mod":["client","crd","license","setup"]};

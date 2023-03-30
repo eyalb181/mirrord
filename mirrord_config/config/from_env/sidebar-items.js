@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["FromEnv",""]]};
+window.SIDEBAR_ITEMS = {"struct":["FromEnv"]};

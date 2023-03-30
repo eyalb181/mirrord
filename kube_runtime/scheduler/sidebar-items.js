@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["scheduler","Stream transformer that delays and deduplicates [`Stream`] items."]],"struct":[["HoldUnless","See [`Scheduler::hold_unless`]"],["ScheduleRequest","A request to re-emit `message` at a given `Instant` (`run_at`)."],["Scheduler",""]]};
+window.SIDEBAR_ITEMS = {"fn":["scheduler"],"struct":["HoldUnless","ScheduleRequest","Scheduler"]};

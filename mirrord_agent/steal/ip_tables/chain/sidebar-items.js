@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["IPTableChain",""]]};
+window.SIDEBAR_ITEMS = {"struct":["IPTableChain"]};

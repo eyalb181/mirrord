@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["HttpForwarderError",""]]};
+window.SIDEBAR_ITEMS = {"enum":["HttpForwarderError"]};

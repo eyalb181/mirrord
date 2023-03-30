@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":[["EOL","End of Options list."],["MSS","Maximum segment size."],["NOP","No operation."],["SACK","Selective acknowledgment."],["SACK_PERMITTED","Selective acknowledgements permitted."],["TIMESTAMPS","Timestamps."],["WSCALE","Window scale."]]};
+window.SIDEBAR_ITEMS = {"constant":["EOL","MSS","NOP","SACK","SACK_PERMITTED","TIMESTAMPS","WSCALE"]};

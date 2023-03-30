@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["EnvConfig","Allows the user to set or override a local process’ environment variables with the ones from a remote pod."],["EnvFileConfig","Allows the user to set or override a local process’ environment variables with the ones from a remote pod."]]};
+window.SIDEBAR_ITEMS = {"constant":["FIELDS"],"enum":["__Field"],"struct":["EnvConfig","EnvFileConfig","__FieldVisitor","__Visitor"]};

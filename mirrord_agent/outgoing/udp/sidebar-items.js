@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":[["DNS_PORT",""]],"fn":[["connect",""],["resolve_dns",""]],"static":[["NAMESERVER",""]],"struct":[["UdpOutgoingApi","Handles (briefly) the `UdpOutgoingRequest` and `UdpOutgoingResponse` messages, mostly the passing of these messages to the `interceptor_task` thread."]],"type":[["Daemon",""],["Layer",""]]};
+window.SIDEBAR_ITEMS = {"constant":["BRANCHES","DNS_PORT"],"fn":["connect","resolve_dns"],"opaque":[""],"static":["CALLSITE","META","NAMESERVER"],"struct":["UdpOutgoingApi"],"type":["Daemon","Layer"]};

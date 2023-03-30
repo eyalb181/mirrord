@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["ConfigFlagsType",""],["DefaultFlag",""]],"struct":[["ConfigFlags",""],["EnvFlag",""]]};
+window.SIDEBAR_ITEMS = {"enum":["ConfigFlagsType","DefaultFlag"],"struct":["ConfigFlags","EnvFlag"]};

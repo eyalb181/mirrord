@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["codec","Adaptors from AsyncRead/AsyncWrite to Stream/Sink"],["either","Module defining an Either type."],["io","Helpers for IO related tasks."],["net","TCP/UDP/Unix helpers for tokio."],["sync","Synchronization primitives"],["time","Additional utilities for tracking time."],["udp","UDP framing"]]};
+window.SIDEBAR_ITEMS = {"mod":["codec","either","io","net","sync","time","udp"]};

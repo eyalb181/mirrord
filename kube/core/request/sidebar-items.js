@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["Error","Possible errors when building a request."]],"struct":[["Request","A Kubernetes request builder"]]};
+window.SIDEBAR_ITEMS = {"enum":["Error"],"struct":["Request"]};

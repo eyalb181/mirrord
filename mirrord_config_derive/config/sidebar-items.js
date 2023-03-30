@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["field",""],["flag",""]],"struct":[["ConfigStruct",""]]};
+window.SIDEBAR_ITEMS = {"mod":["field","flag"],"struct":["ConfigStruct"]};

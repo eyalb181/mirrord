@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["deserialize","Implementation detail."],["serialize","Implementation detail. Use derive annotations instead."]]};
+window.SIDEBAR_ITEMS = {"fn":["deserialize","serialize"]};

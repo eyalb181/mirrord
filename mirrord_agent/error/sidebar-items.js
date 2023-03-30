@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["AgentError",""]],"type":[["Result",""]]};
+window.SIDEBAR_ITEMS = {"enum":["AgentError"],"type":["Result"]};

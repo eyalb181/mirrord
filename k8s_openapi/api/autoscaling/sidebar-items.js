@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["v1",""],["v2",""],["v2beta1",""],["v2beta2",""]]};
+window.SIDEBAR_ITEMS = {"mod":["v1","v2","v2beta1","v2beta2"]};

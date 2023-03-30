@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bollard-0.13.0/src/container.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>container.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-f2fc7b5fd698d27d.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-5f7299aa2b503fb1.css"><link rel="stylesheet" disabled href="../../static.files/dark-dfb18ef8114bb428.css"><link rel="stylesheet" disabled href="../../static.files/ayu-4047a6aaddd3789d.css"><script id="default-settings" ></script><script src="../../static.files/storage-ff4706381ddb2707.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-02cbe07fc548e88c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../bollard/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bollard-0.14.0/src/container.rs`."><title>container.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="bollard" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (478cbb42b 2023-03-28)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-9ade54abd4bd73c8.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../bollard/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2192,9 +2192,68 @@
 <a href="#2192" id="2192">2192</a>
 <a href="#2193" id="2193">2193</a>
 <a href="#2194" id="2194">2194</a>
+<a href="#2195" id="2195">2195</a>
+<a href="#2196" id="2196">2196</a>
+<a href="#2197" id="2197">2197</a>
+<a href="#2198" id="2198">2198</a>
+<a href="#2199" id="2199">2199</a>
+<a href="#2200" id="2200">2200</a>
+<a href="#2201" id="2201">2201</a>
+<a href="#2202" id="2202">2202</a>
+<a href="#2203" id="2203">2203</a>
+<a href="#2204" id="2204">2204</a>
+<a href="#2205" id="2205">2205</a>
+<a href="#2206" id="2206">2206</a>
+<a href="#2207" id="2207">2207</a>
+<a href="#2208" id="2208">2208</a>
+<a href="#2209" id="2209">2209</a>
+<a href="#2210" id="2210">2210</a>
+<a href="#2211" id="2211">2211</a>
+<a href="#2212" id="2212">2212</a>
+<a href="#2213" id="2213">2213</a>
+<a href="#2214" id="2214">2214</a>
+<a href="#2215" id="2215">2215</a>
+<a href="#2216" id="2216">2216</a>
+<a href="#2217" id="2217">2217</a>
+<a href="#2218" id="2218">2218</a>
+<a href="#2219" id="2219">2219</a>
+<a href="#2220" id="2220">2220</a>
+<a href="#2221" id="2221">2221</a>
+<a href="#2222" id="2222">2222</a>
+<a href="#2223" id="2223">2223</a>
+<a href="#2224" id="2224">2224</a>
+<a href="#2225" id="2225">2225</a>
+<a href="#2226" id="2226">2226</a>
+<a href="#2227" id="2227">2227</a>
+<a href="#2228" id="2228">2228</a>
+<a href="#2229" id="2229">2229</a>
+<a href="#2230" id="2230">2230</a>
+<a href="#2231" id="2231">2231</a>
+<a href="#2232" id="2232">2232</a>
+<a href="#2233" id="2233">2233</a>
+<a href="#2234" id="2234">2234</a>
+<a href="#2235" id="2235">2235</a>
+<a href="#2236" id="2236">2236</a>
+<a href="#2237" id="2237">2237</a>
+<a href="#2238" id="2238">2238</a>
+<a href="#2239" id="2239">2239</a>
+<a href="#2240" id="2240">2240</a>
+<a href="#2241" id="2241">2241</a>
+<a href="#2242" id="2242">2242</a>
+<a href="#2243" id="2243">2243</a>
+<a href="#2244" id="2244">2244</a>
+<a href="#2245" id="2245">2245</a>
+<a href="#2246" id="2246">2246</a>
+<a href="#2247" id="2247">2247</a>
+<a href="#2248" id="2248">2248</a>
+<a href="#2249" id="2249">2249</a>
+<a href="#2250" id="2250">2250</a>
+<a href="#2251" id="2251">2251</a>
+<a href="#2252" id="2252">2252</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Container API: run docker containers and manage their lifecycle
 
 </span><span class="kw">use </span>futures_core::Stream;
+<span class="kw">use </span>futures_util::StreamExt;
 <span class="kw">use </span>http::header::{CONNECTION, CONTENT_TYPE, UPGRADE};
 <span class="kw">use </span>http::request::Builder;
 <span class="kw">use </span>hyper::{body::Bytes, Body, Method};
@@ -2281,6 +2340,7 @@
 ///
 /// CreateContainerOptions{
 ///     name: &quot;my-new-container&quot;,
+///     platform: Some(&quot;linux/amd64&quot;),
 /// };
 /// ```
 </span><span class="attr">#[derive(Debug, Clone, Default, PartialEq, Serialize)]
@@ -2290,6 +2350,11 @@
 {
     <span class="doccomment">/// Assign the specified name to the container.
     </span><span class="kw">pub </span>name: T,
+
+    <span class="doccomment">/// The platform to use for the container.
+    /// Added in API v1.41.
+    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    </span><span class="kw">pub </span>platform: <span class="prelude-ty">Option</span>&lt;T&gt;,
 }
 
 <span class="doccomment">/// This container&#39;s networking configuration.
@@ -2301,7 +2366,7 @@
 }
 
 <span class="doccomment">/// Container to create.
-</span><span class="attr">#[derive(Debug, Clone, Default, PartialEq, Serialize)]
+</span><span class="attr">#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 </span><span class="kw">pub struct </span>Config&lt;T&gt;
 <span class="kw">where
     </span>T: Into&lt;String&gt; + Eq + Hash,
@@ -2680,7 +2745,6 @@
 /// };
 /// ```
 </span><span class="attr">#[derive(Debug, Clone, Default, PartialEq, Serialize)]
-#[serde(rename_all = <span class="string">&quot;camelCase&quot;</span>)]
 </span><span class="kw">pub struct </span>TopOptions&lt;T&gt;
 <span class="kw">where
     </span>T: Into&lt;String&gt; + Serialize,
@@ -2732,7 +2796,7 @@
 }
 
 <span class="doccomment">/// Result type for the [Logs API](Docker::logs())
-</span><span class="attr">#[derive(Debug, Clone)]
+</span><span class="attr">#[derive(Debug, Clone, PartialEq)]
 #[allow(missing_docs)]
 </span><span class="kw">pub enum </span>LogOutput {
     StdErr { message: Bytes },
@@ -2942,9 +3006,9 @@
         serialize_with = <span class="string">&quot;crate::docker::serialize_rfc3339&quot;
     </span>)]
     </span><span class="kw">pub </span>preread: time::OffsetDateTime,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;chrono&quot;</span>)]
+    <span class="attr">#[cfg(all(feature = <span class="string">&quot;chrono&quot;</span>, not(feature = <span class="string">&quot;time&quot;</span>)))]
     </span><span class="kw">pub </span>read: chrono::DateTime&lt;chrono::Utc&gt;,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;chrono&quot;</span>)]
+    <span class="attr">#[cfg(all(feature = <span class="string">&quot;chrono&quot;</span>, not(feature = <span class="string">&quot;time&quot;</span>)))]
     </span><span class="kw">pub </span>preread: chrono::DateTime&lt;chrono::Utc&gt;,
     <span class="attr">#[cfg(not(any(feature = <span class="string">&quot;chrono&quot;</span>, feature = <span class="string">&quot;time&quot;</span>)))]
     </span><span class="kw">pub </span>read: String,
@@ -3402,6 +3466,7 @@
     ///
     /// let options = Some(CreateContainerOptions{
     ///     name: &quot;my-new-container&quot;,
+    ///     platform: None,
     /// });
     ///
     /// let config = Config {
@@ -3619,7 +3684,23 @@
             <span class="prelude-val">Ok</span>(Body::empty()),
         );
 
-        <span class="self">self</span>.process_into_stream(req)
+        <span class="self">self</span>.process_into_stream(req).map(|res| <span class="kw">match </span>res {
+            <span class="prelude-val">Ok</span>(ContainerWaitResponse {
+                status_code: code,
+                error:
+                    <span class="prelude-val">Some</span>(ContainerWaitExitError {
+                        message: <span class="prelude-val">Some</span>(error),
+                    }),
+            }) <span class="kw">if </span>code &gt; <span class="number">0 </span>=&gt; <span class="prelude-val">Err</span>(Error::DockerContainerWaitError { error, code }),
+            <span class="prelude-val">Ok</span>(ContainerWaitResponse {
+                status_code: code,
+                error: <span class="prelude-val">None</span>,
+            }) <span class="kw">if </span>code &gt; <span class="number">0 </span>=&gt; <span class="prelude-val">Err</span>(Error::DockerContainerWaitError {
+                error: String::new(),
+                code,
+            }),
+            v =&gt; v,
+        })
     }
 
     <span class="doccomment">/// ---
@@ -4386,5 +4467,39 @@
         <span class="self">self</span>.process_into_body(req)
     }
 }
-</code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="bollard" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (001a77fac 2023-01-30)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-7c23ac01f615ce90.css" ></div></body></html>
+
+<span class="attr">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="attr">#![cfg(not(target_arch = <span class="string">&quot;windows&quot;</span>))]
+
+    </span><span class="kw">use </span>futures_util::TryStreamExt;
+    <span class="kw">use </span>yup_hyper_mock::HostToReplyConnector;
+
+    <span class="kw">use crate</span>::{Docker, API_DEFAULT_VERSION};
+
+    <span class="kw">use </span><span class="kw">super</span>::WaitContainerOptions;
+
+    <span class="attr">#[tokio::test]
+    </span><span class="kw">async fn </span>test_container_wait_with_error() {
+        <span class="kw">let </span><span class="kw-2">mut </span>connector = HostToReplyConnector::default();
+        connector.m.insert(
+            String::from(<span class="string">&quot;http://127.0.0.1&quot;</span>),
+            <span class="string">&quot;HTTP/1.1 200 OK\r\nServer:mock1\r\nContent-Type:application/json\r\n\r\n{\&quot;Error\&quot;:null,\&quot;StatusCode\&quot;:1}&quot;</span>.to_string(),
+        );
+
+        <span class="kw">let </span>docker =
+            Docker::connect_with_mock(connector, <span class="string">&quot;127.0.0.1&quot;</span>.to_string(), <span class="number">5</span>, API_DEFAULT_VERSION)
+                .unwrap();
+
+        <span class="kw">let </span>result = <span class="kw-2">&amp;</span>docker
+            .wait_container(<span class="string">&quot;wait_container_test&quot;</span>, <span class="prelude-val">None</span>::&lt;WaitContainerOptions&lt;String&gt;&gt;)
+            .try_collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
+            .<span class="kw">await</span>;
+
+        <span class="macro">assert!</span>(<span class="macro">matches!</span>(
+            result,
+            <span class="prelude-val">Err</span>(<span class="kw">crate</span>::errors::Error::DockerContainerWaitError { code: <span class="kw">_</span>, error: <span class="kw">_ </span>})
+        ));
+    }
+}
+</code></pre></div></section></main></body></html>

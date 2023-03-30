@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["UdpOutgoing","Hook messages handled by `TcpOutgoingHandler`."]],"struct":[["ConnectionMirror","Wrapper type around `tokio::Sender`, used to send messages from the `agent` to our interceptor socket, where they’ll be written back to the user’s socket."],["UdpOutgoingHandler","Responsible for handling hook and daemon messages for the outgoing traffic feature."]]};
+window.SIDEBAR_ITEMS = {"constant":["BRANCHES"],"enum":["UdpOutgoing"],"opaque":[""],"static":["CALLSITE","META"],"struct":["ConnectionMirror","UdpOutgoingHandler"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["MeshVendor",""]],"static":[["ISTIO_SKIP_PORTS_LOOKUP_REGEX",""],["LINKERD_SKIP_PORTS_LOOKUP_REGEX",""],["UID_LOOKUP_REGEX","[`Regex`] used to select the `owner` rule from the list of `iptables` rules."]],"struct":[["MeshRedirect",""]]};
+window.SIDEBAR_ITEMS = {"enum":["MeshVendor"],"static":["CALLSITE","ISTIO_SKIP_PORTS_LOOKUP_REGEX","LINKERD_SKIP_PORTS_LOOKUP_REGEX","META","UID_LOOKUP_REGEX"],"struct":["MeshRedirect"]};

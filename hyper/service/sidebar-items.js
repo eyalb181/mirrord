@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["service_fn","Create a `Service` from a function."]],"trait":[["HttpService","An asynchronous function from `Request` to `Response`."],["Service","An asynchronous function from a `Request` to a `Response`."]]};
+window.SIDEBAR_ITEMS = {"fn":["service_fn"],"trait":["HttpService","Service"]};

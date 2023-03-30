@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["IptablesError",""]]};
+window.SIDEBAR_ITEMS = {"struct":["IptablesError"]};

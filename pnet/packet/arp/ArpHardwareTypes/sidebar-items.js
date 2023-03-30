@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":[["Ethernet","Ethernet"]]};
+window.SIDEBAR_ITEMS = {"constant":["Ethernet"]};

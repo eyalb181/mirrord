@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["new","Creates a new `IPTables` Result with the command of ‘iptables’ if `is_ipv6` is `false`, otherwise the command is ‘ip6tables’."]],"mod":[["error",""]],"struct":[["IPTables","Contains the iptables command and shows if it supports -w and -C options. Use `new` method to create a new instance of this struct."]]};
+window.SIDEBAR_ITEMS = {"fn":["new"],"mod":["error"],"struct":["IPTables"]};

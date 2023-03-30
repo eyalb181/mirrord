@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["IncomingFileConfig","Controls the incoming TCP traffic feature."],["IncomingMode","Mode of operation for the incoming TCP traffic feature."]],"mod":[["http_filter",""]],"struct":[["IncomingAdvancedFileConfig",""],["IncomingConfig",""],["IncomingConfigParseError",""]]};
+window.SIDEBAR_ITEMS = {"constant":["FIELDS","VARIANTS"],"enum":["IncomingFileConfig","IncomingMode","__Field"],"mod":["http_filter"],"struct":["IncomingAdvancedFileConfig","IncomingConfig","IncomingConfigParseError","__FieldVisitor","__Visitor"]};

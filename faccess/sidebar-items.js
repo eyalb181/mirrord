@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["AccessMode","Access mode flags for `access` function to test for."]],"trait":[["PathExt","Extension trait for `std::path::Path`."]]};
+window.SIDEBAR_ITEMS = {"struct":["AccessMode"],"trait":["PathExt"]};

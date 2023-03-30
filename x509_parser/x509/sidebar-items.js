@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["AlgorithmIdentifier","Algorithm identifier"],["AttributeTypeAndValue","A generic attribute type and value"],["ReasonCode",""],["RelativeDistinguishedName","A Relative Distinguished Name element."],["SubjectPublicKeyInfo",""],["X509Name","X.509 Name (as used in `Issuer` and `Subject` fields)"],["X509Version","The version of the encoded certificate."]]};
+window.SIDEBAR_ITEMS = {"struct":["AlgorithmIdentifier","AttributeTypeAndValue","ReasonCode","RelativeDistinguishedName","SubjectPublicKeyInfo","X509Name","X509Version"]};

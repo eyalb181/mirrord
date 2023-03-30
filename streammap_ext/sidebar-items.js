@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["StreamMap","Combine many streams into one, indexing each source stream with a unique key."]]};
+window.SIDEBAR_ITEMS = {"struct":["StreamMap"]};

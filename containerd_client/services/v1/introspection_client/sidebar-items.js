@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["IntrospectionClient",""]]};
+window.SIDEBAR_ITEMS = {"struct":["IntrospectionClient"]};

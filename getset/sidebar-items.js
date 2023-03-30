@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"derive":[["CopyGetters",""],["Getters",""],["MutGetters",""],["Setters",""]]};
+window.SIDEBAR_ITEMS = {"derive":["CopyGetters","Getters","MutGetters","Setters"]};

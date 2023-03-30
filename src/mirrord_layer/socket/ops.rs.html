@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `mirrord/layer/src/socket/ops.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ops.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-f2fc7b5fd698d27d.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-5f7299aa2b503fb1.css"><link rel="stylesheet" disabled href="../../../static.files/dark-dfb18ef8114bb428.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-4047a6aaddd3789d.css"><script id="default-settings" ></script><script src="../../../static.files/storage-ff4706381ddb2707.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-02cbe07fc548e88c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../mirrord_layer/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `mirrord/layer/src/socket/ops.rs`."><title>ops.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="mirrord_layer" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (478cbb42b 2023-03-28)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-9ade54abd4bd73c8.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../mirrord_layer/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -731,13 +731,6 @@
 <a href="#731" id="731">731</a>
 <a href="#732" id="732">732</a>
 <a href="#733" id="733">733</a>
-<a href="#734" id="734">734</a>
-<a href="#735" id="735">735</a>
-<a href="#736" id="736">736</a>
-<a href="#737" id="737">737</a>
-<a href="#738" id="738">738</a>
-<a href="#739" id="739">739</a>
-<a href="#740" id="740">740</a>
 </pre><pre class="rust"><code><span class="kw">use </span>alloc::ffi::CString;
 <span class="kw">use </span>core::{ffi::CStr, mem};
 <span class="kw">use </span>std::{
@@ -841,7 +834,7 @@
 
     <span class="kw">let </span>new_socket = UserSocket::new(domain, type_, protocol, Default::default(), socket_kind);
 
-    SOCKETS.lock()<span class="question-mark">?</span>.insert(socket_fd, Arc::new(new_socket));
+    SOCKETS.insert(socket_fd, Arc::new(new_socket));
 
     Detour::Success(socket_fd)
 }
@@ -864,10 +857,9 @@
 
     <span class="kw">let </span><span class="kw-2">mut </span>socket = {
         SOCKETS
-            .lock()<span class="question-mark">?
-            </span>.remove(<span class="kw-2">&amp;</span>sockfd)
+            .remove(<span class="kw-2">&amp;</span>sockfd)
             .ok_or(Bypass::LocalFdNotFound(sockfd))
-            .and_then(|socket| {
+            .and_then(|(<span class="kw">_</span>, socket)| {
                 <span class="kw">if </span>!<span class="macro">matches!</span>(socket.state, SocketState::Initialized) {
                     <span class="prelude-val">Err</span>(Bypass::InvalidState(sockfd))
                 } <span class="kw">else </span>{
@@ -931,7 +923,7 @@
         address,
     });
 
-    SOCKETS.lock()<span class="question-mark">?</span>.insert(sockfd, socket);
+    SOCKETS.insert(sockfd, socket);
 
     Detour::Success(bind_result)
 }
@@ -940,10 +932,10 @@
 /// later be routed to the fake local port.
 </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>listen(sockfd: RawFd, backlog: c_int) -&gt; Detour&lt;i32&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>socket: Arc&lt;UserSocket&gt; = {
+    <span class="kw">let </span><span class="kw-2">mut </span>socket = {
         SOCKETS
-            .lock()<span class="question-mark">?
-            </span>.remove(<span class="kw-2">&amp;</span>sockfd)
+            .remove(<span class="kw-2">&amp;</span>sockfd)
+            .map(|(<span class="kw">_</span>, socket)| socket)
             .bypass(Bypass::LocalFdNotFound(sockfd))<span class="question-mark">?
     </span>};
 
@@ -971,7 +963,7 @@
                 address,
             });
 
-            SOCKETS.lock()<span class="question-mark">?</span>.insert(sockfd, socket);
+            SOCKETS.insert(sockfd, socket);
 
             Detour::Success(listen_result)
         }
@@ -1040,7 +1032,7 @@
     };
 
     Arc::get_mut(<span class="kw-2">&amp;mut </span>user_socket_info).unwrap().state = SocketState::Connected(connected);
-    SOCKETS.lock()<span class="question-mark">?</span>.insert(sockfd, user_socket_info);
+    SOCKETS.insert(sockfd, user_socket_info);
 
     Detour::Success(connect_result)
 }
@@ -1067,10 +1059,9 @@
         .get()
         .expect(<span class="string">&quot;Should be set during initialization!&quot;</span>);
 
-    <span class="kw">let </span>user_socket_info = {
+    <span class="kw">let </span>(<span class="kw">_</span>, user_socket_info) = {
         SOCKETS
-            .lock()<span class="question-mark">?
-            </span>.remove(<span class="kw-2">&amp;</span>sockfd)
+            .remove(<span class="kw-2">&amp;</span>sockfd)
             .ok_or(Bypass::LocalFdNotFound(sockfd))<span class="question-mark">?
     </span>};
 
@@ -1089,7 +1080,8 @@
                 // application is now trying to connect to - then don&#39;t forward this connection
                 // to the agent, and instead of connecting to the requested address, connect to
                 // the actual address where the application is locally listening.
-                </span>SOCKETS.lock()<span class="question-mark">?</span>.values().find_map(|socket| {
+                </span>SOCKETS.iter().find_map(|entry| {
+                    <span class="kw">let </span>socket = entry.value();
                     <span class="kw">if let </span>SocketState::Listening(Bound {
                         requested_address,
                         address,
@@ -1201,10 +1193,9 @@
 ) -&gt; Detour&lt;i32&gt; {
     <span class="kw">let </span>remote_address = {
         SOCKETS
-            .lock()<span class="question-mark">?
-            </span>.get(<span class="kw-2">&amp;</span>sockfd)
+            .get(<span class="kw-2">&amp;</span>sockfd)
             .bypass(Bypass::LocalFdNotFound(sockfd))
-            .and_then(|socket| <span class="kw">match </span><span class="kw-2">&amp;</span>socket.state {
+            .and_then(|entry| <span class="kw">match </span><span class="kw-2">&amp;</span>entry.value().state {
                 SocketState::Connected(connected) =&gt; {
                     Detour::Success(connected.remote_address.clone())
                 }
@@ -1225,10 +1216,9 @@
 ) -&gt; Detour&lt;i32&gt; {
     <span class="kw">let </span>local_address = {
         SOCKETS
-            .lock()<span class="question-mark">?
-            </span>.get(<span class="kw-2">&amp;</span>sockfd)
+            .get(<span class="kw-2">&amp;</span>sockfd)
             .bypass(Bypass::LocalFdNotFound(sockfd))
-            .and_then(|socket| <span class="kw">match </span><span class="kw-2">&amp;</span>socket.state {
+            .and_then(|entry| <span class="kw">match </span><span class="kw-2">&amp;</span>entry.value().state {
                 SocketState::Connected(connected) =&gt; {
                     Detour::Success(connected.local_address.clone())
                 }
@@ -1256,8 +1246,7 @@
 ) -&gt; Detour&lt;RawFd&gt; {
     <span class="kw">let </span>(id, domain, protocol, type_) = {
         SOCKETS
-            .lock()<span class="question-mark">?
-            </span>.get(<span class="kw-2">&amp;</span>sockfd)
+            .get(<span class="kw-2">&amp;</span>sockfd)
             .bypass(Bypass::LocalFdNotFound(sockfd))
             .and_then(|socket| <span class="kw">match </span><span class="kw-2">&amp;</span>socket.state {
                 SocketState::Listening(<span class="kw">_</span>) =&gt; {
@@ -1288,7 +1277,7 @@
 
     fill_address(address, address_len, remote_address.try_into()<span class="question-mark">?</span>)<span class="question-mark">?</span>;
 
-    SOCKETS.lock()<span class="question-mark">?</span>.insert(new_fd, Arc::new(new_socket));
+    SOCKETS.insert(new_fd, Arc::new(new_socket));
 
     Detour::Success(new_fd)
 }
@@ -1312,24 +1301,21 @@
 /// Extra relevant for node on macos.
 </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>dup&lt;<span class="kw">const </span>SWITCH_MAP: bool&gt;(fd: c_int, dup_fd: i32) -&gt; <span class="prelude-ty">Result</span>&lt;(), HookError&gt; {
-    {
-        <span class="kw">let </span><span class="kw-2">mut </span>sockets = SOCKETS.lock()<span class="question-mark">?</span>;
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(socket) = sockets.get(<span class="kw-2">&amp;</span>fd).cloned() {
-            sockets.insert(dup_fd <span class="kw">as </span>RawFd, socket);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(socket) = SOCKETS.get(<span class="kw-2">&amp;</span>fd).map(|entry| entry.value().clone()) {
+        SOCKETS.insert(dup_fd <span class="kw">as </span>RawFd, socket);
 
-            <span class="kw">if </span>SWITCH_MAP {
-                OPEN_FILES.remove(<span class="kw-2">&amp;</span>dup_fd);
-            }
-
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+        <span class="kw">if </span>SWITCH_MAP {
+            OPEN_FILES.remove(<span class="kw-2">&amp;</span>dup_fd);
         }
-    } <span class="comment">// Drop sockets, free Mutex.
 
-    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(file) = OPEN_FILES.view(<span class="kw-2">&amp;</span>fd, |<span class="kw">_</span>, file| file.clone()) {
+        <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+    }
+
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(file) = OPEN_FILES.view(<span class="kw-2">&amp;</span>fd, |<span class="kw">_</span>, file| file.clone()) {
         OPEN_FILES.insert(dup_fd <span class="kw">as </span>RawFd, file);
 
         <span class="kw">if </span>SWITCH_MAP {
-            SOCKETS.lock()<span class="question-mark">?</span>.remove(<span class="kw-2">&amp;</span>dup_fd);
+            SOCKETS.remove(<span class="kw-2">&amp;</span>dup_fd);
         }
     }
 
@@ -1478,5 +1464,4 @@
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>gethostname() -&gt; Detour&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>CString&gt; {
     HOSTNAME.get_or_detour_init(remote_hostname_string)
 }
-</code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="mirrord_layer" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (001a77fac 2023-01-30)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-7c23ac01f615ce90.css" ></div></body></html>
+</code></pre></div></section></main></body></html>

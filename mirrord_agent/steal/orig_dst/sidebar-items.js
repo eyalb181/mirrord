@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["orig_dst_addr",""]],"mod":[["linux",""]]};
+window.SIDEBAR_ITEMS = {"fn":["orig_dst_addr"],"mod":["linux"],"static":["CALLSITE","META"]};

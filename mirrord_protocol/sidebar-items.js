@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["codec",""],["dns",""],["error",""],["file",""],["outgoing",""],["tcp",""]],"struct":[["EnvVars",""]],"type":[["ConnectionId",""],["Port",""],["RequestId","A per-connection HTTP request ID"]]};
+window.SIDEBAR_ITEMS = {"mod":["codec","dns","error","file","outgoing","tcp"],"struct":["EnvVars"],"type":["ConnectionId","Port","RequestId"]};

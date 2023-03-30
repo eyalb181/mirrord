@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["conn","Server connection API."]]};
+window.SIDEBAR_ITEMS = {"mod":["conn"]};

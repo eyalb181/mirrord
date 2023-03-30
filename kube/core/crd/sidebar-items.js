@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["MergeError","Possible errors when merging CRDs"]],"fn":[["merge_crds","Merge a collection of crds into a single multiversion crd"]],"mod":[["v1","Types for v1 CustomResourceDefinitions"]],"trait":[["CustomResourceExt","Extension trait that is implemented by kube-derive"]]};
+window.SIDEBAR_ITEMS = {"enum":["MergeError"],"fn":["merge_crds"],"mod":["v1"],"trait":["CustomResourceExt"]};

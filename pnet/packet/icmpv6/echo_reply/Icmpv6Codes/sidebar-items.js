@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":[["NoCode","0 is the only available ICMPv6 code for “echo reply” ICMPv6 packets."]]};
+window.SIDEBAR_ITEMS = {"constant":["NoCode"]};

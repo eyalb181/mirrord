@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["AttachParams","Parameters for attaching to a container in a Pod."],["EvictParams","Params for evictable objects"],["LogParams","Params for logging"],["Scale","Scale represents a scaling request for a resource."],["ScaleSpec","ScaleSpec describes the attributes of a scale subresource."],["ScaleStatus","ScaleStatus represents the current status of a scale subresource."]]};
+window.SIDEBAR_ITEMS = {"struct":["AttachParams","EvictParams","LogParams","Scale","ScaleSpec","ScaleStatus"]};

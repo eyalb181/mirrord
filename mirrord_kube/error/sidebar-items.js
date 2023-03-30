@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["KubeApiError",""]],"type":[["Result",""]]};
+window.SIDEBAR_ITEMS = {"enum":["KubeApiError"],"type":["Result"]};

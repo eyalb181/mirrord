@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":[["Reply","ARP reply"],["Request","ARP request"]]};
+window.SIDEBAR_ITEMS = {"constant":["Reply","Request"]};
