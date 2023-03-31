@@ -662,7 +662,6 @@
 <a href="#662" id="662">662</a>
 <a href="#663" id="663">663</a>
 <a href="#664" id="664">664</a>
-<a href="#665" id="665">665</a>
 </pre><pre class="rust"><code><span class="doccomment">/// File operations on remote pod.
 ///
 /// Read-only file operations are enabled by default, you can turn it off by setting
@@ -674,11 +673,10 @@
 /// `[FsConfig]`.
 </span><span class="kw">use </span>core::fmt;
 <span class="kw">use </span>std::{
-    collections::HashMap,
     io::SeekFrom,
     os::unix::io::RawFd,
     path::PathBuf,
-    sync::{Arc, LazyLock, Mutex},
+    sync::{Arc, LazyLock},
 };
 
 <span class="kw">use </span>dashmap::DashMap;
@@ -723,8 +721,8 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>OPEN_FILES: LazyLock&lt;DashMap&lt;LocalFd, Arc&lt;ops::RemoteFile&gt;&gt;&gt; =
     LazyLock::new(|| DashMap::with_capacity(<span class="number">4</span>));
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>OPEN_DIRS: LazyLock&lt;Mutex&lt;HashMap&lt;DirStreamFd, RemoteFd&gt;&gt;&gt; =
-    LazyLock::new(|| Mutex::new(HashMap::with_capacity(<span class="number">4</span>)));
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>OPEN_DIRS: LazyLock&lt;DashMap&lt;DirStreamFd, RemoteFd&gt;&gt; =
+    LazyLock::new(|| DashMap::with_capacity(<span class="number">4</span>));
 
 <span class="doccomment">/// Extension trait for [`OpenOptionsInternal`], used to convert between `libc`-ish open options and
 /// Rust&#39;s [`std::fs::OpenOptions`]
