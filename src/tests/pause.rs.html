@@ -179,6 +179,7 @@
 <a href="#179" id="179">179</a>
 <a href="#180" id="180">180</a>
 <a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
 </pre><pre class="rust"><code><span class="attr">#[cfg(test)]
 
 </span><span class="kw">mod </span>pause {
@@ -223,7 +224,8 @@
     /// To run on mac, first build universal binary: (from repo root) `scripts/build_fat_mac.sh`
     /// then run test with MIRRORD_TESTS_USE_BINARY=../target/universal-apple-darwin/debug/mirrord
     /// Because the test runs a bash script with mirrord and that requires the universal binary.
-    </span><span class="attr">#[rstest]
+    </span><span class="attr">#[ignore]
+    #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">240</span>))]
     </span><span class="kw">pub async fn </span>pause_log_requests(

@@ -374,98 +374,28 @@
 <a href="#374" id="374">374</a>
 <a href="#375" id="375">375</a>
 <a href="#376" id="376">376</a>
-<a href="#377" id="377">377</a>
-<a href="#378" id="378">378</a>
-<a href="#379" id="379">379</a>
-<a href="#380" id="380">380</a>
-<a href="#381" id="381">381</a>
-<a href="#382" id="382">382</a>
-<a href="#383" id="383">383</a>
-<a href="#384" id="384">384</a>
-<a href="#385" id="385">385</a>
-<a href="#386" id="386">386</a>
-<a href="#387" id="387">387</a>
-<a href="#388" id="388">388</a>
-<a href="#389" id="389">389</a>
-<a href="#390" id="390">390</a>
-<a href="#391" id="391">391</a>
-<a href="#392" id="392">392</a>
-<a href="#393" id="393">393</a>
-<a href="#394" id="394">394</a>
-<a href="#395" id="395">395</a>
-<a href="#396" id="396">396</a>
-<a href="#397" id="397">397</a>
-<a href="#398" id="398">398</a>
-<a href="#399" id="399">399</a>
-<a href="#400" id="400">400</a>
-<a href="#401" id="401">401</a>
-<a href="#402" id="402">402</a>
-<a href="#403" id="403">403</a>
-<a href="#404" id="404">404</a>
-<a href="#405" id="405">405</a>
-<a href="#406" id="406">406</a>
-<a href="#407" id="407">407</a>
-<a href="#408" id="408">408</a>
-<a href="#409" id="409">409</a>
-<a href="#410" id="410">410</a>
-<a href="#411" id="411">411</a>
-<a href="#412" id="412">412</a>
-<a href="#413" id="413">413</a>
-<a href="#414" id="414">414</a>
-<a href="#415" id="415">415</a>
-<a href="#416" id="416">416</a>
-<a href="#417" id="417">417</a>
-<a href="#418" id="418">418</a>
-<a href="#419" id="419">419</a>
-<a href="#420" id="420">420</a>
-<a href="#421" id="421">421</a>
-<a href="#422" id="422">422</a>
-<a href="#423" id="423">423</a>
-<a href="#424" id="424">424</a>
-<a href="#425" id="425">425</a>
-<a href="#426" id="426">426</a>
-<a href="#427" id="427">427</a>
-<a href="#428" id="428">428</a>
-<a href="#429" id="429">429</a>
-<a href="#430" id="430">430</a>
-<a href="#431" id="431">431</a>
-<a href="#432" id="432">432</a>
-<a href="#433" id="433">433</a>
-<a href="#434" id="434">434</a>
-<a href="#435" id="435">435</a>
-<a href="#436" id="436">436</a>
-<a href="#437" id="437">437</a>
-<a href="#438" id="438">438</a>
-<a href="#439" id="439">439</a>
-<a href="#440" id="440">440</a>
-<a href="#441" id="441">441</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     collections::{HashMap, HashSet},
     net::SocketAddr,
 };
 
-<span class="kw">use </span>anyhow::Result;
 <span class="kw">use </span>async_trait::async_trait;
 <span class="kw">use </span>bimap::BiMap;
-<span class="kw">use </span>bytes::Bytes;
-<span class="kw">use </span>http_body_util::Full;
-<span class="kw">use </span>hyper::{
-    client::conn::http1::{handshake, SendRequest},
-    StatusCode,
-};
+<span class="kw">use </span>futures::TryFutureExt;
+<span class="kw">use </span>hyper::{body::Incoming, Response, StatusCode};
 <span class="kw">use </span>mirrord_protocol::{
     tcp::{
         Filter, HttpRequest, HttpResponse, LayerTcpSteal, NewTcpConnection,
         StealType::{All, FilteredHttp},
         TcpClose, TcpData,
     },
-    ClientMessage, ConnectionId, Port,
+    ClientMessage, ConnectionId, Port, RequestId,
 };
 <span class="kw">use </span>streammap_ext::StreamMap;
 <span class="kw">use </span>tokio::{
     io::{AsyncWriteExt, ReadHalf, WriteHalf},
     net::TcpStream,
-    sync::mpsc::{channel, Receiver, Sender},
+    sync::mpsc::{channel, Sender},
 };
 <span class="kw">use </span>tokio_stream::StreamExt;
 <span class="kw">use </span>tokio_util::io::ReaderStream;
@@ -474,11 +404,67 @@
 <span class="kw">use crate</span>::{
     error::LayerError,
     tcp::{Listen, TcpHandler},
+    tcp_steal::http::{v1::HttpV1, v2::HttpV2, ConnectionTask},
 };
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>http_forwarding;
 
-<span class="kw">use crate</span>::{detour::DetourGuard, tcp_steal::http_forwarding::HttpForwarderError};
+<span class="kw">use </span><span class="kw">crate</span>::tcp_steal::http_forwarding::HttpForwarderError;
+
+<span class="kw">mod </span>http;
+
+<span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
+</span><span class="kw">async fn </span>handle_response(
+    request: HttpRequest,
+    response: <span class="prelude-ty">Result</span>&lt;Response&lt;Incoming&gt;, hyper::Error&gt;,
+    port: Port,
+    connection_id: ConnectionId,
+    request_id: RequestId,
+) -&gt; <span class="prelude-ty">Result</span>&lt;HttpResponse, HttpForwarderError&gt; {
+    <span class="kw">match </span>response {
+            <span class="prelude-val">Err</span>(err) <span class="kw">if </span>err.is_closed() =&gt; {
+                <span class="macro">warn!</span>(
+                    <span class="string">&quot;Sending request to local application failed with: {err:?}.
+                        Seems like the local application closed the connection too early, so
+                        creating a new connection and trying again.&quot;
+                </span>);
+                <span class="macro">trace!</span>(<span class="string">&quot;The request to be retried: {request:?}.&quot;</span>);
+                <span class="prelude-val">Err</span>(HttpForwarderError::ConnectionClosedTooSoon(request))
+            }
+            <span class="prelude-val">Err</span>(err) <span class="kw">if </span>err.is_parse() =&gt; {
+                <span class="macro">warn!</span>(<span class="string">&quot;Could not parse HTTP response to filtered HTTP request, got error: {err:?}.&quot;</span>);
+                <span class="kw">let </span>body_message = <span class="macro">format!</span>(<span class="string">&quot;mirrord: could not parse HTTP response from local application - {err:?}&quot;</span>);
+                <span class="prelude-val">Ok</span>(HttpResponse::response_from_request(
+                    request,
+                    StatusCode::BAD_GATEWAY,
+                    <span class="kw-2">&amp;</span>body_message,
+                ))
+            }
+            <span class="prelude-val">Err</span>(err) =&gt; {
+                <span class="macro">warn!</span>(<span class="string">&quot;Request to local application failed with: {err:?}.&quot;</span>);
+                <span class="kw">let </span>body_message = <span class="macro">format!</span>(<span class="string">&quot;mirrord tried to forward the request to the local application and got {err:?}&quot;</span>);
+                <span class="prelude-val">Ok</span>(HttpResponse::response_from_request(
+                    request,
+                    StatusCode::BAD_GATEWAY,
+                    <span class="kw-2">&amp;</span>body_message,
+                ))
+            }
+            <span class="prelude-val">Ok</span>(res) =&gt; <span class="prelude-val">Ok</span>(
+                HttpResponse::from_hyper_response(res, port, connection_id, request_id)
+                    .<span class="kw">await
+                    </span>.unwrap_or_else(|e| {
+                        <span class="macro">error!</span>(<span class="string">&quot;Failed to read response to filtered http request: {e:?}. \
+                        Please consider reporting this issue on \
+                        https://github.com/metalbear-co/mirrord/issues/new?labels=bug&amp;template=bug_report.yml&quot;</span>);
+                        HttpResponse::response_from_request(
+                            request,
+                            StatusCode::BAD_GATEWAY,
+                            <span class="string">&quot;mirrord&quot;</span>,
+                        )
+                    }),
+            ),
+        }
+}
 
 <span class="kw">pub struct </span>TcpStealHandler {
     ports: HashSet&lt;Listen&gt;,
@@ -685,150 +671,6 @@
         }
     }
 
-    <span class="kw">async fn </span>create_http_connection_with_application(
-        addr: SocketAddr,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;SendRequest&lt;Full&lt;Bytes&gt;&gt;, HttpForwarderError&gt; {
-        <span class="kw">let </span>target_stream = {
-            <span class="kw">let _ </span>= DetourGuard::new();
-            TcpStream::connect(addr).<span class="kw">await</span><span class="question-mark">?
-        </span>};
-        <span class="kw">let </span>(http_request_sender, connection): (SendRequest&lt;Full&lt;Bytes&gt;&gt;, <span class="kw">_</span>) =
-            handshake(target_stream)
-                .<span class="kw">await
-                </span>.map_err::&lt;HttpForwarderError, <span class="kw">_</span>&gt;(From::from)<span class="question-mark">?</span>;
-
-        <span class="comment">// spawn a task to poll the connection.
-        </span>tokio::spawn(<span class="kw">async move </span>{
-            <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = connection.<span class="kw">await </span>{
-                <span class="macro">error!</span>(<span class="string">&quot;Error in http connection with addr {addr:?}: {e:?}&quot;</span>);
-            }
-        });
-        <span class="prelude-val">Ok</span>(http_request_sender)
-    }
-
-    <span class="doccomment">/// Return Ok(HttpResponse) if there is a response to send back - either the response we got
-    /// from the local process, or an error response we generated.
-    /// Return Err(HttpRequest) if the connection was closed too soon, and that request should be
-    /// retried after reconnecting with the server.
-    </span><span class="kw">async fn </span>send_http_request_to_application(
-        http_request_sender: <span class="kw-2">&amp;mut </span>SendRequest&lt;Full&lt;Bytes&gt;&gt;,
-        req: HttpRequest,
-        port: Port,
-        connection_id: ConnectionId,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;HttpResponse, HttpRequest&gt; {
-        <span class="kw">let </span>request_id = req.request_id;
-        <span class="kw">match </span>http_request_sender
-            .send_request(req.internal_request.clone().into())
-            .<span class="kw">await
-        </span>{
-            <span class="prelude-val">Err</span>(err) <span class="kw">if </span>err.is_closed() =&gt; {
-                <span class="macro">warn!</span>(
-                    <span class="string">&quot;Sending request to local application failed with: {err:?}.
-                        Seems like the local application closed the connection too early, so
-                        creating a new connection and trying again.&quot;
-                </span>);
-                <span class="macro">trace!</span>(<span class="string">&quot;The request to be retried: {req:?}.&quot;</span>);
-                <span class="prelude-val">Err</span>(req)
-            }
-            <span class="prelude-val">Err</span>(err) <span class="kw">if </span>err.is_parse() =&gt; {
-                <span class="macro">warn!</span>(<span class="string">&quot;Could not parse HTTP response to filtered HTTP request, got error: {err:?}.&quot;</span>);
-                <span class="kw">let </span>body_message = <span class="macro">format!</span>(<span class="string">&quot;mirrord: could not parse HTTP response from local application - {err:?}&quot;</span>);
-                <span class="prelude-val">Ok</span>(HttpResponse::response_from_request(
-                    req,
-                    StatusCode::BAD_GATEWAY,
-                    <span class="kw-2">&amp;</span>body_message,
-                ))
-            }
-            <span class="prelude-val">Err</span>(err) =&gt; {
-                <span class="macro">warn!</span>(<span class="string">&quot;Request to local application failed with: {err:?}.&quot;</span>);
-                <span class="kw">let </span>body_message = <span class="macro">format!</span>(<span class="string">&quot;mirrord tried to forward the request to the local application and got {err:?}&quot;</span>);
-                <span class="prelude-val">Ok</span>(HttpResponse::response_from_request(
-                    req,
-                    StatusCode::BAD_GATEWAY,
-                    <span class="kw-2">&amp;</span>body_message,
-                ))
-            }
-            <span class="prelude-val">Ok</span>(res) =&gt; <span class="prelude-val">Ok</span>(
-                HttpResponse::from_hyper_response(res, port, connection_id, request_id)
-                    .<span class="kw">await
-                    </span>.unwrap_or_else(|e| {
-                        <span class="macro">error!</span>(<span class="string">&quot;Failed to read response to filtered http request: {e:?}. \
-                        Please consider reporting this issue on \
-                        https://github.com/metalbear-co/mirrord/issues/new?labels=bug&amp;template=bug_report.yml&quot;</span>);
-                        HttpResponse::response_from_request(
-                            req,
-                            StatusCode::BAD_GATEWAY,
-                            <span class="string">&quot;mirrord&quot;</span>,
-                        )
-                    }),
-            ),
-        }
-    }
-
-    <span class="doccomment">/// Manage a single tcp connection, forward requests, wait for responses, send responses back.
-    </span><span class="kw">async fn </span>connection_task(
-        addr: SocketAddr,
-        <span class="kw-2">mut </span>request_receiver: Receiver&lt;HttpRequest&gt;,
-        response_sender: Sender&lt;HttpResponse&gt;,
-        port: Port,
-        connection_id: ConnectionId,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), HttpForwarderError&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>http_request_sender = <span class="self">Self</span>::create_http_connection_with_application(addr).<span class="kw">await</span><span class="question-mark">?</span>;
-        <span class="comment">// Listen for more requests in this connection and forward them to app.
-        </span><span class="kw">while let </span><span class="prelude-val">Some</span>(req) = request_receiver.recv().<span class="kw">await </span>{
-            <span class="macro">trace!</span>(<span class="string">&quot;HTTP client task received a new request to send: {req:?}.&quot;</span>);
-
-            <span class="kw">let </span>http_response = <span class="kw">match </span><span class="self">Self</span>::send_http_request_to_application(
-                <span class="kw-2">&amp;mut </span>http_request_sender,
-                req,
-                port,
-                connection_id,
-            )
-            .<span class="kw">await
-            </span>{
-                <span class="prelude-val">Err</span>(req) =&gt; {
-                    <span class="comment">// The connection was closed. Recreate connection and retry send.
-                    </span><span class="kw">match </span><span class="self">Self</span>::create_http_connection_with_application(addr).<span class="kw">await </span>{
-                        <span class="prelude-val">Ok</span>(request_sender) =&gt; {
-                            <span class="comment">// Reconnecting was successful.
-                            </span>http_request_sender = request_sender;
-                            <span class="self">Self</span>::send_http_request_to_application(
-                                <span class="kw-2">&amp;mut </span>http_request_sender,
-                                req,
-                                port,
-                                connection_id,
-                            )
-                            .<span class="kw">await
-                                </span>.unwrap_or_else(|req| {
-                                    <span class="macro">warn!</span>(<span class="string">&quot;Application closed connection too early AGAIN. Not retrying, returning error HTTP response.&quot;</span>);
-                                    HttpResponse::response_from_request(
-                                        req,
-                                        StatusCode::INTERNAL_SERVER_ERROR,
-                                        <span class="string">&quot;mirrord: local process closed the connection too early twice in a row.&quot;
-                                    </span>)
-                                })
-                        }
-                        <span class="prelude-val">Err</span>(err) =&gt; {
-                            <span class="macro">error!</span>(
-                                <span class="string">&quot;The local application closed the http connection early and a \
-                            new connection could not be created. Got error {err:?} when tried to \
-                            reconnect.&quot;
-                            </span>);
-                            HttpResponse::response_from_request(
-                                req,
-                                StatusCode::INTERNAL_SERVER_ERROR,
-                                <span class="string">&quot;mirrord: the local process closed the connection.&quot;</span>,
-                            )
-                        }
-                    }
-                }
-                <span class="prelude-val">Ok</span>(res) =&gt; res,
-            };
-            response_sender.send(http_response).<span class="kw">await</span><span class="question-mark">?</span>;
-        }
-        <span class="prelude-val">Ok</span>(())
-    }
-
     <span class="doccomment">/// Create a new TCP connection with the application to send all the filtered HTTP requests
     /// from this connection in.
     /// Spawn a task that receives requests on a channel and sends them to the application on that
@@ -852,12 +694,40 @@
 
         <span class="kw">let </span>response_sender = <span class="self">self</span>.http_response_sender.clone();
 
+        <span class="kw">let </span>http_version = http_request.version();
+
         tokio::spawn(<span class="kw">async move </span>{
-            <span class="macro">trace!</span>(<span class="string">&quot;HTTP client task started.&quot;</span>);
-            <span class="kw">if let </span><span class="prelude-val">Err</span>(e) =
-                <span class="self">Self</span>::connection_task(addr, request_receiver, response_sender, port, connection_id)
+            <span class="macro">trace!</span>(<span class="string">&quot;HTTP/{http_version:?} client task started.&quot;</span>);
+            <span class="kw">let </span>connection_task_result = <span class="kw">match </span>http_version {
+                hyper::Version::HTTP_2 =&gt; {
+                    ConnectionTask::&lt;HttpV2&gt;::new(
+                        addr,
+                        request_receiver,
+                        response_sender,
+                        port,
+                        connection_id,
+                    )
+                    .and_then(ConnectionTask::start)
                     .<span class="kw">await
-            </span>{
+                </span>}
+                hyper::Version::HTTP_3 =&gt; {
+                    <span class="macro">error!</span>(<span class="string">&quot;mirrord (currently) does not support HTTP/3!&quot;</span>);
+                    <span class="macro">todo!</span>()
+                }
+                _http_v1 =&gt; {
+                    ConnectionTask::&lt;HttpV1&gt;::new(
+                        addr,
+                        request_receiver,
+                        response_sender,
+                        port,
+                        connection_id,
+                    )
+                    .and_then(ConnectionTask::start)
+                    .<span class="kw">await
+                </span>}
+            };
+
+            <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = connection_task_result {
                 <span class="macro">error!</span>(
                     <span class="string">&quot;Error while forwarding http connection {connection_id} (port {port}): {e:?}.&quot;
                 </span>)

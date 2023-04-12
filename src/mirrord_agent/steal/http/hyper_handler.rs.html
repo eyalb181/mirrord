@@ -251,7 +251,16 @@
 <a href="#251" id="251">251</a>
 <a href="#252" id="252">252</a>
 <a href="#253" id="253">253</a>
-</pre><pre class="rust"><code><span class="kw">use </span>core::{future::Future, pin::Pin};
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+</pre><pre class="rust"><code><span class="doccomment">//! The core part of the whole HTTP traffic stealing feature.
+//!
+//! # [`HyperHandler`]
+//!
+//! # [`RawHyperConnection`]
+</span><span class="kw">use </span>core::fmt::Debug;
 <span class="kw">use </span>std::{net::SocketAddr, sync::Arc};
 
 <span class="kw">use </span>bytes::Bytes;
@@ -259,19 +268,19 @@
 <span class="kw">use </span>fancy_regex::Regex;
 <span class="kw">use </span>futures::TryFutureExt;
 <span class="kw">use </span>http_body_util::{BodyExt, Full};
-<span class="kw">use </span>hyper::{body::Incoming, client, header::UPGRADE, http, service::Service, Request, Response};
+<span class="kw">use </span>hyper::{
+    body::Incoming,
+    http::{<span class="self">self</span>, response},
+    Request, Response,
+};
 <span class="kw">use </span>mirrord_protocol::{ConnectionId, Port, RequestId};
 <span class="kw">use </span>tokio::{
-    macros::support::poll_fn,
     net::TcpStream,
-    sync::{
-        mpsc::Sender,
-        oneshot::{<span class="self">self</span>, Receiver},
-    },
+    sync::{mpsc::Sender, oneshot},
 };
 <span class="kw">use </span>tracing::error;
 
-<span class="kw">use </span><span class="kw">super</span>::error::HttpTrafficError;
+<span class="kw">use super</span>::{error::HttpTrafficError, HttpV};
 <span class="kw">use crate</span>::{
     steal::{HandlerHttpRequest, MatchedHttpRequest},
     util::ClientId,
@@ -284,7 +293,10 @@
 ///
 /// Each [`TcpStream`] connection (for stealer) requires this.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>HyperHandler {
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>HyperHandler&lt;V&gt;
+<span class="kw">where
+    </span>V: HttpV + Debug,
+{
     <span class="doccomment">/// The (shared with the stealer) HTTP filter regexes that are used to filter traffic for this
     /// particular connection.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) filters: Arc&lt;DashMap&lt;ClientId, Regex&gt;&gt;,
@@ -308,7 +320,7 @@
     <span class="doccomment">/// Keeps track of which HTTP request we&#39;re dealing with, so we don&#39;t mix up [`Request`]s.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) request_id: RequestId,
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) upgrade_tx: <span class="prelude-ty">Option</span>&lt;oneshot::Sender&lt;RawHyperConnection&gt;&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) handle_version: V,
 }
 
 <span class="doccomment">/// Holds a connection and bytes that were left unprocessed by the [`hyper`] state machine.
@@ -321,187 +333,183 @@
     </span><span class="kw">pub</span>(<span class="kw">super</span>) unprocessed_bytes: Bytes,
 }
 
-<span class="doccomment">/// Sends a [`MatchedHttpRequest`] through `tx` to be handled by the stealer -&gt; layer.
-</span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(matched_tx, response_rx))]
-</span><span class="kw">async fn </span>matched_request(
-    request: HandlerHttpRequest,
-    matched_tx: Sender&lt;HandlerHttpRequest&gt;,
-    response_rx: Receiver&lt;Response&lt;Full&lt;Bytes&gt;&gt;&gt;,
+<span class="doccomment">/// Checks if the [`Request`]&#39;s [`HeaderMap`] contains a header that matches any of the `filters`.
+</span><span class="kw">fn </span>header_matches(
+    request: <span class="kw-2">&amp;</span>Request&lt;Incoming&gt;,
+    filters: <span class="kw-2">&amp;</span>Arc&lt;DashMap&lt;ClientId, Regex&gt;&gt;,
+) -&gt; <span class="prelude-ty">Option</span>&lt;ClientId&gt; {
+    request
+        .headers()
+        .iter()
+        .map(|(header_name, header_value)| {
+            header_value
+                .to_str()
+                .map(|header_value| <span class="macro">format!</span>(<span class="string">&quot;{header_name}: {header_value}&quot;</span>))
+        })
+        .find_map(|header| {
+            filters.iter().find_map(|filter| {
+                filter
+                    .is_match(
+                        header
+                            .as_ref()
+                            .expect(<span class="string">&quot;The header value has to be convertible to `String`!&quot;</span>),
+                    )
+                    .expect(<span class="string">&quot;Something went wrong in the regex matcher!&quot;</span>)
+                    .then_some(<span class="kw-2">*</span>filter.key())
+            })
+        })
+}
+
+<span class="doccomment">/// Remove headers that would be invalid due to us fiddling with the `body`, and rebuilds the
+/// [`Response`].
+</span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">async fn </span>prepare_response(
+    (<span class="kw-2">mut </span>parts, body): (response::Parts, Full&lt;Bytes&gt;),
 ) -&gt; <span class="prelude-ty">Result</span>&lt;Response&lt;Full&lt;Bytes&gt;&gt;, HttpTrafficError&gt; {
+    parts.headers.remove(http::header::CONTENT_LENGTH);
+    parts.headers.remove(http::header::TRANSFER_ENCODING);
+
+    <span class="comment">// Rebuild the `Response` after our fiddling.
+    </span><span class="prelude-val">Ok</span>(Response::from_parts(parts, body))
+}
+
+<span class="doccomment">/// Converts the body of this response from [`Incoming`] into [`Full`].
+///
+/// To be used with [`prepare_response`].
+</span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">async fn </span>collect_response(
+    response: Response&lt;Incoming&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(response::Parts, Full&lt;Bytes&gt;), HttpTrafficError&gt; {
+    <span class="kw">let </span>(parts, body) = response.into_parts();
+    <span class="prelude-val">Ok</span>((parts, Full::new(body.collect().<span class="kw">await</span><span class="question-mark">?</span>.to_bytes())))
+}
+
+<span class="doccomment">/// Sends a [`MatchedHttpRequest`] through `tx` to be handled by the stealer -&gt; layer,
+/// and then waits for the response and returns it once it&#39;s there.
+</span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(matched_tx))]
+</span><span class="kw">async fn </span>matched_request(
+    request: MatchedHttpRequest,
+    matched_tx: Sender&lt;HandlerHttpRequest&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;Response&lt;Full&lt;Bytes&gt;&gt;, HttpTrafficError&gt; {
+    <span class="kw">let </span>(response_tx, response_rx) = oneshot::channel();
+    <span class="kw">let </span>request = HandlerHttpRequest {
+        request,
+        response_tx,
+    };
+
     matched_tx
         .send(request)
         .map_err(HttpTrafficError::from)
         .<span class="kw">await</span><span class="question-mark">?</span>;
 
-    <span class="kw">let </span>(<span class="kw-2">mut </span>parts, body) = response_rx.<span class="kw">await</span><span class="question-mark">?</span>.into_parts();
-    parts.headers.remove(http::header::CONTENT_LENGTH);
-    parts.headers.remove(http::header::TRANSFER_ENCODING);
+    prepare_response(response_rx.<span class="kw">await</span><span class="question-mark">?</span>.into_parts()).<span class="kw">await
+</span>}
 
-    <span class="prelude-val">Ok</span>(Response::from_parts(parts, body))
-}
+<span class="kw">impl</span>&lt;V&gt; HyperHandler&lt;V&gt;
+<span class="kw">where
+    </span>V: HttpV + Debug,
+{
+    <span class="doccomment">/// Handles the case when no filter matches a header in the request (or we have an HTTP upgrade
+    /// request).
+    ///
+    /// # HTTP/1
+    ///
+    /// ## Flow
+    ///
+    /// 1. Creates a [`http1::Connection`](hyper::client::conn::http1::Connection) to the
+    /// `original_destination`;
+    ///
+    /// 2. Sends the [`Request`] to it, and awaits a [`Response`];
+    ///
+    /// 3. Sends the [`HttpResponse`] back on the connected [`TcpStream`];
+    ///
+    /// ### Special case (HTTP upgrade request)
+    ///
+    /// If the [`Request`] is an HTTP upgrade request, then we send the `original_destination`
+    /// connection, through `upgrade_tx`, to be handled in [`filter_task`](super::filter_task).
+    ///
+    /// - Why not use [`hyper::upgrade::on`]?
+    ///
+    /// [`hyper::upgrade::on`] requires the original [`Request`] as a parameter, due to it having
+    /// the [`OnUpgrade`](hyper::upgrade::OnUpgrade) receiver tucked inside as an
+    /// [`Extensions`](http::extensions::Extensions)
+    /// (you can see this [here](https://docs.rs/hyper/1.0.0-rc.2/src/hyper/upgrade.rs.html#73)).
+    ///
+    /// [`hyper::upgrade::on`] polls this receiver to identify if this an HTTP upgrade request.
+    ///
+    /// The issue for us is that we need to send the [`Request`] to its original destination, with
+    /// [`SendRequest`](hyper::client::conn::http1::SendRequest), which takes ownership of the
+    /// request, prohibiting us to also pass it to the proper hyper upgrade handler.
+    ///
+    /// Trying to copy the [`Request`] is futile, as we can&#39;t copy the `OnUpgrade` extension, and if
+    /// we move it from the original `Request` to a copied `Request`, the channel will never
+    /// receive anything due it being in a different `Request` than the one we actually send to
+    /// the hyper machine.
+    ///
+    /// # HTTP/2
+    ///
+    /// ## Flow
+    ///
+    /// 1. Creates a [`http2::Connection`](hyper::client::conn::http2::Connection) to the
+    /// `original_destination`;
+    ///
+    /// 2. Sends the [`Request`] to it, and awaits a [`Response`];
+    ///
+    /// 3. Sends the [`HttpResponse`] back on the connected [`TcpStream`];
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
+    </span><span class="kw">async fn </span>unmatched_request(
+        request: Request&lt;Incoming&gt;,
+        upgrade_tx: <span class="prelude-ty">Option</span>&lt;oneshot::Sender&lt;RawHyperConnection&gt;&gt;,
+        original_destination: SocketAddr,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Response&lt;Full&lt;Bytes&gt;&gt;, HttpTrafficError&gt; {
+        <span class="comment">// TODO(alex): We need a &quot;retry&quot; mechanism here for the client handling part, when the
+        // server closes a connection, the client could still be wanting to send a request,
+        // so we need to re-connect and send.
+        </span><span class="kw">let </span>tcp_stream = TcpStream::connect(original_destination)
+            .<span class="kw">await
+            </span>.inspect_err(|fail| {
+                <span class="macro">error!</span>(<span class="string">&quot;Failed connecting to original_destination with {fail:#?}&quot;</span>)
+            })<span class="question-mark">?</span>;
 
-<span class="doccomment">/// Handles the case when no filter matches a header in the request (or we have an HTTP upgrade
-/// request).
-///
-/// # Flow
-///
-/// 1. Creates a [`http1::Connection`](hyper::client::conn::http1::Connection) to the
-/// `original_destination`;
-///
-/// 2. Sends the [`Request`] to it, and awaits a [`Response`];
-///
-/// 3. Sends the [`HttpResponse`] back on the connected [`TcpStream`];
-///
-/// ## Special case (HTTP upgrade request)
-///
-/// If the [`Request`] is an HTTP upgrade request, then we send the `original_destination`
-/// connection, through `upgrade_tx`, to be handled in [`filter_task`](super::filter_task).
-///
-/// - Why not use [`hyper::upgrade::on`]?
-///
-/// [`hyper::upgrade::on`] requires the original [`Request`] as a parameter, due to it having the
-/// [`OnUpgrade`](hyper::upgrade::OnUpgrade) receiver tucked inside as an
-/// [`Extensions`](http::extensions::Extensions)
-/// (you can see this [here](https://docs.rs/hyper/1.0.0-rc.2/src/hyper/upgrade.rs.html#73)).
-///
-/// [`hyper::upgrade::on`] polls this receiver to identify if this an HTTP upgrade request.
-///
-/// The issue for us is that we need to send the [`Request`] to its original destination, with
-/// [`SendRequest`](hyper::client::conn::http1::SendRequest), which takes ownership of the request,
-/// prohibiting us to also pass it to the proper hyper upgrade handler.
-///
-/// Trying to copy the [`Request`] is futile, as we can&#39;t copy the `OnUpgrade` extension, and if we
-/// move it from the original `Request` to a copied `Request`, the channel will never receive
-/// anything due it being in a different `Request` than the one we actually send to the hyper
-/// machine.
-</span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
-</span><span class="kw">async fn </span>unmatched_request&lt;<span class="kw">const </span>IS_UPGRADE: bool&gt;(
-    request: Request&lt;Incoming&gt;,
-    upgrade_tx: <span class="prelude-ty">Option</span>&lt;oneshot::Sender&lt;RawHyperConnection&gt;&gt;,
-    original_destination: SocketAddr,
-) -&gt; <span class="prelude-ty">Result</span>&lt;Response&lt;Full&lt;Bytes&gt;&gt;, HttpTrafficError&gt; {
-    <span class="comment">// TODO(alex): We need a &quot;retry&quot; mechanism here for the client handling part, when the server
-    // closes a connection, the client could still be wanting to send a request, so we need to
-    // re-connect and send.
-    </span><span class="kw">let </span>tcp_stream = TcpStream::connect(original_destination)
-        .<span class="kw">await
-        </span>.inspect_err(|fail| <span class="macro">error!</span>(<span class="string">&quot;Failed connecting to original_destination with {fail:#?}&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>request_sender = V::connect(tcp_stream, upgrade_tx)
+            .<span class="kw">await
+            </span>.inspect_err(|fail| <span class="macro">error!</span>(<span class="string">&quot;Handshake failed with {fail:#?}&quot;</span>))<span class="question-mark">?</span>;
 
-    <span class="kw">let </span>(<span class="kw-2">mut </span>request_sender, <span class="kw-2">mut </span>connection) = client::conn::http1::handshake(tcp_stream)
-        .<span class="kw">await
-        </span>.inspect_err(|fail| <span class="macro">error!</span>(<span class="string">&quot;Handshake failed with {fail:#?}&quot;</span>))<span class="question-mark">?</span>;
+        V::send_request(<span class="kw-2">&amp;mut </span>request_sender, request).<span class="kw">await
+    </span>}
 
-    <span class="comment">// We need this to progress the connection forward (hyper thing).
-    </span>tokio::spawn(<span class="kw">async move </span>{
-        <span class="comment">// The connection has to be kept alive for the manual handling of an HTTP upgrade.
-        </span><span class="kw">if let </span><span class="prelude-val">Err</span>(fail) = poll_fn(|cx| connection.poll_without_shutdown(cx)).<span class="kw">await </span>{
-            <span class="macro">error!</span>(<span class="string">&quot;Connection failed in unmatched with {fail:#?}&quot;</span>);
-        }
+    <span class="doccomment">/// Handles the incoming HTTP/V [`Request`].
+    ///
+    /// Checks if this [`Request`] contains an upgrade header, and if not, then checks if a header
+    /// matches one of the user specified filters.
+    ///
+    /// Helper function due to the fact that [`Service::call`] is not an `async` function.
+    </span><span class="attr">#[allow(clippy::too_many_arguments)]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">async fn </span>handle_request(
+        request: Request&lt;Incoming&gt;,
+        original_destination: SocketAddr,
+        upgrade_tx: <span class="prelude-ty">Option</span>&lt;oneshot::Sender&lt;RawHyperConnection&gt;&gt;,
+        filters: Arc&lt;DashMap&lt;ClientId, Regex&gt;&gt;,
+        port: Port,
+        connection_id: ConnectionId,
+        request_id: RequestId,
+        matched_tx: Sender&lt;HandlerHttpRequest&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Response&lt;Full&lt;Bytes&gt;&gt;, HttpTrafficError&gt; {
+        <span class="kw">if </span>V::is_upgrade(<span class="kw-2">&amp;</span>request) {
+            <span class="self">Self</span>::unmatched_request(request, upgrade_tx, original_destination).<span class="kw">await
+        </span>} <span class="kw">else if let </span><span class="prelude-val">Some</span>(client_id) = header_matches(<span class="kw-2">&amp;</span>request, <span class="kw-2">&amp;</span>filters) {
+            <span class="kw">let </span>request = MatchedHttpRequest {
+                port,
+                connection_id,
+                client_id,
+                request_id,
+                request,
+            };
 
-        <span class="comment">// If this is not an upgrade, then we&#39;ll just drop the `Sender`, this is enough to signal
-        // the `Receiver` in `filter.rs` that we&#39;re not dealing with an upgrade request, and that
-        // the `HyperHandler` connection can be dropped.
-        </span><span class="kw">if </span>IS_UPGRADE {
-            <span class="kw">let </span>client::conn::http1::Parts { io, read_buf, .. } = connection.into_parts();
-
-            <span class="kw">let _ </span>= upgrade_tx
-                .map(|sender| {
-                    sender.send(RawHyperConnection {
-                        stream: io,
-                        unprocessed_bytes: read_buf,
-                    })
-                })
-                .transpose()
-                .inspect_err(|<span class="kw">_</span>| <span class="macro">error!</span>(<span class="string">&quot;Failed sending interceptor connection!&quot;</span>));
-        }
-    });
-
-    <span class="comment">// Send the request to the original destination.
-    </span><span class="kw">let </span>(<span class="kw-2">mut </span>parts, body) = request_sender
-        .send_request(request)
-        .<span class="kw">await
-        </span>.inspect_err(|fail| <span class="macro">error!</span>(<span class="string">&quot;Failed hyper request sender with {fail:#?}&quot;</span>))<span class="question-mark">?
-        </span>.into_parts();
-
-    <span class="comment">// Remove headers that would be invalid due to us fiddling with the `body`.
-    </span><span class="kw">let </span>body = body.collect().<span class="kw">await</span><span class="question-mark">?</span>.to_bytes();
-    parts.headers.remove(http::header::CONTENT_LENGTH);
-    parts.headers.remove(http::header::TRANSFER_ENCODING);
-
-    <span class="comment">// Rebuild the `Response` after our fiddling.
-    </span><span class="prelude-val">Ok</span>(Response::from_parts(parts, body.into()))
-}
-
-<span class="kw">impl </span>Service&lt;Request&lt;Incoming&gt;&gt; <span class="kw">for </span>HyperHandler {
-    <span class="kw">type </span>Response = Response&lt;Full&lt;Bytes&gt;&gt;;
-
-    <span class="kw">type </span>Error = HttpTrafficError;
-
-    <span class="kw">type </span>Future = Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Response, <span class="self">Self</span>::Error&gt;&gt; + Send&gt;&gt;;
-
-    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
-    </span><span class="kw">fn </span>call(<span class="kw-2">&amp;mut </span><span class="self">self</span>, request: Request&lt;Incoming&gt;) -&gt; <span class="self">Self</span>::Future {
-        <span class="self">self</span>.request_id += <span class="number">1</span>;
-
-        <span class="kw">let </span>response = |original_destination,
-                        upgrade_tx,
-                        filters: Arc&lt;DashMap&lt;ClientId, Regex&gt;&gt;,
-                        port,
-                        connection_id,
-                        request_id,
-                        matched_tx| <span class="kw">async move </span>{
-            <span class="kw">if </span>request.headers().get(UPGRADE).is_some() {
-                unmatched_request::&lt;<span class="bool-val">true</span>&gt;(request, upgrade_tx, original_destination).<span class="kw">await
-            </span>} <span class="kw">else if let </span><span class="prelude-val">Some</span>(client_id) = request
-                .headers()
-                .iter()
-                .map(|(header_name, header_value)| {
-                    header_value
-                        .to_str()
-                        .map(|header_value| <span class="macro">format!</span>(<span class="string">&quot;{header_name}: {header_value}&quot;</span>))
-                })
-                .find_map(|header| {
-                    filters.iter().find_map(|filter| {
-                        filter
-                            .is_match(
-                                header
-                                    .as_ref()
-                                    .expect(<span class="string">&quot;The header value has to be convertible to `String`!&quot;</span>),
-                            )
-                            .expect(<span class="string">&quot;Something went wrong in the regex matcher!&quot;</span>)
-                            .then_some(<span class="kw-2">*</span>filter.key())
-                    })
-                })
-            {
-                <span class="kw">let </span>request = MatchedHttpRequest {
-                    port,
-                    connection_id,
-                    client_id,
-                    request_id,
-                    request,
-                };
-
-                <span class="kw">let </span>(response_tx, response_rx) = oneshot::channel();
-                <span class="kw">let </span>handler_request = HandlerHttpRequest {
-                    request,
-                    response_tx,
-                };
-
-                matched_request(handler_request, matched_tx, response_rx).<span class="kw">await
-            </span>} <span class="kw">else </span>{
-                unmatched_request::&lt;<span class="bool-val">false</span>&gt;(request, upgrade_tx, original_destination).<span class="kw">await
-            </span>}
-        };
-
-        Box::pin(response(
-            <span class="self">self</span>.original_destination,
-            <span class="self">self</span>.upgrade_tx.take(),
-            <span class="self">self</span>.filters.clone(),
-            <span class="self">self</span>.port,
-            <span class="self">self</span>.connection_id,
-            <span class="self">self</span>.request_id,
-            <span class="self">self</span>.matched_tx.clone(),
-        ))
+            matched_request(request, matched_tx).<span class="kw">await
+        </span>} <span class="kw">else </span>{
+            <span class="self">Self</span>::unmatched_request(request, <span class="prelude-val">None</span>, original_destination).<span class="kw">await
+        </span>}
     }
 }
 </code></pre></div></section></main></body></html>

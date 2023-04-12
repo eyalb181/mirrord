@@ -683,6 +683,8 @@
 <a href="#683" id="683">683</a>
 <a href="#684" id="684">684</a>
 <a href="#685" id="685">685</a>
+<a href="#686" id="686">686</a>
+<a href="#687" id="687">687</a>
 </pre><pre class="rust"><code><span class="attr">#![feature(result_option_inspect)]
 #![feature(hash_drain_filter)]
 #![feature(once_cell)]
@@ -690,6 +692,8 @@
 #![feature(let_chains)]
 #![feature(type_alias_impl_trait)]
 #![feature(tcp_quickack)]
+#![feature(async_fn_in_trait)]
+#![allow(incomplete_features)]
 
 </span><span class="kw">use </span>std::{
     collections::{HashMap, HashSet},
@@ -792,7 +796,7 @@
         }
         <span class="prelude-val">Ok</span>(State {
             clients: HashSet::new(),
-            index_allocator: IndexAllocator::new(),
+            index_allocator: Default::default(),
             should_pause: args.pause,
             container,
         })

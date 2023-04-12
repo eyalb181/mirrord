@@ -292,6 +292,13 @@
 <a href="#292" id="292">292</a>
 <a href="#293" id="293">293</a>
 <a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
 </pre><pre class="rust"><code><span class="kw">use </span>core::fmt::Display;
 <span class="kw">use </span>std::{fmt, net::IpAddr};
 
@@ -452,6 +459,13 @@
     <span class="doccomment">/// Unlike TcpData, HttpRequest includes the port, so that the connection can be created
     /// &quot;lazily&quot;, with the first filtered request.
     </span><span class="kw">pub </span>port: Port,
+}
+
+<span class="kw">impl </span>HttpRequest {
+    <span class="doccomment">/// Gets this request&#39;s HTTP version.
+    </span><span class="kw">pub fn </span>version(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Version {
+        <span class="self">self</span>.internal_request.version
+    }
 }
 
 <span class="doccomment">/// (De-)Serializable HTTP response.

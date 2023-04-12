@@ -900,6 +900,22 @@
 <a href="#900" id="900">900</a>
 <a href="#901" id="901">901</a>
 <a href="#902" id="902">902</a>
+<a href="#903" id="903">903</a>
+<a href="#904" id="904">904</a>
+<a href="#905" id="905">905</a>
+<a href="#906" id="906">906</a>
+<a href="#907" id="907">907</a>
+<a href="#908" id="908">908</a>
+<a href="#909" id="909">909</a>
+<a href="#910" id="910">910</a>
+<a href="#911" id="911">911</a>
+<a href="#912" id="912">912</a>
+<a href="#913" id="913">913</a>
+<a href="#914" id="914">914</a>
+<a href="#915" id="915">915</a>
+<a href="#916" id="916">916</a>
+<a href="#917" id="917">917</a>
+<a href="#918" id="918">918</a>
 </pre><pre class="rust"><code><span class="attr">#![feature(stmt_expr_attributes)]
 
 </span><span class="kw">mod </span>env;
@@ -911,7 +927,6 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>utils {
-
     <span class="kw">use </span>std::{
         collections::HashMap,
         fmt::Debug,
@@ -987,10 +1002,10 @@
         PythonFlaskHTTP,
         PythonFastApiHTTP,
         NodeHTTP,
+        NodeHTTP2,
         Go18HTTP,
         Go19HTTP,
         Go20HTTP,
-        NodeTcpEcho,
     }
 
     <span class="attr">#[derive(Debug)]
@@ -1125,10 +1140,12 @@
                     ]
                 }
                 Application::NodeHTTP =&gt; <span class="macro">vec!</span>[<span class="string">&quot;node&quot;</span>, <span class="string">&quot;node-e2e/app.js&quot;</span>],
+                Application::NodeHTTP2 =&gt; {
+                    <span class="macro">vec!</span>[<span class="string">&quot;node&quot;</span>, <span class="string">&quot;node-e2e/http2/test_http2_traffic_steal.mjs&quot;</span>]
+                }
                 Application::Go18HTTP =&gt; <span class="macro">vec!</span>[<span class="string">&quot;go-e2e/18&quot;</span>],
                 Application::Go19HTTP =&gt; <span class="macro">vec!</span>[<span class="string">&quot;go-e2e/19&quot;</span>],
                 Application::Go20HTTP =&gt; <span class="macro">vec!</span>[<span class="string">&quot;go-e2e/20&quot;</span>],
-                Application::NodeTcpEcho =&gt; <span class="macro">vec!</span>[<span class="string">&quot;node&quot;</span>, <span class="string">&quot;node-e2e/tcp-echo/app.js&quot;</span>],
             }
         }
 
@@ -1637,6 +1654,20 @@
         .<span class="kw">await
     </span>}
 
+    <span class="attr">#[fixture]
+    </span><span class="kw">pub async fn </span>http2_service(<span class="attr">#[future] </span>kube_client: Client) -&gt; KubeService {
+        service(
+            <span class="string">&quot;default&quot;</span>,
+            <span class="string">&quot;NodePort&quot;</span>,
+            <span class="string">&quot;ghcr.io/metalbear-co/mirrord-pytest:latest&quot;</span>,
+            <span class="string">&quot;http2-echo&quot;</span>,
+            <span class="bool-val">true</span>,
+            <span class="bool-val">false</span>,
+            kube_client,
+        )
+        .<span class="kw">await
+    </span>}
+
     <span class="doccomment">/// Service that listens on port 80 and returns &quot;remote: &lt;DATA&gt;&quot; when getting &quot;&lt;DATA&gt;&quot; directly
     /// over TCP, not HTTP.
     </span><span class="attr">#[fixture]
@@ -1759,6 +1790,7 @@
         <span class="comment">// Create client for each request until we have a match between local app and remote app
         // as connection state is flaky
         </span><span class="macro">println!</span>(<span class="string">&quot;{url}&quot;</span>);
+
         <span class="kw">let </span>client = reqwest::Client::new();
         <span class="kw">let </span>req_builder = client.get(url);
         send_request(

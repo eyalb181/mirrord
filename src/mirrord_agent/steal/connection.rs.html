@@ -798,7 +798,7 @@
             port_subscriptions: HashMap::with_capacity(<span class="number">4</span>),
             command_rx,
             clients: HashMap::with_capacity(<span class="number">8</span>),
-            index_allocator: IndexAllocator::new(),
+            index_allocator: Default::default(),
             stealer: TcpListener::bind((Ipv4Addr::UNSPECIFIED, <span class="number">0</span>)).<span class="kw">await</span><span class="question-mark">?</span>,
             iptables: <span class="prelude-val">None</span>, <span class="comment">// Initialize on first subscription.
             </span>write_streams: HashMap::with_capacity(<span class="number">8</span>),
