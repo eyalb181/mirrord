@@ -1829,8 +1829,8 @@
 /// ## Details
 ///
 /// Removes the `fd` key from either [`SOCKETS`] or [`OPEN_FILES`].
+/// **DON&#39;T ADD LOGS HERE SINCE CALLER MIGHT CLOSE STDOUT/STDERR CAUSING THIS TO CRASH**
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>close_layer_fd(fd: c_int) {
-    <span class="macro">trace!</span>(<span class="string">&quot;Closing fd {}&quot;</span>, fd);
     <span class="kw">let </span>file_mode_active = FILE_MODE
         .get()
         .expect(<span class="string">&quot;Should be set during initialization!&quot;</span>)
@@ -1838,7 +1838,7 @@
 
     <span class="comment">// Remove from sockets, also removing the `ConnectionQueue` associated with the socket.
     </span><span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, socket)) = SOCKETS.remove(<span class="kw-2">&amp;</span>fd) {
-        CONNECTION_QUEUE.lock().unwrap().remove(socket.id);
+        CONNECTION_QUEUE.remove(socket.id);
     } <span class="kw">else if </span>file_mode_active {
         OPEN_FILES.remove(<span class="kw-2">&amp;</span>fd);
     }

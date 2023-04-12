@@ -729,8 +729,6 @@
 <a href="#729" id="729">729</a>
 <a href="#730" id="730">730</a>
 <a href="#731" id="731">731</a>
-<a href="#732" id="732">732</a>
-<a href="#733" id="733">733</a>
 </pre><pre class="rust"><code><span class="kw">use </span>alloc::ffi::CString;
 <span class="kw">use </span>core::{ffi::CStr, mem};
 <span class="kw">use </span>std::{
@@ -1258,8 +1256,7 @@
 
     <span class="kw">let </span>(local_address, remote_address) = {
         CONNECTION_QUEUE
-            .lock()<span class="question-mark">?
-            </span>.pop_front(id)
+            .pop_front(id)
             .bypass(Bypass::LocalFdNotFound(sockfd))
             .map(|socket| {
                 (
@@ -1388,7 +1385,6 @@
 
     <span class="comment">// Convert `service` into a port.
     </span><span class="kw">let </span>service = service.map_or(<span class="number">0</span>, |s| s.parse().unwrap_or_default());
-    <span class="kw">let </span><span class="kw-2">mut </span>addrinfo_set = MANAGED_ADDRINFO.lock()<span class="question-mark">?</span>;
     <span class="comment">// Only care about: `ai_family`, `ai_socktype`, `ai_protocol`.
     </span><span class="kw">let </span>result = addr_info_list
         .into_iter()
@@ -1417,7 +1413,7 @@
         .map(Box::new)
         .map(Box::into_raw)
         .map(|raw| {
-            addrinfo_set.insert(raw <span class="kw">as </span>usize);
+            MANAGED_ADDRINFO.insert(raw <span class="kw">as </span>usize);
             raw
         })
         .reduce(|current, <span class="kw-2">mut </span>previous| {

@@ -187,8 +187,6 @@
 <a href="#187" id="187">187</a>
 <a href="#188" id="188">188</a>
 <a href="#189" id="189">189</a>
-<a href="#190" id="190">190</a>
-<a href="#191" id="191">191</a>
 </pre><pre class="rust"><code><span class="doccomment">/// Tcp Traffic management, common code for stealing &amp; mirroring
 </span><span class="kw">use </span>std::{
     borrow::Borrow,
@@ -351,9 +349,7 @@
             </span>SocketAddr::new(tcp_connection.local_address, local_destination_port),
         );
 
-        {
-            CONNECTION_QUEUE.lock().unwrap().add(listen.id, info);
-        }
+        CONNECTION_QUEUE.add(listen.id, info);
 
         <span class="attr">#[allow(clippy::let_and_return)]
         </span><span class="kw">let </span>tcp_stream = {

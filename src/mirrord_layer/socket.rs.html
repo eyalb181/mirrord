@@ -255,14 +255,13 @@
 <a href="#255" id="255">255</a>
 <a href="#256" id="256">256</a>
 <a href="#257" id="257">257</a>
-<a href="#258" id="258">258</a>
 </pre><pre class="rust"><code><span class="doccomment">//! We implement each hook function in a safe function as much as possible, having the unsafe do the
 //! absolute minimum
 </span><span class="kw">use </span>std::{
-    collections::{HashMap, VecDeque},
+    collections::VecDeque,
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
     os::unix::io::RawFd,
-    sync::{Arc, LazyLock, Mutex},
+    sync::{Arc, LazyLock},
 };
 
 <span class="kw">use </span>dashmap::DashMap;
@@ -296,8 +295,7 @@
 ///
 /// Finally, we remove a socket&#39;s queue when the socket&#39;s `fd` is closed in
 /// [`close_layer_fd`](crate::close_layer_fd).
-</span><span class="kw">pub static </span>CONNECTION_QUEUE: LazyLock&lt;Mutex&lt;ConnectionQueue&gt;&gt; =
-    LazyLock::new(|| Mutex::new(ConnectionQueue::default()));
+</span><span class="kw">pub static </span>CONNECTION_QUEUE: LazyLock&lt;ConnectionQueue&gt; = LazyLock::new(ConnectionQueue::default);
 
 <span class="doccomment">/// Struct sent over the socket once created to pass metadata to the hook
 </span><span class="attr">#[derive(Debug)]
@@ -311,7 +309,7 @@
 <span class="doccomment">/// poll_agent loop inserts connection data into this queue, and accept reads it.
 </span><span class="attr">#[derive(Debug, Default)]
 </span><span class="kw">pub struct </span>ConnectionQueue {
-    connections: HashMap&lt;SocketId, VecDeque&lt;SocketInformation&gt;&gt;,
+    connections: DashMap&lt;SocketId, VecDeque&lt;SocketInformation&gt;&gt;,
 }
 
 <span class="kw">impl </span>ConnectionQueue {
@@ -319,7 +317,7 @@
     ///
     /// See [`TcpHandler::create_local_stream`](crate::tcp::TcpHandler::create_local_stream).
     </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>add(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: SocketId, info: SocketInformation) {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>add(<span class="kw-2">&amp;</span><span class="self">self</span>, id: SocketId, info: SocketInformation) {
         <span class="self">self</span>.connections.entry(id).or_default().push_back(info);
     }
 
@@ -327,7 +325,7 @@
     ///
     /// See [`ops::accept].
     </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pop_front(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: SocketId) -&gt; <span class="prelude-ty">Option</span>&lt;SocketInformation&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pop_front(<span class="kw-2">&amp;</span><span class="self">self</span>, id: SocketId) -&gt; <span class="prelude-ty">Option</span>&lt;SocketInformation&gt; {
         <span class="self">self</span>.connections.get_mut(<span class="kw-2">&amp;</span>id)<span class="question-mark">?</span>.pop_front()
     }
 
@@ -335,8 +333,8 @@
     ///
     /// See [`crate::close_layer_fd].
     </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: SocketId) -&gt; <span class="prelude-ty">Option</span>&lt;VecDeque&lt;SocketInformation&gt;&gt; {
-        <span class="self">self</span>.connections.remove(<span class="kw-2">&amp;</span>id)
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>remove(<span class="kw-2">&amp;</span><span class="self">self</span>, id: SocketId) -&gt; <span class="prelude-ty">Option</span>&lt;VecDeque&lt;SocketInformation&gt;&gt; {
+        <span class="self">self</span>.connections.remove(<span class="kw-2">&amp;</span>id).map(|(<span class="kw">_</span>, v)| v)
     }
 }
 

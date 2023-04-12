@@ -400,39 +400,21 @@
 <a href="#400" id="400">400</a>
 <a href="#401" id="401">401</a>
 <a href="#402" id="402">402</a>
-<a href="#403" id="403">403</a>
-<a href="#404" id="404">404</a>
-<a href="#405" id="405">405</a>
-<a href="#406" id="406">406</a>
-<a href="#407" id="407">407</a>
-<a href="#408" id="408">408</a>
-<a href="#409" id="409">409</a>
-<a href="#410" id="410">410</a>
-<a href="#411" id="411">411</a>
-<a href="#412" id="412">412</a>
-<a href="#413" id="413">413</a>
-<a href="#414" id="414">414</a>
-<a href="#415" id="415">415</a>
-<a href="#416" id="416">416</a>
 </pre><pre class="rust"><code><span class="kw">use </span>alloc::ffi::CString;
 <span class="kw">use </span>core::{cmp, ffi::CStr, mem};
-<span class="kw">use </span>std::{
-    collections::HashSet,
-    os::unix::io::RawFd,
-    sync::{LazyLock, Mutex},
-};
+<span class="kw">use </span>std::{os::unix::io::RawFd, sync::LazyLock};
 
+<span class="kw">use </span>dashmap::DashSet;
 <span class="kw">use </span>errno::{set_errno, Errno};
 <span class="kw">use </span>libc::{c_char, c_int, sockaddr, socklen_t, EINVAL};
 <span class="kw">use </span>mirrord_layer_macro::{hook_fn, hook_guard_fn};
 
 <span class="kw">use </span><span class="kw">super</span>::ops::<span class="kw-2">*</span>;
-<span class="kw">use crate</span>::{detour::DetourGuard, error::HookError, hooks::HookManager, replace};
+<span class="kw">use crate</span>::{detour::DetourGuard, hooks::HookManager, replace};
 
 <span class="doccomment">/// Here we keep addr infos that we allocated so we&#39;ll know when to use the original
 /// freeaddrinfo function and when to use our implementation
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>MANAGED_ADDRINFO: LazyLock&lt;Mutex&lt;HashSet&lt;usize&gt;&gt;&gt; =
-    LazyLock::new(|| Mutex::new(HashSet::with_capacity(<span class="number">4</span>)));
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>MANAGED_ADDRINFO: LazyLock&lt;DashSet&lt;usize&gt;&gt; = LazyLock::new(DashSet::new);
 
 <span class="attr">#[hook_guard_fn]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>socket_detour(
@@ -669,14 +651,9 @@
     getaddrinfo(rawish_node, rawish_service, mem::transmute(raw_hints))
         .map(|c_addr_info_ptr| {
             out_addr_info.copy_from_nonoverlapping(<span class="kw-2">&amp;</span>c_addr_info_ptr, <span class="number">1</span>);
-            MANAGED_ADDRINFO
-                .lock()
-                .map(|<span class="kw-2">mut </span>managed_addrinfo| {
-                    managed_addrinfo.insert(c_addr_info_ptr <span class="kw">as </span>usize);
-                    <span class="number">0
-                </span>})
-                .unwrap_or_else(|<span class="kw">_</span>| HookError::LockError.into())
-        })
+            MANAGED_ADDRINFO.insert(c_addr_info_ptr <span class="kw">as </span>usize);
+            <span class="number">0
+        </span>})
         .unwrap_or_bypass_with(|<span class="kw">_</span>| FN_GETADDRINFO(raw_node, raw_service, raw_hints, out_addr_info))
 }
 
@@ -703,33 +680,28 @@
 </span><span class="attr">#[hook_guard_fn]
 </span><span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>freeaddrinfo_detour(addrinfo: <span class="kw-2">*mut </span>libc::addrinfo) {
     MANAGED_ADDRINFO
-        .lock()
-        .map(|<span class="kw-2">mut </span>managed_addrinfo| {
-            managed_addrinfo
-                .remove(<span class="kw-2">&amp;</span>(addrinfo <span class="kw">as </span>usize))
-                .then(|| {
-                    <span class="comment">// Iterate over `addrinfo` linked list dropping it.
-                    </span><span class="kw">let </span><span class="kw-2">mut </span>current = addrinfo;
-                    <span class="kw">while </span>!current.is_null() {
-                        <span class="kw">let </span>current_box = Box::from_raw(current);
-                        <span class="kw">let </span>ai_addr = Box::from_raw(current_box.ai_addr);
-                        <span class="kw">let </span>ai_canonname = CString::from_raw(current_box.ai_canonname);
+        .remove(<span class="kw-2">&amp;</span>(addrinfo <span class="kw">as </span>usize))
+        .map(|<span class="kw">_</span>| {
+            <span class="comment">// Iterate over `addrinfo` linked list dropping it.
+            </span><span class="kw">let </span><span class="kw-2">mut </span>current = addrinfo;
+            <span class="kw">while </span>!current.is_null() {
+                <span class="kw">let </span>current_box = Box::from_raw(current);
+                <span class="kw">let </span>ai_addr = Box::from_raw(current_box.ai_addr);
+                <span class="kw">let </span>ai_canonname = CString::from_raw(current_box.ai_canonname);
 
-                        current = (<span class="kw-2">*</span>current).ai_next;
+                current = (<span class="kw-2">*</span>current).ai_next;
 
-                        drop(ai_addr);
-                        drop(ai_canonname);
-                        drop(current_box);
-                        managed_addrinfo.remove(<span class="kw-2">&amp;</span>(current <span class="kw">as </span>usize));
-                    }
-                })
-                .unwrap_or_else(|| {
-                    <span class="comment">// If the `addrinfo` pointer was not allocated by `getaddrinfo_detour`, then it
-                    // is bypassed.
-                    </span>FN_FREEADDRINFO(addrinfo);
-                })
+                drop(ai_addr);
+                drop(ai_canonname);
+                drop(current_box);
+                MANAGED_ADDRINFO.remove(<span class="kw-2">&amp;</span>(current <span class="kw">as </span>usize));
+            }
         })
-        .expect(<span class="string">&quot;Failed to lock MANAGED_ADDRINFO mutex&quot;</span>);
+        .unwrap_or_else(|| {
+            <span class="comment">// If the `addrinfo` pointer was not allocated by `getaddrinfo_detour`, then it
+            // is bypassed.
+            </span>FN_FREEADDRINFO(addrinfo);
+        })
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>enable_socket_hooks(hook_manager: <span class="kw-2">&amp;mut </span>HookManager, enabled_remote_dns: bool) {
