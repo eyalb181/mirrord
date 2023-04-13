@@ -561,6 +561,13 @@
 <a href="#561" id="561">561</a>
 <a href="#562" id="562">562</a>
 <a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
+<a href="#565" id="565">565</a>
+<a href="#566" id="566">566</a>
+<a href="#567" id="567">567</a>
+<a href="#568" id="568">568</a>
+<a href="#569" id="569">569</a>
+<a href="#570" id="570">570</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     collections::{HashMap, HashSet},
     hash::{Hash, Hasher},
@@ -583,7 +590,7 @@
 <span class="kw">use </span>tokio::{
     net::UdpSocket,
     select,
-    sync::mpsc::{Receiver, Sender},
+    sync::mpsc::{<span class="self">self</span>, Receiver, Sender},
 };
 <span class="kw">use </span>tokio_util::sync::CancellationToken;
 <span class="kw">use </span>tracing::{debug, error, trace, warn};
@@ -591,6 +598,7 @@
 <span class="kw">use crate</span>::{
     error::AgentError,
     util::{ClientId, IndexAllocator, Subscriptions},
+    watched_task::TaskStatus,
 };
 
 <span class="attr">#[derive(Debug, Eq, Copy, Clone)]
@@ -753,87 +761,91 @@
     AgentClosed,
 }
 
+<span class="kw">impl </span>From&lt;LayerTcp&gt; <span class="kw">for </span>SnifferCommands {
+    <span class="kw">fn </span>from(value: LayerTcp) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span>value {
+            LayerTcp::PortSubscribe(port) =&gt; <span class="self">Self</span>::Subscribe(port),
+            LayerTcp::PortUnsubscribe(port) =&gt; <span class="self">Self</span>::UnsubscribePort(port),
+            LayerTcp::ConnectionUnsubscribe(id) =&gt; <span class="self">Self</span>::UnsubscribeConnection(id),
+        }
+    }
+}
+
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>SnifferCommand {
     client_id: ClientId,
     command: SnifferCommands,
 }
 
-<span class="kw">pub struct </span>TcpSnifferApi {
-    client_id: ClientId,
-    sender: Sender&lt;SnifferCommand&gt;,
-    <span class="kw">pub </span>receiver: Receiver&lt;DaemonTcp&gt;,
+<span class="doccomment">/// Interface used by clients to interact with the [`TcpConnectionSniffer`].
+/// Multiple instances of this struct operate on a single sniffer instance.
+</span><span class="kw">pub struct </span>TcpSnifferApi {
+    <span class="doccomment">/// Id of the client using this struct.
+    </span>client_id: ClientId,
+    <span class="doccomment">/// Channel used to send commands to the [`TcpConnectionSniffer`].
+    </span>sender: Sender&lt;SnifferCommand&gt;,
+    <span class="doccomment">/// Channel used to receive messages from the [`TcpConnectionSniffer`].
+    </span>receiver: Receiver&lt;DaemonTcp&gt;,
+    <span class="doccomment">/// View on the sniffer task&#39;s status.
+    </span>task_status: TaskStatus,
 }
 
 <span class="kw">impl </span>TcpSnifferApi {
-    <span class="kw">pub async fn </span>new(
+    <span class="doccomment">/// Create a new instance of this struct and connect it to a [`TcpConnectionSniffer`] instance.
+    /// * `client_id` - id of the client using this struct
+    /// * `sniffer_sender` - channel used to send commands to the [`TcpConnectionSniffer`]
+    /// * `task_status` - handle to the [`TcpConnectionSniffer`] exit status
+    /// * `channel_size` - capacity of the channel connecting [`TcpConnectionSniffer`] back to this
+    ///   struct
+    </span><span class="kw">pub async fn </span>new(
         client_id: ClientId,
         sniffer_sender: Sender&lt;SnifferCommand&gt;,
-        receiver: Receiver&lt;DaemonTcp&gt;,
-        tcp_sender: Sender&lt;DaemonTcp&gt;,
+        task_status: TaskStatus,
+        channel_size: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;TcpSnifferApi, AgentError&gt; {
+        <span class="kw">let </span>(sender, receiver) = mpsc::channel(channel_size);
+
         sniffer_sender
             .send(SnifferCommand {
                 client_id,
-                command: SnifferCommands::NewAgent(tcp_sender),
+                command: SnifferCommands::NewAgent(sender),
             })
             .<span class="kw">await</span><span class="question-mark">?</span>;
+
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
             client_id,
             sender: sniffer_sender,
             receiver,
+            task_status,
         })
     }
 
-    <span class="kw">pub async fn </span>subscribe(<span class="kw-2">&amp;mut </span><span class="self">self</span>, port: Port) -&gt; <span class="prelude-ty">Result</span>&lt;(), AgentError&gt; {
-        <span class="self">self</span>.sender
-            .send(SnifferCommand {
-                client_id: <span class="self">self</span>.client_id,
-                command: SnifferCommands::Subscribe(port),
-            })
-            .<span class="kw">await
-            </span>.map_err(From::from)
-    }
+    <span class="doccomment">/// Send the given command to the connected [`TcpConnectionSniffer`].
+    </span><span class="kw">async fn </span>send_command(<span class="kw-2">&amp;mut </span><span class="self">self</span>, command: SnifferCommands) -&gt; <span class="prelude-ty">Result</span>&lt;(), AgentError&gt; {
+        <span class="kw">let </span>command = SnifferCommand {
+            client_id: <span class="self">self</span>.client_id,
+            command,
+        };
 
-    <span class="kw">pub async fn </span>connection_unsubscribe(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        connection_id: ConnectionId,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), AgentError&gt; {
-        <span class="self">self</span>.sender
-            .send(SnifferCommand {
-                client_id: <span class="self">self</span>.client_id,
-                command: SnifferCommands::UnsubscribeConnection(connection_id),
-            })
-            .<span class="kw">await
-            </span>.map_err(From::from)
-    }
-
-    <span class="kw">pub async fn </span>port_unsubscribe(<span class="kw-2">&amp;mut </span><span class="self">self</span>, port: Port) -&gt; <span class="prelude-ty">Result</span>&lt;(), AgentError&gt; {
-        <span class="self">self</span>.sender
-            .send(SnifferCommand {
-                client_id: <span class="self">self</span>.client_id,
-                command: SnifferCommands::UnsubscribePort(port),
-            })
-            .<span class="kw">await
-            </span>.map_err(From::from)
-    }
-
-    <span class="kw">pub async fn </span>recv(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;DaemonTcp&gt; {
-        <span class="self">self</span>.receiver.recv().<span class="kw">await
-    </span>}
-
-    <span class="kw">pub async fn </span>handle_client_message(<span class="kw-2">&amp;mut </span><span class="self">self</span>, message: LayerTcp) -&gt; <span class="prelude-ty">Result</span>&lt;(), AgentError&gt; {
-        <span class="kw">match </span>message {
-            LayerTcp::PortSubscribe(port) =&gt; <span class="self">self</span>.subscribe(port).<span class="kw">await</span>,
-            LayerTcp::ConnectionUnsubscribe(connection_id) =&gt; {
-                <span class="self">self</span>.connection_unsubscribe(connection_id).<span class="kw">await
-            </span>}
-            LayerTcp::PortUnsubscribe(port) =&gt; <span class="self">self</span>.port_unsubscribe(port).<span class="kw">await</span>,
+        <span class="kw">if </span><span class="self">self</span>.sender.send(command).<span class="kw">await</span>.is_ok() {
+            <span class="prelude-val">Ok</span>(())
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(<span class="self">self</span>.task_status.unwrap_err().<span class="kw">await</span>)
         }
-        .map_err(|<span class="kw">_</span>| AgentError::SnifferApiError)
-        <span class="comment">// Translate all errors to a single error type
-        // so we can notify the user the sniffer api is unavailable.
-        // and steal might work for them.
+    }
+
+    <span class="doccomment">/// Return the next message from the connected [`TcpConnectionSniffer`].
+    </span><span class="kw">pub async fn </span>recv(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;DaemonTcp, AgentError&gt; {
+        <span class="kw">match </span><span class="self">self</span>.receiver.recv().<span class="kw">await </span>{
+            <span class="prelude-val">Some</span>(msg) =&gt; <span class="prelude-val">Ok</span>(msg),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<span class="self">self</span>.task_status.unwrap_err().<span class="kw">await</span>),
+        }
+    }
+
+    <span class="doccomment">/// Tansform the given message into a [`SnifferCommands`] and pass it to the connected
+    /// [`TcpConnectionSniffer`].
+    </span><span class="kw">pub async fn </span>handle_client_message(<span class="kw-2">&amp;mut </span><span class="self">self</span>, message: LayerTcp) -&gt; <span class="prelude-ty">Result</span>&lt;(), AgentError&gt; {
+        <span class="self">self</span>.send_command(message.into()).<span class="kw">await
     </span>}
 }
 
@@ -860,6 +872,8 @@
 }
 
 <span class="kw">impl </span>TcpConnectionSniffer {
+    <span class="kw">pub const </span>TASK_NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Sniffer&quot;</span>;
+
     <span class="doccomment">/// Runs the sniffer loop, capturing packets.
     </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">pub async fn </span>start(<span class="kw-2">mut </span><span class="self">self</span>, cancel_token: CancellationToken) -&gt; <span class="prelude-ty">Result</span>&lt;(), AgentError&gt; {

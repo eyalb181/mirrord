@@ -145,7 +145,16 @@
 <a href="#145" id="145">145</a>
 <a href="#146" id="146">146</a>
 <a href="#147" id="147">147</a>
-</pre><pre class="rust"><code><span class="kw">use </span>mirrord_config_derive::MirrordConfig;
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+</pre><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
+
+<span class="kw">use </span>mirrord_config_derive::MirrordConfig;
 <span class="kw">use </span>schemars::JsonSchema;
 
 <span class="kw">use </span><span class="kw">crate</span>::config::source::MirrordConfigSource;
@@ -182,6 +191,11 @@
     /// policy](https://kubernetes.io/docs/concepts/containers/images/#image-pull-policy)
     </span><span class="attr">#[config(env = <span class="string">&quot;MIRRORD_AGENT_IMAGE_PULL_POLICY&quot;</span>, default = <span class="string">&quot;IfNotPresent&quot;</span>)]
     </span><span class="kw">pub </span>image_pull_policy: String,
+
+    <span class="doccomment">/// List of secrets the agent pod has access to.
+    ///
+    /// Takes an array of hash with the format `{ name: &lt;secret-name&gt; }`. Read more [here](https://kubernetes.io/docs/concepts/containers/images/).
+    </span><span class="kw">pub </span>image_pull_secrets: <span class="prelude-ty">Option</span>&lt;Vec&lt;HashMap&lt;String, String&gt;&gt;&gt;,
 
     <span class="doccomment">/// Controls how long the agent pod persists for after the agent exits (in seconds).
     ///

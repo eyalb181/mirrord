@@ -908,14 +908,6 @@
 <a href="#908" id="908">908</a>
 <a href="#909" id="909">909</a>
 <a href="#910" id="910">910</a>
-<a href="#911" id="911">911</a>
-<a href="#912" id="912">912</a>
-<a href="#913" id="913">913</a>
-<a href="#914" id="914">914</a>
-<a href="#915" id="915">915</a>
-<a href="#916" id="916">916</a>
-<a href="#917" id="917">917</a>
-<a href="#918" id="918">918</a>
 </pre><pre class="rust"><code><span class="attr">#![feature(stmt_expr_attributes)]
 
 </span><span class="kw">mod </span>env;
@@ -936,9 +928,7 @@
         time::Duration,
     };
 
-    <span class="kw">use </span>bytes::Bytes;
     <span class="kw">use </span>chrono::Utc;
-    <span class="kw">use </span>futures::Stream;
     <span class="kw">use </span>futures_util::stream::{StreamExt, TryStreamExt};
     <span class="kw">use </span>k8s_openapi::api::{
         apps::v1::Deployment,
@@ -1826,12 +1816,6 @@
             headers.clone(),
         )
         .<span class="kw">await</span>;
-    }
-
-    <span class="kw">pub async fn </span>get_next_log&lt;T: Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;Bytes, kube::Error&gt;&gt; + Unpin&gt;(
-        stream: <span class="kw-2">&amp;mut </span>T,
-    ) -&gt; String {
-        String::from_utf8_lossy(<span class="kw-2">&amp;</span>stream.try_next().<span class="kw">await</span>.unwrap().unwrap()).to_string()
     }
 }
 </code></pre></div></section></main></body></html>

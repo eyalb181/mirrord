@@ -267,6 +267,21 @@
 <a href="#267" id="267">267</a>
 <a href="#268" id="268">268</a>
 <a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     collections::HashMap,
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
@@ -296,8 +311,9 @@
 <span class="kw">use </span>tracing::{debug, trace, warn};
 
 <span class="kw">use crate</span>::{
-    error::{AgentError, <span class="prelude-ty">Result</span>},
+    error::Result,
     util::{run_thread_in_namespace, IndexAllocator},
+    watched_task::{TaskStatus, WatchedTask},
 };
 
 <span class="kw">type </span>Layer = LayerUdpOutgoing;
@@ -310,7 +326,10 @@
 /// passing of these messages to the `interceptor_task` thread.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>UdpOutgoingApi {
     <span class="doccomment">/// Holds the `interceptor_task`.
-    </span>_task: thread::JoinHandle&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt;,
+    </span>_task: thread::JoinHandle&lt;()&gt;,
+
+    <span class="doccomment">/// Status of the `interceptor_task`.
+    </span>task_status: TaskStatus,
 
     <span class="doccomment">/// Sends the `Layer` message to the `interceptor_task`.
     </span>layer_tx: Sender&lt;Layer&gt;,
@@ -365,19 +384,25 @@
 }
 
 <span class="kw">impl </span>UdpOutgoingApi {
+    <span class="kw">const </span>TASK_NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;UdpOutgoing&quot;</span>;
+
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(pid: <span class="prelude-ty">Option</span>&lt;u64&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>(layer_tx, layer_rx) = mpsc::channel(<span class="number">1000</span>);
         <span class="kw">let </span>(daemon_tx, daemon_rx) = mpsc::channel(<span class="number">1000</span>);
 
+        <span class="kw">let </span>watched_task =
+            WatchedTask::new(<span class="self">Self</span>::TASK_NAME, <span class="self">Self</span>::interceptor_task(layer_rx, daemon_tx));
+        <span class="kw">let </span>task_status = watched_task.status();
         <span class="kw">let </span>task = run_thread_in_namespace(
-            <span class="self">Self</span>::interceptor_task(layer_rx, daemon_tx),
-            <span class="string">&quot;UdpOutgoing&quot;</span>.to_string(),
+            watched_task.start(),
+            <span class="self">Self</span>::TASK_NAME.to_string(),
             pid,
             <span class="string">&quot;net&quot;</span>,
         );
 
         <span class="self">Self </span>{
             _task: task,
+            task_status,
             layer_tx,
             daemon_rx,
         }
@@ -525,15 +550,20 @@
             <span class="string">&quot;UdpOutgoingApi::layer_message -&gt; layer_message {:#?}&quot;</span>,
             message
         );
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.layer_tx.send(message).<span class="kw">await</span><span class="question-mark">?</span>)
+
+        <span class="kw">if </span><span class="self">self</span>.layer_tx.send(message).<span class="kw">await</span>.is_ok() {
+            <span class="prelude-val">Ok</span>(())
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(<span class="self">self</span>.task_status.unwrap_err().<span class="kw">await</span>)
+        }
     }
 
     <span class="doccomment">/// Receives a `UdpOutgoingResponse` from the `interceptor_task`.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>daemon_message(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;DaemonUdpOutgoing&gt; {
-        <span class="self">self</span>.daemon_rx
-            .recv()
-            .<span class="kw">await
-            </span>.ok_or(AgentError::ReceiverClosed)
+        <span class="kw">match </span><span class="self">self</span>.daemon_rx.recv().<span class="kw">await </span>{
+            <span class="prelude-val">Some</span>(msg) =&gt; <span class="prelude-val">Ok</span>(msg),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<span class="self">self</span>.task_status.unwrap_err().<span class="kw">await</span>),
+        }
     }
 }
 </code></pre></div></section></main></body></html>

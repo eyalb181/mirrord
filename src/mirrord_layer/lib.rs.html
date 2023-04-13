@@ -952,6 +952,22 @@
 <a href="#952" id="952">952</a>
 <a href="#953" id="953">953</a>
 <a href="#954" id="954">954</a>
+<a href="#955" id="955">955</a>
+<a href="#956" id="956">956</a>
+<a href="#957" id="957">957</a>
+<a href="#958" id="958">958</a>
+<a href="#959" id="959">959</a>
+<a href="#960" id="960">960</a>
+<a href="#961" id="961">961</a>
+<a href="#962" id="962">962</a>
+<a href="#963" id="963">963</a>
+<a href="#964" id="964">964</a>
+<a href="#965" id="965">965</a>
+<a href="#966" id="966">966</a>
+<a href="#967" id="967">967</a>
+<a href="#968" id="968">968</a>
+<a href="#969" id="969">969</a>
+<a href="#970" id="970">970</a>
 </pre><pre class="rust"><code><span class="attr">#![feature(c_variadic)]
 #![feature(once_cell)]
 #![feature(result_option_inspect)]
@@ -1050,6 +1066,7 @@
 };
 <span class="kw">use </span>mirrord_layer_macro::{hook_fn, hook_guard_fn};
 <span class="kw">use </span>mirrord_protocol::{
+    codec::LogLevel,
     dns::{DnsLookup, GetAddrInfoRequest},
     tcp::{HttpResponse, LayerTcpSteal},
     ClientMessage, DaemonMessage,
@@ -1066,7 +1083,7 @@
     sync::mpsc::{channel, Receiver, Sender},
     time::{sleep, Duration},
 };
-<span class="kw">use </span>tracing::{error, info, trace};
+<span class="kw">use </span>tracing::{error, info, trace, warn};
 <span class="kw">use </span>tracing_subscriber::{fmt::format::FmtSpan, prelude::<span class="kw-2">*</span>};
 
 <span class="kw">use crate</span>::{
@@ -1114,7 +1131,7 @@
 /// ## Bypass
 ///
 /// To prevent us from intercepting neccessary (local) syscalls (like creating a socket), we use
-/// `detour::detour_bypass_on`] [`on_thread_start`, and [`detour::detour_bypass_off`]
+/// [`detour::detour_bypass_on`] `on_thread_start`, and [`detour::detour_bypass_off`]
 /// `on_thread_stop`.
 </span><span class="kw">static </span>RUNTIME: LazyLock&lt;Runtime&gt; = LazyLock::new(|| {
     tokio::runtime::Builder::new_multi_thread()
@@ -1589,6 +1606,10 @@
     /// Also (somewhat) dealt with here, as there is no dedicated handler for it. We just pass the
     /// response along in one of the feature&#39;s channels from
     /// `Self::getaddrinfo_handler_queue`.
+    ///
+    /// ### [`DaemonMessage::LogMessage`]
+    ///
+    /// This message has no dedicated handler, the internal message is simply logged here.
     </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">async fn </span>handle_daemon_message(<span class="kw-2">&amp;mut </span><span class="self">self</span>, daemon_message: DaemonMessage) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">match </span>daemon_message {
@@ -1629,7 +1650,18 @@
                 </span>.send(get_addr_info.<span class="number">0</span>)
                 .map_err(|<span class="kw">_</span>| LayerError::SendErrorGetAddrInfoResponse),
             DaemonMessage::Close(error_message) =&gt; <span class="prelude-val">Err</span>(LayerError::AgentErrorClosed(error_message)),
-            DaemonMessage::LogMessage(<span class="kw">_</span>) =&gt; <span class="macro">todo!</span>(),
+            DaemonMessage::LogMessage(log_message) =&gt; {
+                <span class="kw">match </span>log_message.level {
+                    LogLevel::Warn =&gt; {
+                        <span class="macro">warn!</span>(message = log_message.message, <span class="string">&quot;Daemon sent log message&quot;</span>)
+                    }
+                    LogLevel::Error =&gt; {
+                        <span class="macro">error!</span>(message = log_message.message, <span class="string">&quot;Daemon sent log message&quot;</span>)
+                    }
+                }
+
+                <span class="prelude-val">Ok</span>(())
+            }
         }
     }
 }

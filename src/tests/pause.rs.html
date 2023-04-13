@@ -180,13 +180,19 @@
 <a href="#180" id="180">180</a>
 <a href="#181" id="181">181</a>
 <a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
 </pre><pre class="rust"><code><span class="attr">#[cfg(test)]
 
 </span><span class="kw">mod </span>pause {
+    <span class="kw">use </span>std::{io::ErrorKind::UnexpectedEof, time::Duration};
 
-    <span class="kw">use </span>std::time::Duration;
-
-    <span class="kw">use </span>futures::StreamExt;
+    <span class="kw">use </span>futures::{AsyncBufReadExt, StreamExt};
+    <span class="kw">use </span>futures_util::TryStreamExt;
     <span class="kw">use </span>k8s_openapi::api::{batch::v1::Job, core::v1::Pod};
     <span class="kw">use </span>kube::{
         api::{ListParams, LogParams},
@@ -196,8 +202,8 @@
     <span class="kw">use </span>rstest::<span class="kw-2">*</span>;
 
     <span class="kw">use </span><span class="kw">crate</span>::utils::{
-        get_next_log, get_service_url, http_log_requester_service, http_logger_service,
-        kube_client, random_namespace_self_deleting_service, run_exec, KubeService,
+        get_service_url, http_log_requester_service, http_logger_service, kube_client,
+        random_namespace_self_deleting_service, run_exec, KubeService,
     };
 
     <span class="doccomment">/// http_logger_service is a service that logs strings from the uri of incoming http requests.
@@ -224,8 +230,7 @@
     /// To run on mac, first build universal binary: (from repo root) `scripts/build_fat_mac.sh`
     /// then run test with MIRRORD_TESTS_USE_BINARY=../target/universal-apple-darwin/debug/mirrord
     /// Because the test runs a bash script with mirrord and that requires the universal binary.
-    </span><span class="attr">#[ignore]
-    #[rstest]
+    </span><span class="attr">#[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">240</span>))]
     </span><span class="kw">pub async fn </span>pause_log_requests(
@@ -253,21 +258,28 @@
         };
 
         <span class="macro">println!</span>(<span class="string">&quot;getting log stream.&quot;</span>);
+
         <span class="kw">let </span>log_stream = pod_api.log_stream(pod_name, <span class="kw-2">&amp;</span>lp).<span class="kw">await</span>.unwrap();
 
-        <span class="kw">let </span>command = <span class="macro">vec!</span>[<span class="string">&quot;pause/send_reqs.sh&quot;</span>];
+        <span class="comment">// `IntoAsyncRead` needs a stream with `Error = io::Error`, so convert the error type of the
+        // result from kube::Error to io::Error.
+        </span><span class="kw">let </span>log_stream = log_stream
+            .map(|res| res.map_err(|err| std::io::Error::new(UnexpectedEof, err.to_string())));
 
+        <span class="kw">let </span>log_lines = log_stream.into_async_read().lines();
+
+        <span class="comment">// skip 2 lines of flask prints.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>log_lines = log_lines.skip(<span class="number">2</span>);
+
+        <span class="kw">let </span>command = <span class="macro">vec!</span>[<span class="string">&quot;pause/send_reqs.sh&quot;</span>];
         <span class="kw">let </span>mirrord_pause_arg = <span class="macro">vec!</span>[<span class="string">&quot;--pause&quot;</span>];
 
-        <span class="macro">println!</span>(<span class="string">&quot;Waiting for 2 flask lines.&quot;</span>);
-        <span class="kw">let </span><span class="kw-2">mut </span>log_stream = log_stream.skip(<span class="number">2</span>); <span class="comment">// Skip flask prints.
-
-        </span><span class="kw">let </span>hi_from_deployed_app = <span class="string">&quot;hi-from-deployed-app\n&quot;</span>;
-        <span class="kw">let </span>hi_from_local_app = <span class="string">&quot;hi-from-local-app\n&quot;</span>;
-        <span class="kw">let </span>hi_again_from_local_app = <span class="string">&quot;hi-again-from-local-app\n&quot;</span>;
+        <span class="kw">let </span>hi_from_deployed_app = <span class="string">&quot;hi-from-deployed-app&quot;</span>;
+        <span class="kw">let </span>hi_from_local_app = <span class="string">&quot;hi-from-local-app&quot;</span>;
+        <span class="kw">let </span>hi_again_from_local_app = <span class="string">&quot;hi-again-from-local-app&quot;</span>;
 
         <span class="macro">println!</span>(<span class="string">&quot;Waiting for first log by deployed app.&quot;</span>);
-        <span class="kw">let </span>first_log = get_next_log(<span class="kw-2">&amp;mut </span>log_stream).<span class="kw">await</span>;
+        <span class="kw">let </span>first_log = log_lines.next().<span class="kw">await</span>.unwrap().unwrap();
 
         <span class="macro">assert_eq!</span>(first_log, hi_from_deployed_app);
 
@@ -286,9 +298,9 @@
 
         <span class="macro">println!</span>(<span class="string">&quot;Spooling logs forward to get to local app&#39;s first log.&quot;</span>);
         <span class="comment">// Skip all the logs by the deployed app from before we ran local.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>next_log = get_next_log(<span class="kw-2">&amp;mut </span>log_stream).<span class="kw">await</span>;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>next_log = log_lines.next().<span class="kw">await</span>.unwrap().unwrap();
         <span class="kw">while </span>next_log == hi_from_deployed_app {
-            next_log = get_next_log(<span class="kw-2">&amp;mut </span>log_stream).<span class="kw">await</span>;
+            next_log = log_lines.next().<span class="kw">await</span>.unwrap().unwrap();
         }
 
         <span class="comment">// Verify first log from local app.
@@ -296,11 +308,11 @@
 
         <span class="comment">// Verify that the second log from local app comes right after it - the deployed requester
         // was paused.
-        </span><span class="kw">let </span>log_from_local = get_next_log(<span class="kw-2">&amp;mut </span>log_stream).<span class="kw">await</span>;
+        </span><span class="kw">let </span>log_from_local = log_lines.next().<span class="kw">await</span>.unwrap().unwrap();
         <span class="macro">assert_eq!</span>(log_from_local, hi_again_from_local_app);
 
         <span class="comment">// Verify that the deployed app resumes after the local app is done.
-        </span><span class="kw">let </span>log_from_deployed_after_resume = get_next_log(<span class="kw-2">&amp;mut </span>log_stream).<span class="kw">await</span>;
+        </span><span class="kw">let </span>log_from_deployed_after_resume = log_lines.next().<span class="kw">await</span>.unwrap().unwrap();
         <span class="macro">assert_eq!</span>(log_from_deployed_after_resume, hi_from_deployed_app);
     }
 

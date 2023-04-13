@@ -685,6 +685,50 @@
 <a href="#685" id="685">685</a>
 <a href="#686" id="686">686</a>
 <a href="#687" id="687">687</a>
+<a href="#688" id="688">688</a>
+<a href="#689" id="689">689</a>
+<a href="#690" id="690">690</a>
+<a href="#691" id="691">691</a>
+<a href="#692" id="692">692</a>
+<a href="#693" id="693">693</a>
+<a href="#694" id="694">694</a>
+<a href="#695" id="695">695</a>
+<a href="#696" id="696">696</a>
+<a href="#697" id="697">697</a>
+<a href="#698" id="698">698</a>
+<a href="#699" id="699">699</a>
+<a href="#700" id="700">700</a>
+<a href="#701" id="701">701</a>
+<a href="#702" id="702">702</a>
+<a href="#703" id="703">703</a>
+<a href="#704" id="704">704</a>
+<a href="#705" id="705">705</a>
+<a href="#706" id="706">706</a>
+<a href="#707" id="707">707</a>
+<a href="#708" id="708">708</a>
+<a href="#709" id="709">709</a>
+<a href="#710" id="710">710</a>
+<a href="#711" id="711">711</a>
+<a href="#712" id="712">712</a>
+<a href="#713" id="713">713</a>
+<a href="#714" id="714">714</a>
+<a href="#715" id="715">715</a>
+<a href="#716" id="716">716</a>
+<a href="#717" id="717">717</a>
+<a href="#718" id="718">718</a>
+<a href="#719" id="719">719</a>
+<a href="#720" id="720">720</a>
+<a href="#721" id="721">721</a>
+<a href="#722" id="722">722</a>
+<a href="#723" id="723">723</a>
+<a href="#724" id="724">724</a>
+<a href="#725" id="725">725</a>
+<a href="#726" id="726">726</a>
+<a href="#727" id="727">727</a>
+<a href="#728" id="728">728</a>
+<a href="#729" id="729">729</a>
+<a href="#730" id="730">730</a>
+<a href="#731" id="731">731</a>
 </pre><pre class="rust"><code><span class="attr">#![feature(result_option_inspect)]
 #![feature(hash_drain_filter)]
 #![feature(once_cell)]
@@ -703,7 +747,7 @@
 
 <span class="kw">use </span>actix_codec::Framed;
 <span class="kw">use </span>cli::parse_args;
-<span class="kw">use </span>dns::{dns_worker, DnsRequest};
+<span class="kw">use </span>dns::DnsApi;
 <span class="kw">use </span>error::{AgentError, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>file::FileManager;
 <span class="kw">use </span>futures::{
@@ -711,7 +755,7 @@
     stream::{FuturesUnordered, StreamExt},
     SinkExt, TryFutureExt,
 };
-<span class="kw">use </span>mirrord_protocol::{ClientMessage, DaemonCodec, DaemonMessage, GetEnvVarsRequest};
+<span class="kw">use </span>mirrord_protocol::{ClientMessage, DaemonCodec, DaemonMessage, GetEnvVarsRequest, LogMessage};
 <span class="kw">use </span>outgoing::{udp::UdpOutgoingApi, TcpOutgoingApi};
 <span class="kw">use </span>runtime::ContainerInfo;
 <span class="kw">use </span>sniffer::{SnifferCommand, TcpConnectionSniffer, TcpSnifferApi};
@@ -739,6 +783,7 @@
         StealerCommand,
     },
     util::{run_thread_in_namespace, ClientId, IndexAllocator},
+    watched_task::{TaskStatus, WatchedTask},
 };
 
 <span class="kw">mod </span>cli;
@@ -751,6 +796,7 @@
 <span class="kw">mod </span>sniffer;
 <span class="kw">mod </span>steal;
 <span class="kw">mod </span>util;
+<span class="kw">mod </span>watched_task;
 
 <span class="kw">const </span>CHANNEL_SIZE: usize = <span class="number">1024</span>;
 
@@ -792,8 +838,8 @@
         <span class="kw">let </span>container =
             get_container(args.container_id.as_ref(), args.container_runtime.as_ref()).<span class="kw">await</span><span class="question-mark">?</span>;
         <span class="kw">if </span>container.is_none() &amp;&amp; args.pause {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(AgentError::MissingContainerInfo);
-        }
+            <span class="prelude-val">Err</span>(AgentError::MissingContainerInfo)<span class="question-mark">?
+        </span>}
         <span class="prelude-val">Ok</span>(State {
             clients: HashSet::new(),
             index_allocator: Default::default(),
@@ -833,58 +879,63 @@
         }
     }
 
-    <span class="attr">#[allow(clippy::too_many_arguments)]
-    </span><span class="kw">pub async fn </span>new_connection(
+    <span class="kw">pub async fn </span>new_connection(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         stream: TcpStream,
-        sniffer_command_tx: Sender&lt;SnifferCommand&gt;,
-        stealer_command_tx: Sender&lt;StealerCommand&gt;,
+        tasks: BackgroundTasks,
         cancellation_token: CancellationToken,
-        dns_sender: Sender&lt;DnsRequest&gt;,
         ephemeral_container: bool,
         pid: <span class="prelude-ty">Option</span>&lt;u64&gt;,
         env: HashMap&lt;String, String&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;JoinHandle&lt;u32&gt;&gt;&gt; {
-        <span class="kw">match </span><span class="self">self</span>.new_client().<span class="kw">await </span>{
-            <span class="prelude-val">Ok</span>(client_id) =&gt; {
-                <span class="kw">let </span>client = tokio::spawn(<span class="kw">async move </span>{
-                    <span class="kw">match </span>ClientConnectionHandler::new(
-                        client_id,
-                        stream,
-                        pid,
-                        ephemeral_container,
-                        sniffer_command_tx,
-                        stealer_command_tx,
-                        dns_sender,
-                        env,
-                    )
-                    .and_then(|client| client.start(cancellation_token))
-                    .<span class="kw">await
-                    </span>{
-                        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
-                            <span class="macro">trace!</span>(
-                                <span class="string">&quot;ClientConnectionHandler::start -&gt; Client {} disconnected&quot;</span>,
-                                client_id
-                            );
-                        }
-                        <span class="prelude-val">Err</span>(e) =&gt; {
-                            <span class="macro">error!</span>(
-                                    <span class="string">&quot;ClientConnectionHandler::start -&gt; Client {} disconnected with error: {}&quot;</span>,
-                                    client_id, e
-                                );
-                        }
-                    }
-                    client_id
-                });
-                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(client))
+        <span class="kw">let </span><span class="kw-2">mut </span>stream = Framed::new(stream, DaemonCodec::new());
+
+        <span class="kw">let </span>client_id = <span class="kw">match </span><span class="self">self</span>.new_client().<span class="kw">await </span>{
+            <span class="prelude-val">Ok</span>(id) =&gt; id,
+            <span class="prelude-val">Err</span>(err) =&gt; {
+                <span class="kw">let _ </span>= stream.send(DaemonMessage::Close(err.to_string())).<span class="kw">await</span>; <span class="comment">// Ignore message send error.
+
+                </span><span class="kw">if let </span>AgentError::ConnectionLimitReached = err {
+                    <span class="macro">error!</span>(<span class="string">&quot;{err}&quot;</span>);
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+                } <span class="kw">else </span>{
+                    <span class="comment">// Propagate all errors that are not ConnectionLimitReached.
+                    </span><span class="prelude-val">Err</span>(err)<span class="question-mark">?
+                </span>}
             }
-            <span class="prelude-val">Err</span>(AgentError::ConnectionLimitReached) =&gt; {
-                <span class="macro">error!</span>(<span class="string">&quot;start_client -&gt; Ran out of connections, dropping new connection&quot;</span>);
-                <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
+        };
+
+        <span class="kw">let </span>task = tokio::spawn(<span class="kw">async move </span>{
+            <span class="kw">let </span>result = ClientConnectionHandler::new(
+                client_id,
+                stream,
+                pid,
+                ephemeral_container,
+                tasks,
+                env,
+            )
+            .and_then(|client| client.start(cancellation_token))
+            .<span class="kw">await</span>;
+
+            <span class="kw">match </span>result {
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
+                    <span class="macro">trace!</span>(
+                        <span class="string">&quot;ClientConnectionHandler::start -&gt; Client {} disconnected&quot;</span>,
+                        client_id
+                    );
+                }
+                <span class="prelude-val">Err</span>(e) =&gt; {
+                    <span class="macro">error!</span>(
+                        <span class="string">&quot;ClientConnectionHandler::start -&gt; Client {} disconnected with error: {}&quot;</span>,
+                        client_id, e
+                    );
+                }
             }
-            <span class="comment">// Propagate all errors that are not ConnectionLimitReached.
-            </span><span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(err),
-        }
+
+            client_id
+        });
+
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(task))
     }
 
     <span class="kw">fn </span>generate_id(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;ClientId&gt; {
@@ -911,6 +962,16 @@
     }
 }
 
+<span class="doccomment">/// Handles to background tasks used by [`ClientConnectionHandler`].
+</span><span class="attr">#[derive(Clone)]
+</span><span class="kw">struct </span>BackgroundTasks {
+    sniffer_status: TaskStatus,
+    sniffer_sender: Sender&lt;SnifferCommand&gt;,
+    stealer_status: TaskStatus,
+    stealer_sender: Sender&lt;StealerCommand&gt;,
+    dns_api: DnsApi,
+}
+
 <span class="kw">struct </span>ClientConnectionHandler {
     <span class="doccomment">/// Used to prevent closing the main loop [`ClientConnectionHandler::start`] when any
     /// request is done (tcp outgoing feature). Stays `true` until `agent` receives an
@@ -923,21 +984,18 @@
     tcp_stealer_api: TcpStealerApi,
     tcp_outgoing_api: TcpOutgoingApi,
     udp_outgoing_api: UdpOutgoingApi,
-    dns_sender: Sender&lt;DnsRequest&gt;,
+    dns_api: DnsApi,
     env: HashMap&lt;String, String&gt;,
 }
 
 <span class="kw">impl </span>ClientConnectionHandler {
-    <span class="attr">#[allow(clippy::too_many_arguments)]
-    </span><span class="doccomment">/// Initializes [`ClientConnectionHandler`].
+    <span class="doccomment">/// Initializes [`ClientConnectionHandler`].
     </span><span class="kw">pub async fn </span>new(
         id: ClientId,
-        stream: TcpStream,
+        <span class="kw-2">mut </span>stream: Framed&lt;TcpStream, DaemonCodec&gt;,
         pid: <span class="prelude-ty">Option</span>&lt;u64&gt;,
         ephemeral: bool,
-        sniffer_command_sender: Sender&lt;SnifferCommand&gt;,
-        stealer_command_sender: Sender&lt;StealerCommand&gt;,
-        dns_sender: Sender&lt;DnsRequest&gt;,
+        bg_tasks: BackgroundTasks,
         env: HashMap&lt;String, String&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>file_manager = <span class="kw">match </span>pid {
@@ -945,24 +1003,48 @@
             <span class="prelude-val">None </span><span class="kw">if </span>ephemeral =&gt; FileManager::new(<span class="prelude-val">Some</span>(<span class="number">1</span>)),
             <span class="prelude-val">None </span>=&gt; FileManager::new(<span class="prelude-val">None</span>),
         };
-        <span class="kw">let </span>stream = actix_codec::Framed::new(stream, DaemonCodec::new());
 
-        <span class="kw">let </span>(tcp_sender, tcp_receiver) = mpsc::channel(CHANNEL_SIZE);
+        <span class="kw">let </span>tcp_sniffer_api = <span class="kw">match </span>TcpSnifferApi::new(
+            id,
+            bg_tasks.sniffer_sender,
+            bg_tasks.sniffer_status,
+            CHANNEL_SIZE,
+        )
+        .<span class="kw">await
+        </span>{
+            <span class="prelude-val">Ok</span>(api) =&gt; <span class="prelude-val">Some</span>(api),
+            <span class="prelude-val">Err</span>(e) =&gt; {
+                <span class="kw">let </span>message = <span class="macro">format!</span>(
+                    <span class="string">&quot;Failed to create TcpSnifferApi: {e}, this could be due to kernel version.&quot;
+                </span>);
+                <span class="macro">warn!</span>(message);
+                <span class="kw">let _ </span>= stream
+                    .send(DaemonMessage::LogMessage(LogMessage::warn(message)))
+                    .<span class="kw">await</span>; <span class="comment">// Ignore message send error.
 
-        <span class="kw">let </span>tcp_sniffer_api =
-            TcpSnifferApi::new(id, sniffer_command_sender, tcp_receiver, tcp_sender)
-                .<span class="kw">await
-                </span>.map_err(|e| {
-                    <span class="macro">warn!</span>(
-                        <span class="string">&quot;Failed to create TcpSnifferApi: {}, this could be due to kernel version.&quot;</span>,
-                        e
-                    );
-                    e
-                })
-                .ok();
+                </span><span class="prelude-val">None
+            </span>}
+        };
 
-        <span class="kw">let </span>tcp_stealer_api =
-            TcpStealerApi::new(id, stealer_command_sender, mpsc::channel(CHANNEL_SIZE)).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let </span>tcp_stealer_api = <span class="kw">match </span>TcpStealerApi::new(
+            id,
+            bg_tasks.stealer_sender,
+            bg_tasks.stealer_status,
+            CHANNEL_SIZE,
+        )
+        .<span class="kw">await
+        </span>{
+            <span class="prelude-val">Ok</span>(api) =&gt; api,
+            <span class="prelude-val">Err</span>(e) =&gt; {
+                <span class="kw">let _ </span>= stream
+                    .send(DaemonMessage::Close(<span class="macro">format!</span>(
+                        <span class="string">&quot;Failed to create TcpStealerApi: {e}.&quot;
+                    </span>)))
+                    .<span class="kw">await</span>; <span class="comment">// Ignore message send error.
+
+                </span><span class="prelude-val">Err</span>(e)<span class="question-mark">?
+            </span>}
+        };
 
         <span class="kw">let </span>tcp_outgoing_api = TcpOutgoingApi::new(pid);
         <span class="kw">let </span>udp_outgoing_api = UdpOutgoingApi::new(pid);
@@ -975,7 +1057,7 @@
             tcp_stealer_api,
             tcp_outgoing_api,
             udp_outgoing_api,
-            dns_sender,
+            dns_api: bg_tasks.dns_api,
             env,
         };
 
@@ -987,24 +1069,21 @@
     /// Breaks upon receiver/sender drop.
     </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">async fn </span>start(<span class="kw-2">mut </span><span class="self">self</span>, cancellation_token: CancellationToken) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="kw">loop </span>{
+        <span class="kw">let </span>error = <span class="kw">loop </span>{
             <span class="macro">select! </span>{
                 message = <span class="self">self</span>.stream.next() =&gt; {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(message) = message {
-                        <span class="kw">match </span><span class="self">self</span>.handle_client_message(message<span class="question-mark">?</span>).<span class="kw">await </span>{
-                            <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>) =&gt; {},
-                            <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>) =&gt; {
-                                <span class="kw">break</span>;
-                            }
-                            <span class="prelude-val">Err</span>(e) =&gt; {
-                                <span class="macro">error!</span>(<span class="string">&quot;Error handling client message: {e:?}&quot;</span>);
-                                <span class="self">self</span>.respond(DaemonMessage::Close(<span class="macro">format!</span>(<span class="string">&quot;{e:?}&quot;</span>))).<span class="kw">await</span><span class="question-mark">?</span>;
-                                <span class="kw">break</span>;
-                            }
-                        }
-                    } <span class="kw">else </span>{
+                    <span class="kw">let </span><span class="prelude-val">Some</span>(message) = message <span class="kw">else </span>{
                         <span class="macro">debug!</span>(<span class="string">&quot;Client {} disconnected&quot;</span>, <span class="self">self</span>.id);
-                        <span class="kw">break</span>;
+                        <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+                    };
+
+                    <span class="kw">match </span><span class="self">self</span>.handle_client_message(message<span class="question-mark">?</span>).<span class="kw">await </span>{
+                        <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>) =&gt; {},
+                        <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(()),
+                        <span class="prelude-val">Err</span>(e) =&gt; {
+                            <span class="macro">error!</span>(<span class="string">&quot;Error handling client message: {e:?}&quot;</span>);
+                            <span class="kw">break </span>e;
+                        }
                     }
                 },
                 <span class="comment">// poll the sniffer API only when it&#39;s available
@@ -1016,41 +1095,37 @@
                     </span>} <span class="kw">else </span>{
                         <span class="macro">unreachable!</span>()
                     }
-                }, <span class="kw">if </span><span class="self">self</span>.tcp_sniffer_api.is_some()=&gt; {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(message) = message {
-                        <span class="self">self</span>.respond(DaemonMessage::Tcp(message)).<span class="kw">await</span><span class="question-mark">?</span>;
-                    } <span class="kw">else </span>{
-                        <span class="macro">error!</span>(<span class="string">&quot;tcp sniffer stopped?&quot;</span>);
-                        <span class="kw">break</span>;
-                    }
+                }, <span class="kw">if </span><span class="self">self</span>.tcp_sniffer_api.is_some() =&gt; <span class="kw">match </span>message {
+                    <span class="prelude-val">Ok</span>(message) =&gt; <span class="self">self</span>.respond(DaemonMessage::Tcp(message)).<span class="kw">await</span><span class="question-mark">?</span>,
+                    <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">break </span>e,
                 },
-                message = <span class="self">self</span>.tcp_stealer_api.recv() =&gt; {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(message) = message {
-                        <span class="self">self</span>.stream.send(DaemonMessage::TcpSteal(message)).<span class="kw">await</span><span class="question-mark">?</span>;
-                    } <span class="kw">else </span>{
-                        <span class="macro">error!</span>(<span class="string">&quot;tcp stealer stopped?&quot;</span>);
-                        <span class="kw">break</span>;
-                    }
+                message = <span class="self">self</span>.tcp_stealer_api.recv() =&gt; <span class="kw">match </span>message {
+                    <span class="prelude-val">Ok</span>(message) =&gt; <span class="self">self</span>.respond(DaemonMessage::TcpSteal(message)).<span class="kw">await</span><span class="question-mark">?</span>,
+                    <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">break </span>e,
                 },
-                message = <span class="self">self</span>.tcp_outgoing_api.daemon_message() =&gt; {
-                    <span class="self">self</span>.respond(DaemonMessage::TcpOutgoing(message<span class="question-mark">?</span>)).<span class="kw">await</span><span class="question-mark">?</span>;
+                message = <span class="self">self</span>.tcp_outgoing_api.daemon_message() =&gt; <span class="kw">match </span>message {
+                    <span class="prelude-val">Ok</span>(message) =&gt; <span class="self">self</span>.respond(DaemonMessage::TcpOutgoing(message)).<span class="kw">await</span><span class="question-mark">?</span>,
+                    <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">break </span>e,
                 },
-                message = <span class="self">self</span>.udp_outgoing_api.daemon_message() =&gt; {
-                    <span class="self">self</span>.respond(DaemonMessage::UdpOutgoing(message<span class="question-mark">?</span>)).<span class="kw">await</span><span class="question-mark">?</span>;
+                message = <span class="self">self</span>.udp_outgoing_api.daemon_message() =&gt; <span class="kw">match </span>message {
+                    <span class="prelude-val">Ok</span>(message) =&gt; <span class="self">self</span>.respond(DaemonMessage::UdpOutgoing(message)).<span class="kw">await</span><span class="question-mark">?</span>,
+                    <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">break </span>e,
                 },
-                <span class="kw">_ </span>= cancellation_token.cancelled() =&gt; {
-                    <span class="kw">break</span>;
-                }
+                <span class="kw">_ </span>= cancellation_token.cancelled() =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(()),
             }
+        };
+
+        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.respond(DaemonMessage::Close(error.to_string())).<span class="kw">await </span>{
+            <span class="macro">error!</span>(<span class="string">&quot;Failed to send error to client: {e:?}&quot;</span>);
         }
 
-        <span class="prelude-val">Ok</span>(())
+        <span class="prelude-val">Err</span>(error)
     }
 
     <span class="doccomment">/// Sends a [`DaemonMessage`] response to the connected client (`mirrord-layer`).
     </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">async fn </span>respond(<span class="kw-2">&amp;mut </span><span class="self">self</span>, response: DaemonMessage) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.stream.send(response).<span class="kw">await</span><span class="question-mark">?</span>)
+        <span class="self">self</span>.stream.send(response).<span class="kw">await</span>.map_err(Into::into)
     }
 
     <span class="doccomment">/// Handles incoming messages from the connected client (`mirrord-layer`).
@@ -1093,13 +1168,7 @@
                     .<span class="kw">await</span><span class="question-mark">?
             </span>}
             ClientMessage::GetAddrInfoRequest(request) =&gt; {
-                <span class="kw">let </span>(tx, rx) = tokio::sync::oneshot::channel();
-                <span class="kw">let </span>dns_request = DnsRequest::new(request, tx);
-                <span class="self">self</span>.dns_sender.send(dns_request).<span class="kw">await</span><span class="question-mark">?</span>;
-
-                <span class="macro">trace!</span>(<span class="string">&quot;waiting for answer from dns thread&quot;</span>);
-                <span class="kw">let </span>response = rx.<span class="kw">await</span><span class="question-mark">?</span>;
-
+                <span class="kw">let </span>response = <span class="self">self</span>.dns_api.make_request(request).<span class="kw">await</span><span class="question-mark">?</span>;
                 <span class="macro">trace!</span>(<span class="string">&quot;GetAddrInfoRequest -&gt; response {:#?}&quot;</span>, response);
 
                 <span class="self">self</span>.respond(DaemonMessage::GetAddrInfoResponse(response))
@@ -1111,8 +1180,8 @@
                     sniffer_api.handle_client_message(message).<span class="kw">await</span><span class="question-mark">?
                 </span>} <span class="kw">else </span>{
                     <span class="macro">warn!</span>(<span class="string">&quot;received tcp sniffer request while not available&quot;</span>);
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(AgentError::SnifferApiError);
-                }
+                    <span class="prelude-val">Err</span>(AgentError::SnifferApiError)<span class="question-mark">?
+                </span>}
             }
             ClientMessage::TcpSteal(message) =&gt; {
                 <span class="self">self</span>.tcp_stealer_api.handle_client_message(message).<span class="kw">await</span><span class="question-mark">?
@@ -1164,42 +1233,63 @@
     <span class="kw">let </span>(sniffer_command_tx, sniffer_command_rx) = mpsc::channel::&lt;SnifferCommand&gt;(<span class="number">1000</span>);
     <span class="kw">let </span>(stealer_command_tx, stealer_command_rx) = mpsc::channel::&lt;StealerCommand&gt;(<span class="number">1000</span>);
 
-    <span class="kw">let </span>(dns_sender, dns_receiver) = mpsc::channel(<span class="number">1000</span>);
+    <span class="kw">let </span>dns_api = DnsApi::new(pid, <span class="number">1000</span>);
 
-    <span class="kw">let _ </span>= run_thread_in_namespace(
-        dns_worker(dns_receiver, pid),
-        <span class="string">&quot;DNS worker&quot;</span>.to_string(),
-        pid,
-        <span class="string">&quot;net&quot;</span>,
-    );
+    <span class="kw">let </span>(sniffer_task, sniffer_status) = {
+        <span class="kw">let </span>cancellation_token = cancellation_token.clone();
+        <span class="kw">let </span>watched_task = WatchedTask::new(
+            TcpConnectionSniffer::TASK_NAME,
+            TcpConnectionSniffer::new(sniffer_command_rx, args.network_interface).and_then(
+                |sniffer| <span class="kw">async move </span>{
+                    <span class="kw">let </span>res = sniffer.start(cancellation_token).<span class="kw">await</span>;
+                    <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = res.as_ref() {
+                        <span class="macro">error!</span>(<span class="string">&quot;Sniffer failed: {err}&quot;</span>);
+                    }
+                    <span class="prelude-val">Ok</span>(())
+                },
+            ),
+        );
+        <span class="kw">let </span>status = watched_task.status();
+        <span class="kw">let </span>task = run_thread_in_namespace(
+            watched_task.start(),
+            TcpConnectionSniffer::TASK_NAME.to_string(),
+            pid,
+            <span class="string">&quot;net&quot;</span>,
+        );
 
-    <span class="kw">let </span>sniffer_cancellation_token = cancellation_token.clone();
-    <span class="kw">let </span>sniffer_task = run_thread_in_namespace(
-        TcpConnectionSniffer::new(sniffer_command_rx, args.network_interface).and_then(
-            |sniffer| <span class="kw">async move </span>{
-                <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = sniffer.start(sniffer_cancellation_token).<span class="kw">await </span>{
-                    <span class="macro">error!</span>(<span class="string">&quot;Sniffer failed: {err}&quot;</span>);
+        (task, status)
+    };
+
+    <span class="kw">let </span>(stealer_task, stealer_status) = {
+        <span class="kw">let </span>cancellation_token = cancellation_token.clone();
+        <span class="kw">let </span>watched_task = WatchedTask::new(
+            TcpConnectionStealer::TASK_NAME,
+            TcpConnectionStealer::new(stealer_command_rx).and_then(|stealer| <span class="kw">async move </span>{
+                <span class="kw">let </span>res = stealer.start(cancellation_token).<span class="kw">await</span>;
+                <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = res.as_ref() {
+                    <span class="macro">error!</span>(<span class="string">&quot;Stealer failed: {err}&quot;</span>);
                 }
-                <span class="prelude-val">Ok</span>(())
-            },
-        ),
-        <span class="string">&quot;Sniffer&quot;</span>.to_string(),
-        pid,
-        <span class="string">&quot;net&quot;</span>,
-    );
+                res
+            }),
+        );
+        <span class="kw">let </span>status = watched_task.status();
+        <span class="kw">let </span>task = run_thread_in_namespace(
+            watched_task.start(),
+            TcpConnectionStealer::TASK_NAME.to_string(),
+            pid,
+            <span class="string">&quot;net&quot;</span>,
+        );
 
-    <span class="kw">let </span>stealer_cancellation_token = cancellation_token.clone();
-    <span class="kw">let </span>stealer_task = run_thread_in_namespace(
-        TcpConnectionStealer::new(stealer_command_rx).and_then(|stealer| <span class="kw">async move </span>{
-            <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = stealer.start(stealer_cancellation_token).<span class="kw">await </span>{
-                <span class="macro">error!</span>(<span class="string">&quot;Stealer failed: {err}&quot;</span>);
-            }
-            <span class="prelude-val">Ok</span>(())
-        }),
-        <span class="string">&quot;Stealer&quot;</span>.to_string(),
-        pid,
-        <span class="string">&quot;net&quot;</span>,
-    );
+        (task, status)
+    };
+
+    <span class="kw">let </span><span class="kw-2">mut </span>bg_tasks = BackgroundTasks {
+        sniffer_status,
+        sniffer_sender: sniffer_command_tx,
+        stealer_status,
+        stealer_sender: stealer_command_tx,
+        dns_api,
+    };
 
     <span class="comment">// WARNING: This exact string is expected to be read in `pod_api.rs`, more specifically in
     // `wait_for_agent_startup`. If you change this then mirrord fails to initialize.
@@ -1220,10 +1310,8 @@
             <span class="kw">if let </span><span class="prelude-val">Some</span>(client) = state
                 .new_connection(
                     stream,
-                    sniffer_command_tx.clone(),
-                    stealer_command_tx.clone(),
+                    bg_tasks.clone(),
                     cancellation_token.clone(),
-                    dns_sender.clone(),
                     args.ephemeral_container,
                     pid,
                     env.clone(),
@@ -1235,17 +1323,17 @@
         }
         <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(err)) =&gt; {
             <span class="macro">error!</span>(<span class="string">&quot;start -&gt; Failed to accept connection: {:?}&quot;</span>, err);
-            <span class="kw">return </span><span class="prelude-val">Err</span>(err.into());
-        }
+            <span class="prelude-val">Err</span>(err)<span class="question-mark">?
+        </span>}
         <span class="prelude-val">Err</span>(err) =&gt; {
             <span class="macro">error!</span>(<span class="string">&quot;start -&gt; Failed to accept first connection: timeout&quot;</span>);
-            <span class="kw">return </span><span class="prelude-val">Err</span>(err.into());
-        }
+            <span class="prelude-val">Err</span>(err)<span class="question-mark">?
+        </span>}
     }
 
     <span class="kw">if </span>args.test_error {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(AgentError::TestError);
-    }
+        <span class="prelude-val">Err</span>(AgentError::TestError)<span class="question-mark">?
+    </span>}
 
     <span class="kw">loop </span>{
         <span class="macro">select! </span>{
@@ -1253,10 +1341,8 @@
                 <span class="macro">trace!</span>(<span class="string">&quot;start -&gt; Connection accepted from {:?}&quot;</span>, addr);
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(client) = state.new_connection(
                     stream,
-                    sniffer_command_tx.clone(),
-                    stealer_command_tx.clone(),
+                    bg_tasks.clone(),
                     cancellation_token.clone(),
-                    dns_sender.clone(),
                     args.ephemeral_container,
                     pid,
                     env.clone()
@@ -1280,11 +1366,13 @@
     <span class="macro">trace!</span>(<span class="string">&quot;Agent shutting down.&quot;</span>);
     drop(cancel_guard);
 
-    <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = sniffer_task.join().map_err(|<span class="kw">_</span>| AgentError::JoinTask)<span class="question-mark">? </span>{
+    sniffer_task.join().map_err(|<span class="kw">_</span>| AgentError::JoinTask)<span class="question-mark">?</span>;
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(err) = bg_tasks.sniffer_status.err().<span class="kw">await </span>{
         <span class="macro">error!</span>(<span class="string">&quot;start_agent -&gt; sniffer task failed with error: {}&quot;</span>, err);
     }
 
-    <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = stealer_task.join().map_err(|<span class="kw">_</span>| AgentError::JoinTask)<span class="question-mark">? </span>{
+    stealer_task.join().map_err(|<span class="kw">_</span>| AgentError::JoinTask)<span class="question-mark">?</span>;
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(err) = bg_tasks.stealer_status.err().<span class="kw">await </span>{
         <span class="macro">error!</span>(<span class="string">&quot;start_agent -&gt; stealer task failed with error: {}&quot;</span>, err);
     }
 

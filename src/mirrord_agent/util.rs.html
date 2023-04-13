@@ -261,6 +261,7 @@
 <a href="#261" id="261">261</a>
 <a href="#262" id="262">262</a>
 <a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     clone::Clone,
     collections::{HashMap, HashSet},
@@ -283,7 +284,8 @@
     _inner: HashMap&lt;T, HashSet&lt;C&gt;&gt;,
 }
 
-<span class="kw">pub type </span>ClientId = u32;
+<span class="doccomment">/// Id of an agent&#39;s client. Each new client connection is assigned with a unique id.
+</span><span class="kw">pub type </span>ClientId = u32;
 
 <span class="kw">impl</span>&lt;T, C&gt; Subscriptions&lt;T, C&gt;
 <span class="kw">where
