@@ -279,9 +279,6 @@
 <a href="#279" id="279">279</a>
 <a href="#280" id="280">280</a>
 <a href="#281" id="281">281</a>
-<a href="#282" id="282">282</a>
-<a href="#283" id="283">283</a>
-<a href="#284" id="284">284</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     collections::HashMap,
     fs::File,
@@ -289,7 +286,6 @@
     path::PathBuf,
 };
 
-<span class="kw">use </span>async_trait::async_trait;
 <span class="kw">use </span>bollard::{container::InspectContainerOptions, Docker, API_DEFAULT_VERSION};
 <span class="kw">use </span>containerd_client::{
     connect,
@@ -337,8 +333,8 @@
         ContainerInfo { pid, env }
     }
 }
-<span class="attr">#[async_trait]
-#[enum_dispatch]
+
+<span class="attr">#[enum_dispatch]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>ContainerRuntime {
     <span class="doccomment">/// Get information about the container (pid, env).
     </span><span class="kw">async fn </span>get_info(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;ContainerInfo&gt;;
@@ -407,8 +403,7 @@
     }
 }
 
-<span class="attr">#[async_trait]
-</span><span class="kw">impl </span>ContainerRuntime <span class="kw">for </span>DockerContainer {
+<span class="kw">impl </span>ContainerRuntime <span class="kw">for </span>DockerContainer {
     <span class="kw">async fn </span>get_info(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;ContainerInfo&gt; {
         <span class="kw">let </span>inspect_options = <span class="prelude-val">Some</span>(InspectContainerOptions { size: <span class="bool-val">false </span>});
         <span class="kw">let </span>inspect_response = <span class="self">self
@@ -500,8 +495,7 @@
     }
 }
 
-<span class="attr">#[async_trait]
-</span><span class="kw">impl </span>ContainerRuntime <span class="kw">for </span>ContainerdContainer {
+<span class="kw">impl </span>ContainerRuntime <span class="kw">for </span>ContainerdContainer {
     <span class="kw">async fn </span>get_info(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;ContainerInfo&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>client = <span class="self">self</span>.get_task_client().<span class="kw">await</span><span class="question-mark">?</span>;
         <span class="kw">let </span>container_id = <span class="self">self</span>.container_id.to_string();

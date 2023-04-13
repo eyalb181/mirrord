@@ -165,13 +165,10 @@
 <a href="#165" id="165">165</a>
 <a href="#166" id="166">166</a>
 <a href="#167" id="167">167</a>
-<a href="#168" id="168">168</a>
-<a href="#169" id="169">169</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::path::Path;
 <span class="attr">#[cfg(feature = <span class="string">&quot;incluster&quot;</span>)]
 </span><span class="kw">use </span>std::time::Duration;
 
-<span class="kw">use </span>async_trait::async_trait;
 <span class="kw">use </span>k8s_openapi::api::core::v1::Pod;
 <span class="kw">use </span>kube::{
     config::{KubeConfigOptions, Kubeconfig},
@@ -226,8 +223,7 @@
     }
 }
 
-<span class="attr">#[async_trait]
-</span><span class="kw">impl </span>AgentManagment <span class="kw">for </span>KubernetesAPI {
+<span class="kw">impl </span>AgentManagment <span class="kw">for </span>KubernetesAPI {
     <span class="kw">type </span>AgentRef = (String, u16);
     <span class="kw">type </span><span class="prelude-val">Err </span>= KubeApiError;
 

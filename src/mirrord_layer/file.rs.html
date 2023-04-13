@@ -662,16 +662,33 @@
 <a href="#662" id="662">662</a>
 <a href="#663" id="663">663</a>
 <a href="#664" id="664">664</a>
-</pre><pre class="rust"><code><span class="doccomment">/// File operations on remote pod.
-///
-/// Read-only file operations are enabled by default, you can turn it off by setting
-/// `MIRRORD_FILE_RO_OPS` to `false`.
-///
-///
-/// Some file paths and types are ignored by default (bypassed by mirrord, meaning they are
-/// opened locally), these are controlled by configuring the [`filter::FileFilter`] with
-/// `[FsConfig]`.
-</span><span class="kw">use </span>core::fmt;
+<a href="#665" id="665">665</a>
+<a href="#666" id="666">666</a>
+<a href="#667" id="667">667</a>
+<a href="#668" id="668">668</a>
+<a href="#669" id="669">669</a>
+<a href="#670" id="670">670</a>
+<a href="#671" id="671">671</a>
+<a href="#672" id="672">672</a>
+<a href="#673" id="673">673</a>
+<a href="#674" id="674">674</a>
+<a href="#675" id="675">675</a>
+<a href="#676" id="676">676</a>
+<a href="#677" id="677">677</a>
+<a href="#678" id="678">678</a>
+<a href="#679" id="679">679</a>
+<a href="#680" id="680">680</a>
+<a href="#681" id="681">681</a>
+<a href="#682" id="682">682</a>
+<a href="#683" id="683">683</a>
+<a href="#684" id="684">684</a>
+<a href="#685" id="685">685</a>
+<a href="#686" id="686">686</a>
+<a href="#687" id="687">687</a>
+<a href="#688" id="688">688</a>
+<a href="#689" id="689">689</a>
+<a href="#690" id="690">690</a>
+</pre><pre class="rust"><code><span class="kw">use </span>core::fmt;
 <span class="kw">use </span>std::{
     io::SeekFrom,
     os::unix::io::RawFd,
@@ -681,7 +698,16 @@
 
 <span class="kw">use </span>dashmap::DashMap;
 <span class="kw">use </span>libc::{c_int, O_ACCMODE, O_APPEND, O_CREAT, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY};
-<span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+<span class="doccomment">/// File operations on remote pod.
+///
+/// Read-only file operations are enabled by default, you can turn it off by setting
+/// `MIRRORD_FILE_RO_OPS` to `false`.
+///
+///
+/// Some file paths and types are ignored by default (bypassed by mirrord, meaning they are
+/// opened locally), these are controlled by configuring the [`filter::FileFilter`] with
+/// `[FsConfig]`.
+</span><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
 </span><span class="kw">use </span>mirrord_protocol::file::{GetDEnts64Request, GetDEnts64Response};
 <span class="kw">use </span>mirrord_protocol::{
     file::{
@@ -689,7 +715,8 @@
         FdOpenDirRequest, OpenDirResponse, OpenFileRequest, OpenFileResponse, OpenOptionsInternal,
         OpenRelativeFileRequest, ReadDirRequest, ReadDirResponse, ReadFileRequest,
         ReadFileResponse, ReadLimitedFileRequest, SeekFileRequest, SeekFileResponse,
-        WriteFileRequest, WriteFileResponse, WriteLimitedFileRequest, XstatRequest, XstatResponse,
+        WriteFileRequest, WriteFileResponse, WriteLimitedFileRequest, XstatFsRequest,
+        XstatFsResponse, XstatRequest, XstatResponse,
     },
     ClientMessage, FileRequest, FileResponse, RemoteResult,
 };
@@ -789,6 +816,7 @@
     write_limited_queue: ResponseDeque&lt;WriteFileResponse&gt;,
     access_queue: ResponseDeque&lt;AccessFileResponse&gt;,
     xstat_queue: ResponseDeque&lt;XstatResponse&gt;,
+    xstatfs_queue: ResponseDeque&lt;XstatFsResponse&gt;,
     opendir_queue: ResponseDeque&lt;OpenDirResponse&gt;,
     readdir_queue: ResponseDeque&lt;ReadDirResponse&gt;,
     <span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
@@ -866,24 +894,25 @@
                     });
 
                 pop_send(<span class="kw-2">&amp;mut </span><span class="self">self</span>.write_limited_queue, write).inspect_err(|fail| {
-                    <span class="macro">error!</span>(
-                        <span class="string">&quot;handle_daemon_message -&gt; Failed `pop_send` with {:#?}&quot;</span>,
-                        fail,
-                    )
+                    <span class="macro">error!</span>(<span class="string">&quot;handle_daemon_message -&gt; Failed `pop_send` with {fail:#?}&quot;</span>)
                 })
             }
             Xstat(xstat) =&gt; {
-                <span class="macro">trace!</span>(<span class="string">&quot;DaemonMessage::XstatResponse {:#?}!&quot;</span>, xstat);
+                <span class="macro">trace!</span>(<span class="string">&quot;DaemonMessage::XstatResponse {xstat:#?}!&quot;</span>);
                 pop_send(<span class="kw-2">&amp;mut </span><span class="self">self</span>.xstat_queue, xstat)
             }
+            XstatFs(xstatfs) =&gt; {
+                <span class="macro">trace!</span>(<span class="string">&quot;DaemonMessage::XstatFsResponse {xstatfs:#?}!&quot;</span>);
+                pop_send(<span class="kw-2">&amp;mut </span><span class="self">self</span>.xstatfs_queue, xstatfs)
+            }
             ReadDir(read_dir) =&gt; {
-                <span class="macro">trace!</span>(<span class="string">&quot;DaemonMessage::ReadDirResponse {:#?}!&quot;</span>, read_dir);
+                <span class="macro">trace!</span>(<span class="string">&quot;DaemonMessage::ReadDirResponse {read_dir:#?}!&quot;</span>);
                 pop_send(<span class="kw-2">&amp;mut </span><span class="self">self</span>.readdir_queue, read_dir)
             }
             OpenDir(open_dir) =&gt; pop_send(<span class="kw-2">&amp;mut </span><span class="self">self</span>.opendir_queue, open_dir),
             <span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
             </span>GetDEnts64(getdents64) =&gt; {
-                <span class="macro">trace!</span>(<span class="string">&quot;DaemonMessage::GetDEnts64Response {:#?}!&quot;</span>, getdents64);
+                <span class="macro">trace!</span>(<span class="string">&quot;DaemonMessage::GetDEnts64Response {getdents64:#?}!&quot;</span>);
                 pop_send(<span class="kw-2">&amp;mut </span><span class="self">self</span>.getdents64_queue, getdents64)
             }
         }
@@ -908,6 +937,7 @@
             Close(close) =&gt; <span class="self">self</span>.handle_hook_close(close, tx).<span class="kw">await</span>,
             Access(access) =&gt; <span class="self">self</span>.handle_hook_access(access, tx).<span class="kw">await</span>,
             Xstat(xstat) =&gt; <span class="self">self</span>.handle_hook_xstat(xstat, tx).<span class="kw">await</span>,
+            XstatFs(xstatfs) =&gt; <span class="self">self</span>.handle_hook_xstatfs(xstatfs, tx).<span class="kw">await</span>,
             ReadDir(read_dir) =&gt; <span class="self">self</span>.handle_hook_read_dir(read_dir, tx).<span class="kw">await</span>,
             FdOpenDir(open_dir) =&gt; <span class="self">self</span>.handle_hook_fdopen_dir(open_dir, tx).<span class="kw">await</span>,
             CloseDir(close_dir) =&gt; <span class="self">self</span>.handle_hook_close_dir(close_dir, tx).<span class="kw">await</span>,
@@ -1160,6 +1190,21 @@
         tx.send(request).<span class="kw">await</span>.map_err(From::from)
     }
 
+    <span class="kw">async fn </span>handle_hook_xstatfs(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        xstat: XstatFs,
+        tx: <span class="kw-2">&amp;</span>Sender&lt;ClientMessage&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="kw">let </span>XstatFs { fd, fs_channel_tx } = xstat;
+
+        <span class="self">self</span>.xstatfs_queue.push_back(fs_channel_tx);
+
+        <span class="kw">let </span>xstatfs_request = XstatFsRequest { fd };
+
+        <span class="kw">let </span>request = ClientMessage::FileRequest(FileRequest::XstatFs(xstatfs_request));
+        tx.send(request).<span class="kw">await</span>.map_err(From::from)
+    }
+
     <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>, tx))]
     </span><span class="kw">async fn </span>handle_hook_fdopen_dir(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -1284,6 +1329,12 @@
 }
 
 <span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>XstatFs {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) fd: RemoteFd,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) fs_channel_tx: ResponseChannel&lt;XstatFsResponse&gt;,
+}
+
+<span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>ReadDir {
     <span class="kw">pub</span>(<span class="kw">crate</span>) remote_fd: u64,
     <span class="kw">pub</span>(<span class="kw">crate</span>) dir_channel_tx: ResponseChannel&lt;ReadDirResponse&gt;,
@@ -1320,6 +1371,7 @@
     Close(Close),
     Access(Access),
     Xstat(Xstat),
+    XstatFs(XstatFs),
     ReadDir(ReadDir),
     FdOpenDir(FdOpenDir),
     CloseDir(CloseDir),

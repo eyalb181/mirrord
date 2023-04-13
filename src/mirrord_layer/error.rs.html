@@ -327,6 +327,10 @@
 <a href="#327" id="327">327</a>
 <a href="#328" id="328">328</a>
 <a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{env::VarError, ptr, str::ParseBoolError};
 
 <span class="kw">use </span>errno::set_errno;
@@ -419,6 +423,9 @@
         supported IP or unix socket address.&quot;
     </span>)]
     </span>UnsupportedSocketType,
+
+    <span class="attr">#[error(<span class="string">&quot;mirrord-layer: Pointer argument points to an invalid address&quot;</span>)]
+    </span>BadPointer,
 }
 
 <span class="doccomment">/// Errors internal to mirrord-layer.
@@ -605,6 +612,7 @@
             </span>HookError::FailedSipPatch(<span class="kw">_</span>) =&gt; libc::EACCES,
             HookError::SocketUnsuportedIpv6 =&gt; libc::EAFNOSUPPORT,
             HookError::UnsupportedSocketType =&gt; libc::EAFNOSUPPORT,
+            HookError::BadPointer =&gt; libc::EFAULT,
         };
 
         set_errno(errno::Errno(libc_error));

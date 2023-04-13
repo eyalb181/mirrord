@@ -405,13 +405,8 @@
 <a href="#405" id="405">405</a>
 <a href="#406" id="406">406</a>
 <a href="#407" id="407">407</a>
-<a href="#408" id="408">408</a>
-<a href="#409" id="409">409</a>
-<a href="#410" id="410">410</a>
-<a href="#411" id="411">411</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{collections::HashSet, sync::LazyLock};
 
-<span class="kw">use </span>async_trait::async_trait;
 <span class="kw">use </span>futures::{StreamExt, TryStreamExt};
 <span class="kw">use </span>k8s_openapi::api::{
     batch::v1::Job,
@@ -434,8 +429,7 @@
     error::{KubeApiError, <span class="prelude-ty">Result</span>},
 };
 
-<span class="attr">#[async_trait]
-</span><span class="kw">pub trait </span>ContainerApi {
+<span class="kw">pub trait </span>ContainerApi {
     <span class="kw">fn </span>agent_image(agent: <span class="kw-2">&amp;</span>AgentConfig) -&gt; String {
         <span class="kw">match </span><span class="kw-2">&amp;</span>agent.image {
             <span class="prelude-val">Some</span>(image) =&gt; image.clone(),
@@ -535,8 +529,7 @@
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>JobContainer;
 
-<span class="attr">#[async_trait]
-</span><span class="kw">impl </span>ContainerApi <span class="kw">for </span>JobContainer {
+<span class="kw">impl </span>ContainerApi <span class="kw">for </span>JobContainer {
     <span class="kw">async fn </span>create_agent&lt;P&gt;(
         client: <span class="kw-2">&amp;</span>Client,
         agent: <span class="kw-2">&amp;</span>AgentConfig,
@@ -711,8 +704,7 @@
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>EphemeralContainer;
 
-<span class="attr">#[async_trait]
-</span><span class="kw">impl </span>ContainerApi <span class="kw">for </span>EphemeralContainer {
+<span class="kw">impl </span>ContainerApi <span class="kw">for </span>EphemeralContainer {
     <span class="kw">async fn </span>create_agent&lt;P&gt;(
         client: <span class="kw-2">&amp;</span>Client,
         agent: <span class="kw-2">&amp;</span>AgentConfig,

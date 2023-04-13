@@ -306,6 +306,8 @@
 <a href="#306" id="306">306</a>
 <a href="#307" id="307">307</a>
 <a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     collections::{HashMap, HashSet},
     io,
@@ -324,7 +326,7 @@
         OpenDirResponse, OpenFileRequest, OpenFileResponse, OpenRelativeFileRequest,
         ReadDirRequest, ReadDirResponse, ReadFileRequest, ReadFileResponse, ReadLimitedFileRequest,
         SeekFileRequest, SeekFileResponse, WriteFileRequest, WriteFileResponse,
-        WriteLimitedFileRequest, XstatRequest, XstatResponse,
+        WriteLimitedFileRequest, XstatFsRequest, XstatFsResponse, XstatRequest, XstatResponse,
     },
     outgoing::{
         tcp::{DaemonTcpOutgoing, LayerTcpOutgoing},
@@ -380,6 +382,7 @@
     Close(CloseFileRequest),
     Access(AccessFileRequest),
     Xstat(XstatRequest),
+    XstatFs(XstatFsRequest),
     FdOpenDir(FdOpenDirRequest),
     ReadDir(ReadDirRequest),
     CloseDir(CloseDirRequest),
@@ -414,6 +417,7 @@
     Seek(RemoteResult&lt;SeekFileResponse&gt;),
     Access(RemoteResult&lt;AccessFileResponse&gt;),
     Xstat(RemoteResult&lt;XstatResponse&gt;),
+    XstatFs(RemoteResult&lt;XstatFsResponse&gt;),
     ReadDir(RemoteResult&lt;ReadDirResponse&gt;),
     OpenDir(RemoteResult&lt;OpenDirResponse&gt;),
     <span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]

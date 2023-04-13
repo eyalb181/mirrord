@@ -736,6 +736,28 @@
 <a href="#736" id="736">736</a>
 <a href="#737" id="737">737</a>
 <a href="#738" id="738">738</a>
+<a href="#739" id="739">739</a>
+<a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
+<a href="#745" id="745">745</a>
+<a href="#746" id="746">746</a>
+<a href="#747" id="747">747</a>
+<a href="#748" id="748">748</a>
+<a href="#749" id="749">749</a>
+<a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
+<a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
+<a href="#758" id="758">758</a>
+<a href="#759" id="759">759</a>
+<a href="#760" id="760">760</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     <span class="self">self</span>,
     collections::{hash_map::Entry, HashMap},
@@ -757,7 +779,7 @@
         OpenFileResponse, OpenOptionsInternal, OpenRelativeFileRequest, ReadDirRequest,
         ReadDirResponse, ReadFileRequest, ReadFileResponse, ReadLimitedFileRequest,
         SeekFileRequest, SeekFileResponse, WriteFileRequest, WriteFileResponse,
-        WriteLimitedFileRequest, XstatRequest, XstatResponse,
+        WriteLimitedFileRequest, XstatFsRequest, XstatFsResponse, XstatRequest, XstatResponse,
     },
     FileRequest, FileResponse, RemoteResult, ResponseError,
 };
@@ -934,7 +956,10 @@
                 <span class="kw">let </span>xstat_result = <span class="self">self</span>.xstat(path, fd, follow_symlink);
                 <span class="prelude-val">Some</span>(FileResponse::Xstat(xstat_result))
             }
-
+            FileRequest::XstatFs(XstatFsRequest { fd }) =&gt; {
+                <span class="kw">let </span>xstat_result = <span class="self">self</span>.xstatfs(fd);
+                <span class="prelude-val">Some</span>(FileResponse::XstatFs(xstat_result))
+            }
             FileRequest::FdOpenDir(FdOpenDirRequest { remote_fd }) =&gt; {
                 <span class="kw">let </span>open_dir_result = <span class="self">self</span>.fdopen_dir(remote_fd);
                 <span class="prelude-val">Some</span>(FileResponse::OpenDir(open_dir_result))
@@ -1305,6 +1330,25 @@
             metadata: metadata.into(),
         })
         .map_err(ResponseError::from)
+    }
+
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>xstatfs(<span class="kw-2">&amp;mut </span><span class="self">self</span>, fd: u64) -&gt; RemoteResult&lt;XstatFsResponse&gt; {
+        <span class="kw">let </span>target = <span class="self">self
+            </span>.open_files
+            .get(<span class="kw-2">&amp;</span>fd)
+            .ok_or(ResponseError::NotFound(fd))<span class="question-mark">?</span>;
+
+        <span class="kw">let </span>statfs = <span class="kw">match </span>target {
+            RemoteFile::File(file) =&gt; nix::sys::statfs::fstatfs(file)
+                .map_err(|err| std::io::Error::from_raw_os_error(err <span class="kw">as </span>i32))<span class="question-mark">?</span>,
+            RemoteFile::Directory(path) =&gt; nix::sys::statfs::statfs(path)
+                .map_err(|err| std::io::Error::from_raw_os_error(err <span class="kw">as </span>i32))<span class="question-mark">?</span>,
+        };
+
+        <span class="prelude-val">Ok</span>(XstatFsResponse {
+            metadata: statfs.into(),
+        })
     }
 
     <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]

@@ -524,13 +524,26 @@
 <a href="#524" id="524">524</a>
 <a href="#525" id="525">525</a>
 <a href="#526" id="526">526</a>
+<a href="#527" id="527">527</a>
+<a href="#528" id="528">528</a>
+<a href="#529" id="529">529</a>
+<a href="#530" id="530">530</a>
+<a href="#531" id="531">531</a>
+<a href="#532" id="532">532</a>
+<a href="#533" id="533">533</a>
+<a href="#534" id="534">534</a>
+<a href="#535" id="535">535</a>
+<a href="#536" id="536">536</a>
+<a href="#537" id="537">537</a>
+<a href="#538" id="538">538</a>
+<a href="#539" id="539">539</a>
 </pre><pre class="rust"><code><span class="kw">use </span>core::ffi::CStr;
 <span class="kw">use </span>std::{ffi::CString, io::SeekFrom, os::unix::io::RawFd, path::PathBuf};
 
 <span class="kw">use </span>libc::{c_int, c_uint, AT_FDCWD, FILE, O_CREAT, O_RDONLY, S_IRUSR, S_IWUSR, S_IXUSR};
 <span class="kw">use </span>mirrord_protocol::file::{
     OpenFileResponse, OpenOptionsInternal, ReadFileResponse, SeekFileResponse, WriteFileResponse,
-    XstatResponse,
+    XstatFsResponse, XstatResponse,
 };
 <span class="kw">use </span>tokio::sync::oneshot;
 <span class="kw">use </span>tracing::{error, trace};
@@ -1030,6 +1043,19 @@
     blocking_send_file_message(FileOperation::Xstat(lstat))<span class="question-mark">?</span>;
 
     Detour::Success(file_channel_rx.blocking_recv()<span class="question-mark">??</span>)
+}
+
+<span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>xstatfs(fd: RawFd) -&gt; Detour&lt;XstatFsResponse&gt; {
+    <span class="kw">let </span>fd = get_remote_fd(fd)<span class="question-mark">?</span>;
+
+    <span class="kw">let </span>(fs_channel_tx, fs_channel_rx) = oneshot::channel();
+
+    <span class="kw">let </span>lstatfs = XstatFs { fd, fs_channel_tx };
+
+    blocking_send_file_message(FileOperation::XstatFs(lstatfs))<span class="question-mark">?</span>;
+
+    Detour::Success(fs_channel_rx.blocking_recv()<span class="question-mark">??</span>)
 }
 
 <span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
