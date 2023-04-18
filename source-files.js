@@ -334,7 +334,7 @@ var sourcesIndex = JSON.parse('{\
 "virtue":["",[["generate",[],["gen_struct.rs","generate_fn.rs","generate_mod.rs","generator.rs","impl.rs","impl_for.rs","mod.rs","stream_builder.rs"]],["parse",[],["attributes.rs","body.rs","data_type.rs","generics.rs","mod.rs","utils.rs","visibility.rs"]]],["error.rs","lib.rs","utils.rs"]],\
 "want":["",[],["lib.rs"]],\
 "webbrowser":["",[],["common.rs","lib.rs","unix.rs"]],\
-"webpki":["",[["name",[],["dns_name.rs","ip_address.rs","verify.rs"]]],["calendar.rs","cert.rs","der.rs","end_entity.rs","error.rs","lib.rs","name.rs","signed_data.rs","time.rs","trust_anchor.rs","verify_cert.rs"]],\
+"webpki":["",[["name",[],["dns_name.rs","ip_address.rs","name.rs","verify.rs"]]],["calendar.rs","cert.rs","der.rs","end_entity.rs","error.rs","lib.rs","name.rs","signed_data.rs","time.rs","trust_anchor.rs","trust_anchor_util.rs","verify_cert.rs"]],\
 "webpki_roots":["",[],["lib.rs"]],\
 "which":["",[],["checker.rs","error.rs","finder.rs","lib.rs"]],\
 "wildmatch":["",[],["lib.rs"]],\
