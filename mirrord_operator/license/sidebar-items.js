@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["FIELDS"],"enum":["__Field"],"opaque":[""],"static":["LICENSE_SERVER"],"struct":["License","LicenseCheckRequest","LicenseCheckResponse","__FieldVisitor","__Visitor"]};
+window.SIDEBAR_ITEMS = {"opaque":[""],"static":["LICENSE_SERVER"],"struct":["License","LicenseCheckRequest","LicenseCheckResponse"]};

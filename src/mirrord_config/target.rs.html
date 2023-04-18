@@ -236,6 +236,7 @@
 <a href="#236" id="236">236</a>
 <a href="#237" id="237">237</a>
 <a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::str::FromStr;
 
 <span class="kw">use </span>schemars::JsonSchema;
@@ -243,8 +244,9 @@
 
 <span class="kw">use crate</span>::{
     config::{
-        from_env::FromEnv, source::MirrordConfigSource, ConfigError, FromMirrordConfig,
-        MirrordConfig, <span class="prelude-ty">Result</span>,
+        from_env::{FromEnv, FromEnvWithError},
+        source::MirrordConfigSource,
+        ConfigError, FromMirrordConfig, MirrordConfig, <span class="prelude-ty">Result</span>,
     },
     util::string_or_struct_option,
 };
@@ -297,7 +299,7 @@
     <span class="kw">fn </span>generate_config(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Generated&gt; {
         <span class="kw">let </span>config = <span class="kw">match </span><span class="self">self </span>{
             TargetFileConfig::Simple(path) =&gt; TargetConfig {
-                path: FromEnv::new(<span class="string">&quot;MIRRORD_IMPERSONATED_TARGET&quot;</span>)
+                path: FromEnvWithError::new(<span class="string">&quot;MIRRORD_IMPERSONATED_TARGET&quot;</span>)
                     .or(path)
                     .source_value()
                     .transpose()<span class="question-mark">?</span>,
@@ -306,7 +308,7 @@
                     .transpose()<span class="question-mark">?</span>,
             },
             TargetFileConfig::Advanced { path, namespace } =&gt; TargetConfig {
-                path: FromEnv::new(<span class="string">&quot;MIRRORD_IMPERSONATED_TARGET&quot;</span>)
+                path: FromEnvWithError::new(<span class="string">&quot;MIRRORD_IMPERSONATED_TARGET&quot;</span>)
                     .or(path)
                     .source_value()
                     .transpose()<span class="question-mark">?</span>,

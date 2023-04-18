@@ -729,6 +729,12 @@
 <a href="#729" id="729">729</a>
 <a href="#730" id="730">730</a>
 <a href="#731" id="731">731</a>
+<a href="#732" id="732">732</a>
+<a href="#733" id="733">733</a>
+<a href="#734" id="734">734</a>
+<a href="#735" id="735">735</a>
+<a href="#736" id="736">736</a>
+<a href="#737" id="737">737</a>
 </pre><pre class="rust"><code><span class="kw">use </span>alloc::ffi::CString;
 <span class="kw">use </span>core::{ffi::CStr, mem};
 <span class="kw">use </span>std::{
@@ -870,7 +876,13 @@
         <span class="kw">return </span>Detour::Bypass(Bypass::IgnoreLocalhost(requested_port));
     }
 
-    <span class="kw">if </span>is_ignored_port(<span class="kw-2">&amp;</span>requested_address) || port_debug_patch(<span class="kw-2">&amp;</span>requested_address) {
+    <span class="kw">if </span>is_ignored_port(<span class="kw-2">&amp;</span>requested_address)
+        || port_debug_patch(<span class="kw-2">&amp;</span>requested_address)
+        || INCOMING_IGNORE_PORTS
+            .get()
+            .expect(<span class="string">&quot;`INCOMING_IGNORE_PORTS` not set. Please report a bug&quot;</span>)
+            .contains(<span class="kw-2">&amp;</span>requested_port)
+    {
         <span class="prelude-val">Err</span>(Bypass::Port(requested_address.port()))<span class="question-mark">?</span>;
     }
 

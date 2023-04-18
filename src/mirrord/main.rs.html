@@ -376,12 +376,35 @@
 <a href="#376" id="376">376</a>
 <a href="#377" id="377">377</a>
 <a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
 </pre><pre class="rust"><code><span class="attr">#![feature(let_chains)]
 
 </span><span class="kw">use </span>std::{collections::HashMap, time::Duration};
 
 <span class="kw">use </span>clap::Parser;
 <span class="kw">use </span>config::<span class="kw-2">*</span>;
+<span class="kw">use </span>email_address::EmailAddress;
 <span class="kw">use </span>exec::execvp;
 <span class="kw">use </span>execution::MirrordExecution;
 <span class="kw">use </span>extension::extension_exec;
@@ -692,6 +715,26 @@
     <span class="prelude-val">Ok</span>(())
 }
 
+<span class="doccomment">/// Register the email to the waitlist.
+</span><span class="kw">async fn </span>register_to_waitlist(email: EmailAddress) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">const </span>WAITLIST_API: <span class="kw-2">&amp;</span>str = <span class="string">&quot;https://waitlist.metalbear.co/v1/waitlist&quot;</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>params = HashMap::new();
+    params.insert(<span class="string">&quot;email&quot;</span>, email.to_string());
+    reqwest::Client::new()
+        .post(WAITLIST_API)
+        .form(<span class="kw-2">&amp;</span>params)
+        .send()
+        .<span class="kw">await
+        </span>.map_err(CliError::WaitlistError)<span class="question-mark">?</span>;
+
+    <span class="macro">println!</span>(
+        <span class="string">&quot;Email {:?} successfully registered to the mirrord for Teams waitlist. We&#39;ll be in touch soon!&quot;</span>,
+        email.as_str()
+    );
+
+    <span class="prelude-val">Ok</span>(())
+}
+
 <span class="kw">fn </span>cli_progress() -&gt; TaskProgress {
     TaskProgress::new(<span class="string">&quot;mirrord cli starting&quot;</span>)
 }
@@ -701,7 +744,7 @@
 <span class="attr">#[tokio::main]
 </span><span class="kw">async fn </span>main() -&gt; miette::Result&lt;()&gt; {
     <span class="kw">if let </span><span class="prelude-val">Ok</span>(console_addr) = std::env::var(<span class="string">&quot;MIRRORD_CONSOLE_ADDR&quot;</span>) {
-        mirrord_console::init_logger(<span class="kw-2">&amp;</span>console_addr).<span class="kw">await</span><span class="question-mark">?</span>;
+        mirrord_console::init_logger(<span class="kw-2">&amp;</span>console_addr)<span class="question-mark">?</span>;
     } <span class="kw">else </span>{
         registry()
             .with(fmt::layer().with_writer(std::io::stderr))
@@ -721,6 +764,7 @@
         Commands::Operator(args) =&gt; operator_command(<span class="kw-2">*</span>args).<span class="kw">await</span><span class="question-mark">?</span>,
         Commands::ExtensionExec(args) =&gt; extension_exec(<span class="kw-2">*</span>args).<span class="kw">await</span><span class="question-mark">?</span>,
         Commands::InternalProxy(args) =&gt; internal_proxy::proxy(<span class="kw-2">*</span>args).<span class="kw">await</span><span class="question-mark">?</span>,
+        Commands::Waitlist(args) =&gt; register_to_waitlist(args.email).<span class="kw">await</span><span class="question-mark">?</span>,
     }
 
     <span class="prelude-val">Ok</span>(())

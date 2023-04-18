@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bincode_derive-2.0.0-rc.2/src/derive_enum.rs`."><title>derive_enum.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="bincode_derive" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (478cbb42b 2023-03-28)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-9ade54abd4bd73c8.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../bincode_derive/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bincode_derive-2.0.0-rc.3/src/derive_enum.rs`."><title>derive_enum.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="bincode_derive" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (478cbb42b 2023-03-28)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-9ade54abd4bd73c8.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../bincode_derive/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -423,13 +423,6 @@
 <a href="#423" id="423">423</a>
 <a href="#424" id="424">424</a>
 <a href="#425" id="425">425</a>
-<a href="#426" id="426">426</a>
-<a href="#427" id="427">427</a>
-<a href="#428" id="428">428</a>
-<a href="#429" id="429">429</a>
-<a href="#430" id="430">430</a>
-<a href="#431" id="431">431</a>
-<a href="#432" id="432">432</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::attribute::{ContainerAttributes, FieldAttributes};
 <span class="kw">use </span>virtue::prelude::<span class="kw-2">*</span>;
 
@@ -444,7 +437,6 @@
     <span class="kw">fn </span>iter_fields(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; EnumVariantIterator {
         EnumVariantIterator {
             idx: <span class="number">0</span>,
-            last_val: <span class="prelude-val">None</span>,
             variants: <span class="kw-2">&amp;</span><span class="self">self</span>.variants,
         }
     }
@@ -493,11 +485,10 @@
 
                         <span class="comment">// if we have any fields, declare them here
                         // Self::Variant { a, b, c }
-                        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(delimiter) = variant.fields.delimiter() {
+                        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(fields) = variant.fields.as_ref() {
+                            <span class="kw">let </span>delimiter = fields.delimiter();
                             match_body.group(delimiter, |field_body| {
-                                <span class="kw">for </span>(idx, field_name) <span class="kw">in
-                                    </span>variant.fields.names().into_iter().enumerate()
-                                {
+                                <span class="kw">for </span>(idx, field_name) <span class="kw">in </span>fields.names().into_iter().enumerate() {
                                     <span class="kw">if </span>idx != <span class="number">0 </span>{
                                         field_body.punct(<span class="string">&#39;,&#39;</span>);
                                     }
@@ -537,23 +528,25 @@
                             body.punct(<span class="string">&#39;?&#39;</span>);
                             body.punct(<span class="string">&#39;;&#39;</span>);
                             <span class="comment">// If we have any fields, encode them all one by one
-                            </span><span class="kw">for </span>field_name <span class="kw">in </span>variant.fields.names() {
-                                <span class="kw">let </span>attributes = field_name
-                                    .attributes()
-                                    .get_attribute::&lt;FieldAttributes&gt;()<span class="question-mark">?
-                                    </span>.unwrap_or_default();
-                                <span class="kw">if </span>attributes.with_serde {
-                                    body.push_parsed(<span class="macro">format!</span>(
+                            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(fields) = variant.fields.as_ref() {
+                                <span class="kw">for </span>field_name <span class="kw">in </span>fields.names() {
+                                    <span class="kw">let </span>attributes = field_name
+                                        .attributes()
+                                        .get_attribute::&lt;FieldAttributes&gt;()<span class="question-mark">?
+                                        </span>.unwrap_or_default();
+                                    <span class="kw">if </span>attributes.with_serde {
+                                        body.push_parsed(<span class="macro">format!</span>(
                                         <span class="string">&quot;{0}::Encode::encode(&amp;{0}::serde::Compat({1}), encoder)?;&quot;</span>,
                                         crate_name,
                                         field_name.to_string_with_prefix(TUPLE_FIELD_PREFIX),
                                     ))<span class="question-mark">?</span>;
-                                } <span class="kw">else </span>{
-                                    body.push_parsed(<span class="macro">format!</span>(
-                                        <span class="string">&quot;{0}::Encode::encode({1}, encoder)?;&quot;</span>,
-                                        crate_name,
-                                        field_name.to_string_with_prefix(TUPLE_FIELD_PREFIX),
-                                    ))<span class="question-mark">?</span>;
+                                    } <span class="kw">else </span>{
+                                        body.push_parsed(<span class="macro">format!</span>(
+                                            <span class="string">&quot;{0}::Encode::encode({1}, encoder)?;&quot;</span>,
+                                            crate_name,
+                                            field_name.to_string_with_prefix(TUPLE_FIELD_PREFIX),
+                                        ))<span class="question-mark">?</span>;
+                                    }
                                 }
                             }
                             body.push_parsed(<span class="string">&quot;Ok(())&quot;</span>)<span class="question-mark">?</span>;
@@ -614,7 +607,7 @@
                 variant_inner.ident_str(<span class="string">&quot;allowed&quot;</span>);
                 variant_inner.punct(<span class="string">&#39;:&#39;</span>);
 
-                <span class="kw">if </span><span class="self">self</span>.variants.iter().any(|i| i.has_fixed_value()) {
+                <span class="kw">if </span><span class="self">self</span>.variants.iter().any(|i| i.value.is_some()) {
                     <span class="comment">// we have fixed values, implement AllowedEnumVariants::Allowed
                     </span>variant_inner.push_parsed(<span class="macro">format!</span>(
                         <span class="string">&quot;&amp;{}::error::AllowedEnumVariants::Allowed&quot;</span>,
@@ -663,7 +656,7 @@
                     where_constraints.push_parsed_constraint(bounds).map_err(|e| e.with_span(lit.span()))<span class="question-mark">?</span>;
                 } <span class="kw">else </span>{
                     <span class="kw">for </span>g <span class="kw">in </span>generics.iter_generics() {
-                        where_constraints.push_constraint(g, <span class="macro">format!</span>(<span class="string">&quot;{}::Decode&quot;</span>, crate_name)).unwrap();
+                        where_constraints.push_constraint(g, <span class="macro">format!</span>(<span class="string">&quot;{}::Decode&quot;</span>, crate_name))<span class="question-mark">?</span>;
                     }
                 }
                 <span class="prelude-val">Ok</span>(())
@@ -705,27 +698,29 @@
                                 variant_case_body.ident(variant.name.clone());
 
                                 variant_case_body.group(Delimiter::Brace, |variant_body| {
-                                    <span class="kw">let </span>is_tuple = <span class="macro">matches!</span>(variant.fields, Fields::Tuple(<span class="kw">_</span>));
-                                    <span class="kw">for </span>(idx, field) <span class="kw">in </span>variant.fields.names().into_iter().enumerate() {
-                                        <span class="kw">if </span>is_tuple {
-                                            variant_body.lit_usize(idx);
-                                        } <span class="kw">else </span>{
-                                            variant_body.ident(field.unwrap_ident().clone());
-                                        }
-                                        variant_body.punct(<span class="string">&#39;:&#39;</span>);
-                                        <span class="kw">let </span>attributes = field.attributes().get_attribute::&lt;FieldAttributes&gt;()<span class="question-mark">?</span>.unwrap_or_default();
-                                        <span class="kw">if </span>attributes.with_serde {
-                                            variant_body
-                                                .push_parsed(<span class="macro">format!</span>(
-                                                    <span class="string">&quot;&lt;{0}::serde::Compat&lt;_&gt; as {0}::Decode&gt;::decode(decoder)?.0,&quot;</span>,
-                                                    crate_name
-                                                ))<span class="question-mark">?</span>;
-                                        } <span class="kw">else </span>{
-                                            variant_body
-                                                .push_parsed(<span class="macro">format!</span>(
-                                                    <span class="string">&quot;{}::Decode::decode(decoder)?,&quot;</span>,
-                                                    crate_name
-                                                ))<span class="question-mark">?</span>;
+                                    <span class="kw">if let </span><span class="prelude-val">Some</span>(fields) = variant.fields.as_ref() {
+                                        <span class="kw">let </span>is_tuple = <span class="macro">matches!</span>(fields, Fields::Tuple(<span class="kw">_</span>));
+                                        <span class="kw">for </span>(idx, field) <span class="kw">in </span>fields.names().into_iter().enumerate() {
+                                            <span class="kw">if </span>is_tuple {
+                                                variant_body.lit_usize(idx);
+                                            } <span class="kw">else </span>{
+                                                variant_body.ident(field.unwrap_ident().clone());
+                                            }
+                                            variant_body.punct(<span class="string">&#39;:&#39;</span>);
+                                            <span class="kw">let </span>attributes = field.attributes().get_attribute::&lt;FieldAttributes&gt;()<span class="question-mark">?</span>.unwrap_or_default();
+                                            <span class="kw">if </span>attributes.with_serde {
+                                                variant_body
+                                                    .push_parsed(<span class="macro">format!</span>(
+                                                        <span class="string">&quot;&lt;{0}::serde::Compat&lt;_&gt; as {0}::Decode&gt;::decode(decoder)?.0,&quot;</span>,
+                                                        crate_name
+                                                    ))<span class="question-mark">?</span>;
+                                            } <span class="kw">else </span>{
+                                                variant_body
+                                                    .push_parsed(<span class="macro">format!</span>(
+                                                        <span class="string">&quot;{}::Decode::decode(decoder)?,&quot;</span>,
+                                                        crate_name
+                                                    ))<span class="question-mark">?</span>;
+                                            }
                                         }
                                     }
                                     <span class="prelude-val">Ok</span>(())
@@ -759,6 +754,9 @@
                 } <span class="kw">else </span>{
                     <span class="kw">for </span>g <span class="kw">in </span>generics.iter_generics() {
                         where_constraints.push_constraint(g, <span class="macro">format!</span>(<span class="string">&quot;{}::de::BorrowDecode&lt;&#39;__de&gt;&quot;</span>, crate_name)).unwrap();
+                    }
+                    <span class="kw">for </span>lt <span class="kw">in </span>generics.iter_lifetimes() {
+                        where_constraints.push_parsed_constraint(<span class="macro">format!</span>(<span class="string">&quot;&#39;__de: &#39;{}&quot;</span>, lt.ident))<span class="question-mark">?</span>;
                     }
                 }
                 <span class="prelude-val">Ok</span>(())
@@ -797,20 +795,22 @@
                                 variant_case_body.ident(variant.name.clone());
 
                                 variant_case_body.group(Delimiter::Brace, |variant_body| {
-                                    <span class="kw">let </span>is_tuple = <span class="macro">matches!</span>(variant.fields, Fields::Tuple(<span class="kw">_</span>));
-                                    <span class="kw">for </span>(idx, field) <span class="kw">in </span>variant.fields.names().into_iter().enumerate() {
-                                        <span class="kw">if </span>is_tuple {
-                                            variant_body.lit_usize(idx);
-                                        } <span class="kw">else </span>{
-                                            variant_body.ident(field.unwrap_ident().clone());
-                                        }
-                                        variant_body.punct(<span class="string">&#39;:&#39;</span>);
-                                        <span class="kw">let </span>attributes = field.attributes().get_attribute::&lt;FieldAttributes&gt;()<span class="question-mark">?</span>.unwrap_or_default();
-                                        <span class="kw">if </span>attributes.with_serde {
-                                            variant_body
-                                                .push_parsed(<span class="macro">format!</span>(<span class="string">&quot;&lt;{0}::serde::BorrowCompat&lt;_&gt; as {0}::BorrowDecode&gt;::borrow_decode(decoder)?.0,&quot;</span>, crate_name))<span class="question-mark">?</span>;
-                                        } <span class="kw">else </span>{
-                                            variant_body.push_parsed(<span class="macro">format!</span>(<span class="string">&quot;{}::BorrowDecode::borrow_decode(decoder)?,&quot;</span>, crate_name))<span class="question-mark">?</span>;
+                                    <span class="kw">if let </span><span class="prelude-val">Some</span>(fields) = variant.fields.as_ref() {
+                                        <span class="kw">let </span>is_tuple = <span class="macro">matches!</span>(fields, Fields::Tuple(<span class="kw">_</span>));
+                                        <span class="kw">for </span>(idx, field) <span class="kw">in </span>fields.names().into_iter().enumerate() {
+                                            <span class="kw">if </span>is_tuple {
+                                                variant_body.lit_usize(idx);
+                                            } <span class="kw">else </span>{
+                                                variant_body.ident(field.unwrap_ident().clone());
+                                            }
+                                            variant_body.punct(<span class="string">&#39;:&#39;</span>);
+                                            <span class="kw">let </span>attributes = field.attributes().get_attribute::&lt;FieldAttributes&gt;()<span class="question-mark">?</span>.unwrap_or_default();
+                                            <span class="kw">if </span>attributes.with_serde {
+                                                variant_body
+                                                    .push_parsed(<span class="macro">format!</span>(<span class="string">&quot;&lt;{0}::serde::BorrowCompat&lt;_&gt; as {0}::BorrowDecode&gt;::borrow_decode(decoder)?.0,&quot;</span>, crate_name))<span class="question-mark">?</span>;
+                                            } <span class="kw">else </span>{
+                                                variant_body.push_parsed(<span class="macro">format!</span>(<span class="string">&quot;{}::BorrowDecode::borrow_decode(decoder)?,&quot;</span>, crate_name))<span class="question-mark">?</span>;
+                                            }
                                         }
                                     }
                                     <span class="prelude-val">Ok</span>(())
@@ -833,7 +833,6 @@
 <span class="kw">struct </span>EnumVariantIterator&lt;<span class="lifetime">&#39;a</span>&gt; {
     variants: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[EnumVariant],
     idx: usize,
-    last_val: <span class="prelude-ty">Option</span>&lt;(Literal, u32)&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>EnumVariantIterator&lt;<span class="lifetime">&#39;a</span>&gt; {
@@ -844,20 +843,7 @@
         <span class="kw">let </span>variant = <span class="self">self</span>.variants.get(<span class="self">self</span>.idx)<span class="question-mark">?</span>;
         <span class="self">self</span>.idx += <span class="number">1</span>;
 
-        <span class="kw">let </span>tokens = <span class="kw">if let </span>Fields::Integer(lit) = <span class="kw-2">&amp;</span>variant.fields {
-            <span class="kw">let </span>tree = TokenTree::Literal(lit.clone());
-            <span class="self">self</span>.last_val = <span class="prelude-val">Some</span>((lit.clone(), <span class="number">0</span>));
-            <span class="macro">vec!</span>[tree]
-        } <span class="kw">else if let </span><span class="prelude-val">Some</span>((lit, add)) = <span class="self">self</span>.last_val.as_mut() {
-            <span class="kw-2">*</span>add += <span class="number">1</span>;
-            <span class="macro">vec!</span>[
-                TokenTree::Literal(lit.clone()),
-                TokenTree::Punct(Punct::new(<span class="string">&#39;+&#39;</span>, Spacing::Alone)),
-                TokenTree::Literal(Literal::u32_suffixed(<span class="kw-2">*</span>add)),
-            ]
-        } <span class="kw">else </span>{
-            <span class="macro">vec!</span>[TokenTree::Literal(Literal::u32_suffixed(idx <span class="kw">as </span>u32))]
-        };
+        <span class="kw">let </span>tokens = <span class="macro">vec!</span>[TokenTree::Literal(Literal::u32_suffixed(idx <span class="kw">as </span>u32))];
 
         <span class="prelude-val">Some</span>((tokens, variant))
     }

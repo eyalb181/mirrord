@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["FAIL_PARSE_DEPLOYMENT_OR_POD","FIELDS"],"enum":["Target","TargetFileConfig","__Field"],"struct":["DeploymentTarget","PodTarget","TargetConfig","__DeserializeWith","__FieldVisitor","__Visitor"],"trait":["FromSplit"]};
+window.SIDEBAR_ITEMS = {"constant":["FAIL_PARSE_DEPLOYMENT_OR_POD"],"enum":["Target","TargetFileConfig"],"struct":["DeploymentTarget","PodTarget","TargetConfig"],"trait":["FromSplit"]};

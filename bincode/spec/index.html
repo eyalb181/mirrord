@@ -95,21 +95,15 @@
     </span><span class="string">b&#39;H&#39;</span>, <span class="string">b&#39;e&#39;</span>, <span class="string">b&#39;l&#39;</span>, <span class="string">b&#39;l&#39;</span>, <span class="string">b&#39;o&#39;
 </span>]);</code></pre></div>
 <h2 id="arrays"><a href="#arrays">Arrays</a></h2>
-<p>Array length is encoded based on the <code>.write_fixed_array_length</code> and <code>.skip_fixed_array_length()</code> config. When an array length is written, it will be encoded as a <code>u64</code>.</p>
+<p>Array length is never encoded.</p>
 <p>Note that <code>&amp;[T]</code> is encoded as a <a href="#collections">Collection</a>.</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>arr: [u8; <span class="number">5</span>] = [<span class="number">10</span>, <span class="number">20</span>, <span class="number">30</span>, <span class="number">40</span>, <span class="number">50</span>];
 <span class="kw">let </span>encoded = bincode::encode_to_vec(arr, bincode::config::legacy()).unwrap();
 <span class="macro">assert_eq!</span>(encoded.as_slice(), <span class="kw-2">&amp;</span>[
-    <span class="number">5</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="comment">// The length, as a u64
-    </span><span class="number">10</span>, <span class="number">20</span>, <span class="number">30</span>, <span class="number">40</span>, <span class="number">50</span>, <span class="comment">// the bytes
+    <span class="number">10</span>, <span class="number">20</span>, <span class="number">30</span>, <span class="number">40</span>, <span class="number">50</span>, <span class="comment">// the bytes
 </span>]);
-
-<span class="kw">let </span>encoded = bincode::encode_to_vec(arr, bincode::config::legacy().skip_fixed_array_length()).unwrap();
-<span class="macro">assert_eq!</span>(encoded.as_slice(), <span class="kw-2">&amp;</span>[
-    <span class="comment">// no length
-    </span><span class="number">10</span>, <span class="number">20</span>, <span class="number">30</span>, <span class="number">40</span>, <span class="number">50</span>, <span class="comment">// the bytes
-</span>]);</code></pre></div>
+</code></pre></div>
 <p>This applies to any type <code>T</code> that implements <code>Encode</code>/<code>Decode</code></p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(bincode::Encode)]
@@ -131,15 +125,7 @@
 
 <span class="kw">let </span>encoded = bincode::encode_to_vec(<span class="kw-2">&amp;</span>arr, bincode::config::legacy()).unwrap();
 <span class="macro">assert_eq!</span>(encoded.as_slice(), <span class="kw-2">&amp;</span>[
-    <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="comment">// Length of the array
-    </span><span class="number">10</span>, <span class="number">20</span>, <span class="comment">// First Foo
-    </span><span class="number">30</span>, <span class="number">40</span>, <span class="comment">// Second Foo
-</span>]);
-
-<span class="kw">let </span>encoded = bincode::encode_to_vec(<span class="kw-2">&amp;</span>arr, bincode::config::legacy().skip_fixed_array_length()).unwrap();
-<span class="macro">assert_eq!</span>(encoded.as_slice(), <span class="kw-2">&amp;</span>[
-    <span class="comment">// no length
-    </span><span class="number">10</span>, <span class="number">20</span>, <span class="comment">// First Foo
+    <span class="number">10</span>, <span class="number">20</span>, <span class="comment">// First Foo
     </span><span class="number">30</span>, <span class="number">40</span>, <span class="comment">// Second Foo
 </span>]);</code></pre></div>
 </div></details></section></div></main></body></html>

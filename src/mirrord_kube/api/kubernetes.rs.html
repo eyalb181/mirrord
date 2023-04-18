@@ -238,7 +238,7 @@
             .get(<span class="kw-2">&amp;</span>pod_agent_name)
             .<span class="kw">await</span><span class="question-mark">?
             </span>.status
-            .and_then(|status| status.pod_ip.clone())
+            .and_then(|status| status.pod_ip)
             .unwrap_or(pod_agent_name);
 
         <span class="kw">let </span>agent_addr = <span class="macro">format!</span>(<span class="string">&quot;{}:{}&quot;</span>, pod_addr, agent_port);

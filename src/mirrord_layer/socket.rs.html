@@ -255,6 +255,7 @@
 <a href="#255" id="255">255</a>
 <a href="#256" id="256">256</a>
 <a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
 </pre><pre class="rust"><code><span class="doccomment">//! We implement each hook function in a safe function as much as possible, having the unsafe do the
 //! absolute minimum
 </span><span class="kw">use </span>std::{
@@ -275,6 +276,7 @@
 <span class="kw">use crate</span>::{
     detour::{Bypass, Detour, OptionExt},
     error::{HookError, HookResult},
+    INCOMING_IGNORE_PORTS,
 };
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span>hooks;

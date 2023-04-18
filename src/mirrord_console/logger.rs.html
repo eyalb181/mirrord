@@ -94,16 +94,14 @@
 <a href="#94" id="94">94</a>
 <a href="#95" id="95">95</a>
 <a href="#96" id="96">96</a>
-<a href="#97" id="97">97</a>
-<a href="#98" id="98">98</a>
-<a href="#99" id="99">99</a>
-</pre><pre class="rust"><code><span class="kw">use </span>futures::{Sink, SinkExt};
-<span class="kw">use </span>log::{LevelFilter, Metadata};
-<span class="kw">use </span>tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
-<span class="kw">use </span>tokio_tungstenite::{
-    connect_async,
-    tungstenite::{protocol::Message, Error <span class="kw">as </span>WsError},
+</pre><pre class="rust"><code><span class="kw">use </span>std::{
+    io::{Read, Write},
+    sync::mpsc::{sync_channel, Receiver, SyncSender},
+    thread,
 };
+
+<span class="kw">use </span>log::{LevelFilter, Metadata};
+<span class="kw">use </span>tungstenite::{connect, protocol::Message, WebSocket};
 
 <span class="kw">use crate</span>::{
     error::{ConsoleError, <span class="prelude-ty">Result</span>},
@@ -112,7 +110,7 @@
 
 <span class="doccomment">/// Console logger that sends log messages to the console app.
 </span><span class="kw">pub struct </span>ConsoleLogger {
-    sender: UnboundedSender&lt;protocol::Record&gt;,
+    sender: SyncSender&lt;protocol::Record&gt;,
 }
 
 <span class="kw">impl </span>log::Log <span class="kw">for </span>ConsoleLogger {
@@ -149,10 +147,7 @@
 }
 
 <span class="doccomment">/// Send hello message, containing information about the connected process.
-</span><span class="kw">async fn </span>send_hello&lt;C&gt;(client: <span class="kw-2">&amp;mut </span>C) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
-<span class="kw">where
-    </span>C: Sink&lt;Message, Error = WsError&gt; + std::marker::Unpin,
-{
+</span><span class="kw">fn </span>send_hello&lt;S: Read + Write&gt;(client: <span class="kw-2">&amp;mut </span>WebSocket&lt;S&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">let </span>hello = protocol::Hello {
         process_info: protocol::ProcessInfo {
             args: std::env::args().collect(),
@@ -164,33 +159,32 @@
         },
     };
     <span class="kw">let </span>msg = Message::binary(serde_json::to_vec(<span class="kw-2">&amp;</span>hello).unwrap());
-    client.send(msg).<span class="kw">await</span><span class="question-mark">?</span>;
+    client.write_message(msg)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
 
 <span class="doccomment">/// Background task that does the communication
 /// with the console app.
-</span><span class="kw">async fn </span>logger_task&lt;C&gt;(<span class="kw-2">mut </span>client: C, <span class="kw-2">mut </span>rx: UnboundedReceiver&lt;protocol::Record&gt;)
-<span class="kw">where
-    </span>C: Sink&lt;Message, Error = WsError&gt; + std::marker::Unpin,
-{
-    <span class="kw">while let </span><span class="prelude-val">Some</span>(msg) = rx.recv().<span class="kw">await </span>{
+</span><span class="kw">fn </span>logger_task&lt;S: Read + Write&gt;(<span class="kw-2">mut </span>client: WebSocket&lt;S&gt;, rx: Receiver&lt;protocol::Record&gt;) {
+    <span class="kw">while let </span><span class="prelude-val">Ok</span>(msg) = rx.recv() {
         <span class="kw">let </span>msg = Message::binary(serde_json::to_vec(<span class="kw-2">&amp;</span>msg).unwrap());
-        <span class="kw">let _ </span>= client.feed(msg).<span class="kw">await</span>;
+        <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = client.write_message(msg) {
+            <span class="macro">eprintln!</span>(<span class="string">&quot;Error sending log message: {err:?}&quot;</span>);
+            <span class="kw">break</span>;
+        }
     }
 }
 
 <span class="doccomment">/// Initializes the logger
 /// Connects to the console, and sets the global logger to use it.
-</span><span class="kw">pub async fn </span>init_logger(address: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>(tx, rx) = tokio::sync::mpsc::unbounded_channel();
-    <span class="kw">let </span>(<span class="kw-2">mut </span>client, <span class="kw">_</span>) = connect_async(<span class="macro">format!</span>(<span class="string">&quot;ws://{address}/ws&quot;</span>))
-        .<span class="kw">await
-        </span>.map_err(ConsoleError::ConnectError)<span class="question-mark">?</span>;
+</span><span class="kw">pub fn </span>init_logger(address: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>(tx, rx) = sync_channel(<span class="number">10000</span>);
+    <span class="kw">let </span>(<span class="kw-2">mut </span>client, <span class="kw">_</span>) =
+        connect(<span class="macro">format!</span>(<span class="string">&quot;ws://{address}/ws&quot;</span>)).map_err(ConsoleError::ConnectError)<span class="question-mark">?</span>;
 
-    send_hello(<span class="kw-2">&amp;mut </span>client).<span class="kw">await</span><span class="question-mark">?</span>;
-    tokio::spawn(<span class="kw">async move </span>{
-        logger_task(client, rx).<span class="kw">await</span>;
+    send_hello(<span class="kw-2">&amp;mut </span>client)<span class="question-mark">?</span>;
+    thread::spawn(<span class="kw">move </span>|| {
+        logger_task(client, rx);
     });
     <span class="kw">let </span>logger = ConsoleLogger { sender: tx };
     log::set_boxed_logger(Box::new(logger)).map(|()| log::set_max_level(LevelFilter::Trace))<span class="question-mark">?</span>;

@@ -209,7 +209,17 @@
 <a href="#209" id="209">209</a>
 <a href="#210" id="210">210</a>
 <a href="#211" id="211">211</a>
-</pre><pre class="rust"><code><span class="kw">use </span>std::str::FromStr;
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+</pre><pre class="rust"><code><span class="kw">use </span>std::{collections::HashSet, str::FromStr};
 
 <span class="kw">use </span>bimap::BiMap;
 <span class="kw">use </span>schemars::JsonSchema;
@@ -309,6 +319,10 @@
                     .port_mapping
                     .map(|m| m.into_iter().collect())
                     .unwrap_or_default(),
+                ignore_ports: advanced
+                    .ignore_ports
+                    .map(|m| m.into_iter().collect())
+                    .unwrap_or_default(),
                 ignore_localhost: advanced
                     .ignore_localhost
                     .layer(|layer| Unstable::new(<span class="string">&quot;IncomingFileConfig&quot;</span>, <span class="string">&quot;ignore_localhost&quot;</span>, layer))
@@ -357,6 +371,10 @@
 
     <span class="doccomment">/// Consider removing when adding https://github.com/metalbear-co/mirrord/issues/702
     </span><span class="kw">pub </span>ignore_localhost: <span class="prelude-ty">Option</span>&lt;bool&gt;,
+
+    <span class="doccomment">/// Ports to ignore when mirroring/stealing traffic. Useful if you want
+    /// specific ports to be used locally only.
+    </span><span class="kw">pub </span>ignore_ports: <span class="prelude-ty">Option</span>&lt;Vec&lt;u16&gt;&gt;,
 }
 
 <span class="attr">#[derive(Default, PartialEq, Eq, Clone, Debug)]
@@ -368,6 +386,8 @@
     <span class="kw">pub </span>port_mapping: BiMap&lt;u16, u16&gt;,
 
     <span class="kw">pub </span>ignore_localhost: bool,
+
+    <span class="kw">pub </span>ignore_ports: HashSet&lt;u16&gt;,
 }
 
 <span class="kw">impl </span>IncomingConfig {

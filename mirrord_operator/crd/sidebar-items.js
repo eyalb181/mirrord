@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["FIELDS"],"enum":["__Field"],"static":["OPERATOR_STATUS_NAME"],"struct":["MirrordOperatorCrd","MirrordOperatorSpec","MirrordOperatorStatus","Session","TargetCrd","TargetSpec","__FieldVisitor","__Visitor"]};
+window.SIDEBAR_ITEMS = {"static":["OPERATOR_STATUS_NAME"],"struct":["MirrordOperatorCrd","MirrordOperatorSpec","MirrordOperatorStatus","Session","TargetCrd","TargetSpec"]};

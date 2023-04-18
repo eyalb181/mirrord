@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["FIELDS"],"enum":["__Field"],"mod":["agent","config","env","feature","fs","incoming","network","outgoing","target","util"],"struct":["LayerConfig","LayerFileConfig","__FieldVisitor","__Visitor"]};
+window.SIDEBAR_ITEMS = {"mod":["agent","config","env","feature","fs","incoming","network","outgoing","target","util"],"struct":["LayerConfig","LayerFileConfig"]};

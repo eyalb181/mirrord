@@ -280,11 +280,41 @@
 <a href="#280" id="280">280</a>
 <a href="#281" id="281">281</a>
 <a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
 </pre><pre class="rust"><code><span class="attr">#![deny(missing_docs)]
 
 </span><span class="kw">use </span>std::path::PathBuf;
 
 <span class="kw">use </span>clap::{ArgGroup, Args, Parser, Subcommand, ValueEnum};
+<span class="kw">use </span>email_address::EmailAddress;
 <span class="kw">use </span>mirrord_operator::setup::OperatorNamespace;
 
 <span class="attr">#[derive(Parser)]
@@ -303,10 +333,25 @@ Join our Discord server https://discord.gg/pSKEdmNZcK or create a GitHub issue&q
 
 <span class="attr">#[derive(Subcommand)]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum </span>Commands {
-    Exec(Box&lt;ExecArgs&gt;),
-    Extract {
-        path: String,
-    },
+    <span class="doccomment">/// Execute a binary using mirrord, mirror remote traffic to it, provide it access to remote
+    /// resources (network, files) and environment variables.
+    </span>Exec(Box&lt;ExecArgs&gt;),
+
+    <span class="doccomment">/// Register an email address to the waitlist for mirrord for Teams (`mirrord waitlist
+    /// myemail@gmail.com`)
+    ///
+    /// mirrord for Teams is currently invite-only, and features include:
+    ///
+    /// 1. Traffic stealing/mirroring from multi-pod deployments.
+    ///
+    /// 2. Concurrent mirrord sessions on the same resource (e.g. multiple users using the same
+    /// pod/deployment).
+    ///
+    /// 3. No privileged permissions required for end users.
+    </span>Waitlist(WaitlistArgs),
+
+    <span class="attr">#[command(hide = <span class="bool-val">true</span>)]
+    </span>Extract { path: String },
     <span class="attr">#[allow(dead_code)]
     #[command(skip)]
     </span>Login(LoginArgs),
@@ -561,5 +606,18 @@ Join our Discord server https://discord.gg/pSKEdmNZcK or create a GitHub issue&q
     <span class="doccomment">/// Specify config file to use
     </span><span class="attr">#[arg(short = <span class="string">&#39;f&#39;</span>)]
     </span><span class="kw">pub </span>config_file: <span class="prelude-ty">Option</span>&lt;String&gt;,
+}
+
+<span class="attr">#[derive(Args, Debug)]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>WaitlistArgs {
+    <span class="doccomment">/// Email to register
+    </span><span class="attr">#[arg(value_parser = email_parse)]
+    </span><span class="kw">pub </span>email: EmailAddress,
+}
+
+<span class="kw">fn </span>email_parse(email: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;EmailAddress, String&gt; {
+    email
+        .parse()
+        .map_err(|e: email_address::Error| <span class="macro">format!</span>(<span class="string">&quot;invalid email address provided: {e:?}&quot;</span>))
 }
 </code></pre></div></section></main></body></html>

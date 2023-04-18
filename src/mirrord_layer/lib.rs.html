@@ -968,6 +968,10 @@
 <a href="#968" id="968">968</a>
 <a href="#969" id="969">969</a>
 <a href="#970" id="970">970</a>
+<a href="#971" id="971">971</a>
+<a href="#972" id="972">972</a>
+<a href="#973" id="973">973</a>
+<a href="#974" id="974">974</a>
 </pre><pre class="rust"><code><span class="attr">#![feature(c_variadic)]
 #![feature(once_cell)]
 #![feature(result_option_inspect)]
@@ -1043,7 +1047,7 @@
 <span class="kw">extern crate </span>core;
 
 <span class="kw">use </span>std::{
-    collections::VecDeque,
+    collections::{HashSet, VecDeque},
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
     panic,
     sync::{LazyLock, OnceLock},
@@ -1200,6 +1204,9 @@
 /// When true, localhost connections will stay local - wont mirror or steal.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>INCOMING_IGNORE_LOCALHOST: OnceLock&lt;bool&gt; = OnceLock::new();
 
+<span class="doccomment">/// Ports to ignore on listening for mirroring/stealing.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>INCOMING_IGNORE_PORTS: OnceLock&lt;HashSet&lt;u16&gt;&gt; = OnceLock::new();
+
 <span class="doccomment">/// Check if we&#39;re running in NixOS or Devbox.
 ///
 /// - If so, add `sh` to the skip list because of
@@ -1336,9 +1343,7 @@
             .with(tracing_subscriber::EnvFilter::new(<span class="string">&quot;mirrord=trace&quot;</span>))
             .init();
     } <span class="kw">else if let </span><span class="prelude-val">Ok</span>(console_addr) = std::env::var(<span class="string">&quot;MIRRORD_CONSOLE_ADDR&quot;</span>) {
-        RUNTIME
-            .block_on(mirrord_console::init_logger(<span class="kw-2">&amp;</span>console_addr))
-            .expect(<span class="string">&quot;logger initialization failed&quot;</span>);
+        mirrord_console::init_logger(<span class="kw-2">&amp;</span>console_addr).expect(<span class="string">&quot;logger initialization failed&quot;</span>);
     } <span class="kw">else </span>{
         tracing_subscriber::registry()
             .with(
@@ -1406,6 +1411,9 @@
         .set(config.feature.network.incoming.ignore_localhost)
         .expect(<span class="string">&quot;Setting INCOMING_IGNORE_LOCALHOST singleton&quot;</span>);
 
+    INCOMING_IGNORE_PORTS
+        .set(config.feature.network.incoming.ignore_ports.clone())
+        .expect(<span class="string">&quot;Setting INCOMING_IGNORE_PORTS failed&quot;</span>);
     FILE_FILTER.get_or_init(|| FileFilter::new(config.feature.fs.clone()));
 
     enable_hooks(

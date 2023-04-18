@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.37.5/src/process/prctl.rs`."><title>prctl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (478cbb42b 2023-03-28)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-9ade54abd4bd73c8.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../rustix/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.37.11/src/process/prctl.rs`."><title>prctl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (478cbb42b 2023-03-28)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-9ade54abd4bd73c8.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../rustix/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1127,6 +1127,7 @@
 <a href="#1127" id="1127">1127</a>
 <a href="#1128" id="1128">1128</a>
 <a href="#1129" id="1129">1129</a>
+<a href="#1130" id="1130">1130</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Bindings for the Linux `prctl` system call.
 //!
 //! There are similarities (but also differences) with FreeBSD&#39;s `procctl`
@@ -1201,11 +1202,11 @@
 <span class="doccomment">/// Get the current value of the parent process death signal.
 ///
 /// # References
-/// - [Linux: `prctl(PR_GET_PDEATHSIG,...)`]
-/// - [FreeBSD: `procctl(PROC_PDEATHSIG_STATUS,...)`]
+///  - [Linux: `prctl(PR_GET_PDEATHSIG,...)`]
+///  - [FreeBSD: `procctl(PROC_PDEATHSIG_STATUS,...)`]
 ///
 /// [Linux: `prctl(PR_GET_PDEATHSIG,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
-/// [FreeBSD: `procctl(PROC_PDEATHSIG_STATUS,...)`]: https://www.freebsd.org/cgi/man.cgi?query=procctl&amp;sektion=2
+/// [FreeBSD: `procctl(PROC_PDEATHSIG_STATUS,...)`]: https://man.freebsd.org/cgi/man.cgi?query=procctl&amp;sektion=2
 </span><span class="attr">#[inline]
 </span><span class="kw">pub fn </span>parent_process_death_signal() -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;Signal&gt;&gt; {
     <span class="kw">unsafe </span>{ prctl_get_at_arg2_optional::&lt;c_int&gt;(PR_GET_PDEATHSIG) }.map(Signal::from_raw)
@@ -1216,11 +1217,11 @@
 <span class="doccomment">/// Set the parent-death signal of the calling process.
 ///
 /// # References
-/// - [Linux: `prctl(PR_SET_PDEATHSIG,...)`]
-/// - [FreeBSD: `procctl(PROC_PDEATHSIG_CTL,...)`]
+///  - [Linux: `prctl(PR_SET_PDEATHSIG,...)`]
+///  - [FreeBSD: `procctl(PROC_PDEATHSIG_CTL,...)`]
 ///
 /// [Linux: `prctl(PR_SET_PDEATHSIG,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
-/// [FreeBSD: `procctl(PROC_PDEATHSIG_CTL,...)`]: https://www.freebsd.org/cgi/man.cgi?query=procctl&amp;sektion=2
+/// [FreeBSD: `procctl(PROC_PDEATHSIG_CTL,...)`]: https://man.freebsd.org/cgi/man.cgi?query=procctl&amp;sektion=2
 </span><span class="attr">#[inline]
 </span><span class="kw">pub fn </span>set_parent_process_death_signal(signal: <span class="prelude-ty">Option</span>&lt;Signal&gt;) -&gt; io::Result&lt;()&gt; {
     <span class="kw">let </span>signal = signal.map_or(<span class="number">0_usize</span>, |signal| signal <span class="kw">as </span>usize);
@@ -1265,7 +1266,7 @@
 <span class="doccomment">/// Get the current state of the calling process&#39;s `dumpable` attribute.
 ///
 /// # References
-/// - [`prctl(PR_GET_DUMPABLE,...)`]
+///  - [`prctl(PR_GET_DUMPABLE,...)`]
 ///
 /// [`prctl(PR_GET_DUMPABLE,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
@@ -1285,7 +1286,7 @@
 /// select a process other then the current process.
 ///
 /// # References
-/// - [`prctl(PR_SET_DUMPABLE,...)`]
+///  - [`prctl(PR_SET_DUMPABLE,...)`]
 ///
 /// [`prctl(PR_SET_DUMPABLE,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
@@ -1304,7 +1305,7 @@
     </span><span class="kw">pub struct </span>UnalignedAccessControl: u32 {
         <span class="doccomment">/// Silently fix up unaligned user accesses.
         </span><span class="kw">const </span>NO_PRINT = <span class="number">1</span>;
-        <span class="doccomment">/// Generate `SIGBUS` on unaligned user access.
+        <span class="doccomment">/// Generate a [`Signal::Bus`] signal on unaligned user access.
         </span><span class="kw">const </span>SIGBUS = <span class="number">2</span>;
     }
 }
@@ -1312,7 +1313,7 @@
 <span class="doccomment">/// Get unaligned access control bits.
 ///
 /// # References
-/// - [`prctl(PR_GET_UNALIGN,...)`]
+///  - [`prctl(PR_GET_UNALIGN,...)`]
 ///
 /// [`prctl(PR_GET_UNALIGN,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
@@ -1326,7 +1327,7 @@
 <span class="doccomment">/// Set unaligned access control bits.
 ///
 /// # References
-/// - [`prctl(PR_SET_UNALIGN,...)`]
+///  - [`prctl(PR_SET_UNALIGN,...)`]
 ///
 /// [`prctl(PR_SET_UNALIGN,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
@@ -1345,7 +1346,8 @@
     </span><span class="kw">pub struct </span>FloatingPointEmulationControl: u32 {
         <span class="doccomment">/// Silently emulate floating point operations accesses.
         </span><span class="kw">const </span>NO_PRINT = <span class="number">1</span>;
-        <span class="doccomment">/// Don&#39;t emulate floating point operations, send `SIGFPE` instead.
+        <span class="doccomment">/// Don&#39;t emulate floating point operations, send a [`Signal::Fpe`]
+        /// signal instead.
         </span><span class="kw">const </span>SIGFPE = <span class="number">2</span>;
     }
 }
@@ -1353,7 +1355,7 @@
 <span class="doccomment">/// Get floating point emulation control bits.
 ///
 /// # References
-/// - [`prctl(PR_GET_FPEMU,...)`]
+///  - [`prctl(PR_GET_FPEMU,...)`]
 ///
 /// [`prctl(PR_GET_FPEMU,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
@@ -1367,7 +1369,7 @@
 <span class="doccomment">/// Set floating point emulation control bits.
 ///
 /// # References
-/// - [`prctl(PR_SET_FPEMU,...)`]
+///  - [`prctl(PR_SET_FPEMU,...)`]
 ///
 /// [`prctl(PR_SET_FPEMU,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
@@ -1411,7 +1413,7 @@
 <span class="doccomment">/// Get floating point exception mode.
 ///
 /// # References
-/// - [`prctl(PR_GET_FPEXC,...)`]
+///  - [`prctl(PR_GET_FPEXC,...)`]
 ///
 /// [`prctl(PR_GET_FPEXC,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
@@ -1425,7 +1427,7 @@
 <span class="doccomment">/// Set floating point exception mode.
 ///
 /// # References
-/// - [`prctl(PR_SET_FPEXC,...)`]
+///  - [`prctl(PR_SET_FPEXC,...)`]
 ///
 /// [`prctl(PR_SET_FPEXC,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
@@ -1470,7 +1472,7 @@
 <span class="doccomment">/// Get which process timing method is currently in use.
 ///
 /// # References
-/// - [`prctl(PR_GET_TIMING,...)`]
+///  - [`prctl(PR_GET_TIMING,...)`]
 ///
 /// [`prctl(PR_GET_TIMING,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
@@ -1484,7 +1486,7 @@
 /// accurate timestamp-based process timing.
 ///
 /// # References
-/// - [`prctl(PR_SET_TIMING,...)`]
+///  - [`prctl(PR_SET_TIMING,...)`]
 ///
 /// [`prctl(PR_SET_TIMING,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
@@ -1530,7 +1532,7 @@
 <span class="doccomment">/// Get the endianness of the calling process.
 ///
 /// # References
-/// - [`prctl(PR_GET_ENDIAN,...)`]
+///  - [`prctl(PR_GET_ENDIAN,...)`]
 ///
 /// [`prctl(PR_GET_ENDIAN,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
@@ -1543,7 +1545,7 @@
 <span class="doccomment">/// Set the endianness of the calling process.
 ///
 /// # References
-/// - [`prctl(PR_SET_ENDIAN,...)`]
+///  - [`prctl(PR_SET_ENDIAN,...)`]
 ///
 /// # Safety
 ///
@@ -1571,7 +1573,7 @@
 </span><span class="kw">pub enum </span>TimeStampCounterReadability {
     <span class="doccomment">/// Allow the use of the timestamp counter.
     </span>Readable = PR_TSC_ENABLE,
-    <span class="doccomment">/// Throw a `SIGSEGV` instead of reading the TSC.
+    <span class="doccomment">/// Throw a [`Signal::Segv`] signal instead of reading the TSC.
     </span>RaiseSIGSEGV = PR_TSC_SIGSEGV,
 }
 
@@ -1590,7 +1592,7 @@
 <span class="doccomment">/// Get the state of the flag determining if the timestamp counter can be read.
 ///
 /// # References
-/// - [`prctl(PR_GET_TSC,...)`]
+///  - [`prctl(PR_GET_TSC,...)`]
 ///
 /// [`prctl(PR_GET_TSC,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
@@ -1604,7 +1606,7 @@
 /// by the process.
 ///
 /// # References
-/// - [`prctl(PR_SET_TSC,...)`]
+///  - [`prctl(PR_SET_TSC,...)`]
 ///
 /// [`prctl(PR_SET_TSC,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
@@ -1624,8 +1626,8 @@
 <span class="doccomment">/// Enable or disable all performance counters attached to the calling process.
 ///
 /// # References
-/// - [`prctl(PR_TASK_PERF_EVENTS_ENABLE,...)`]
-/// - [`prctl(PR_TASK_PERF_EVENTS_DISABLE,...)`]
+///  - [`prctl(PR_TASK_PERF_EVENTS_ENABLE,...)`]
+///  - [`prctl(PR_TASK_PERF_EVENTS_DISABLE,...)`]
 ///
 /// [`prctl(PR_TASK_PERF_EVENTS_ENABLE,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 /// [`prctl(PR_TASK_PERF_EVENTS_DISABLE,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
@@ -1678,7 +1680,7 @@
 <span class="doccomment">/// Get the current per-process machine check kill policy.
 ///
 /// # References
-/// - [`prctl(PR_MCE_KILL_GET,...)`]
+///  - [`prctl(PR_MCE_KILL_GET,...)`]
 ///
 /// [`prctl(PR_MCE_KILL_GET,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
@@ -1696,7 +1698,7 @@
 <span class="doccomment">/// Set the machine check memory corruption kill policy for the calling thread.
 ///
 /// # References
-/// - [`prctl(PR_MCE_KILL,...)`]
+///  - [`prctl(PR_MCE_KILL,...)`]
 ///
 /// [`prctl(PR_MCE_KILL,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
@@ -1769,7 +1771,7 @@
 /// process.
 ///
 /// # References
-/// - [`prctl(PR_SET_MM,...)`]
+///  - [`prctl(PR_SET_MM,...)`]
 ///
 /// # Safety
 ///
@@ -1790,7 +1792,7 @@
 /// new executable file.
 ///
 /// # References
-/// - [`prctl(PR_SET_MM,PR_SET_MM_EXE_FILE,...)`]
+///  - [`prctl(PR_SET_MM,PR_SET_MM_EXE_FILE,...)`]
 ///
 /// [`prctl(PR_SET_MM,PR_SET_MM_EXE_FILE,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
@@ -1802,7 +1804,7 @@
 <span class="doccomment">/// Set a new auxiliary vector.
 ///
 /// # References
-/// - [`prctl(PR_SET_MM,PR_SET_MM_AUXV,...)`]
+///  - [`prctl(PR_SET_MM,PR_SET_MM_AUXV,...)`]
 ///
 /// # Safety
 ///
@@ -1825,7 +1827,7 @@
 <span class="doccomment">/// Get the size of the [`PrctlMmMap`] the kernel expects.
 ///
 /// # References
-/// - [`prctl(PR_SET_MM,PR_SET_MM_MAP_SIZE,...)`]
+///  - [`prctl(PR_SET_MM,PR_SET_MM_MAP_SIZE,...)`]
 ///
 /// [`prctl(PR_SET_MM,PR_SET_MM_MAP_SIZE,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
@@ -1850,9 +1852,9 @@
     </span><span class="kw">pub </span>start_data: u64,
     <span class="doccomment">/// Data section end address.
     </span><span class="kw">pub </span>end_data: u64,
-    <span class="doccomment">/// brk() start address.
+    <span class="doccomment">/// `brk` start address.
     </span><span class="kw">pub </span>start_brk: u64,
-    <span class="doccomment">/// brk() current address.
+    <span class="doccomment">/// `brk` current address.
     </span><span class="kw">pub </span>brk: u64,
     <span class="doccomment">/// Stack start address.
     </span><span class="kw">pub </span>start_stack: u64,
@@ -1877,7 +1879,7 @@
 /// [`PrctlMmMap`].
 ///
 /// # References
-/// - [`prctl(PR_SET_MM,PR_SET_MM_MAP,...)`]
+///  - [`prctl(PR_SET_MM,PR_SET_MM_MAP,...)`]
 ///
 /// # Safety
 ///
@@ -1920,7 +1922,7 @@
 /// were a direct process ancestor.
 ///
 /// # References
-/// - [`prctl(PR_SET_PTRACER,...)`]
+///  - [`prctl(PR_SET_PTRACER,...)`]
 ///
 /// [`prctl(PR_SET_PTRACER,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
@@ -1943,7 +1945,7 @@
 <span class="doccomment">/// Get the `child subreaper` setting of the calling process.
 ///
 /// # References
-/// - [`prctl(PR_GET_CHILD_SUBREAPER,...)`]
+///  - [`prctl(PR_GET_CHILD_SUBREAPER,...)`]
 ///
 /// [`prctl(PR_GET_CHILD_SUBREAPER,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
@@ -1959,7 +1961,7 @@
 <span class="doccomment">/// Set the `child subreaper` attribute of the calling process.
 ///
 /// # References
-/// - [`prctl(PR_SET_CHILD_SUBREAPER,...)`]
+///  - [`prctl(PR_SET_CHILD_SUBREAPER,...)`]
 ///
 /// [`prctl(PR_SET_CHILD_SUBREAPER,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
@@ -2002,7 +2004,7 @@
 <span class="doccomment">/// Get the current floating point mode.
 ///
 /// # References
-/// - [`prctl(PR_GET_FP_MODE,...)`]
+///  - [`prctl(PR_GET_FP_MODE,...)`]
 ///
 /// [`prctl(PR_GET_FP_MODE,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
@@ -2016,7 +2018,7 @@
 <span class="doccomment">/// Allow control of the floating point mode from user space.
 ///
 /// # References
-/// - [`prctl(PR_SET_FP_MODE,...)`]
+///  - [`prctl(PR_SET_FP_MODE,...)`]
 ///
 /// [`prctl(PR_SET_FP_MODE,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
@@ -2092,7 +2094,7 @@
 <span class="doccomment">/// Get the state of the speculation misfeature.
 ///
 /// # References
-/// - [`prctl(PR_GET_SPECULATION_CTRL,...)`]
+///  - [`prctl(PR_GET_SPECULATION_CTRL,...)`]
 ///
 /// [`prctl(PR_GET_SPECULATION_CTRL,...)`]: https://www.kernel.org/doc/html/v5.18/userspace-api/spec_ctrl.html
 </span><span class="attr">#[inline]
@@ -2108,7 +2110,7 @@
 <span class="doccomment">/// Sets the state of the speculation misfeature.
 ///
 /// # References
-/// - [`prctl(PR_SET_SPECULATION_CTRL,...)`]
+///  - [`prctl(PR_SET_SPECULATION_CTRL,...)`]
 ///
 /// [`prctl(PR_SET_SPECULATION_CTRL,...)`]: https://www.kernel.org/doc/html/v5.18/userspace-api/spec_ctrl.html
 </span><span class="attr">#[inline]
@@ -2130,7 +2132,7 @@
 <span class="doccomment">/// Get the `IO_FLUSHER` state of the caller.
 ///
 /// # References
-/// - [`prctl(PR_GET_IO_FLUSHER,...)`]
+///  - [`prctl(PR_GET_IO_FLUSHER,...)`]
 ///
 /// [`prctl(PR_GET_IO_FLUSHER,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
@@ -2144,7 +2146,7 @@
 /// when allocating memory.
 ///
 /// # References
-/// - [`prctl(PR_SET_IO_FLUSHER,...)`]
+///  - [`prctl(PR_SET_IO_FLUSHER,...)`]
 ///
 /// [`prctl(PR_SET_IO_FLUSHER,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
@@ -2177,7 +2179,7 @@
 <span class="doccomment">/// Get enabled pointer authentication keys.
 ///
 /// # References
-/// - [`prctl(PR_PAC_GET_ENABLED_KEYS,...)`]
+///  - [`prctl(PR_PAC_GET_ENABLED_KEYS,...)`]
 ///
 /// [`prctl(PR_PAC_GET_ENABLED_KEYS,...)`]: https://www.kernel.org/doc/html/v5.18/arm64/pointer-authentication.html
 </span><span class="attr">#[inline]
@@ -2191,7 +2193,7 @@
 <span class="doccomment">/// Set enabled pointer authentication keys.
 ///
 /// # References
-/// - [`prctl(PR_PAC_SET_ENABLED_KEYS,...)`]
+///  - [`prctl(PR_PAC_SET_ENABLED_KEYS,...)`]
 ///
 /// # Safety
 ///
@@ -2240,7 +2242,7 @@
 <span class="doccomment">/// Set the name for a virtual memory region.
 ///
 /// # References
-/// - [`prctl(PR_SET_VMA,PR_SET_VMA_ANON_NAME,...)`]
+///  - [`prctl(PR_SET_VMA,PR_SET_VMA_ANON_NAME,...)`]
 ///
 /// [`prctl(PR_SET_VMA,PR_SET_VMA_ANON_NAME,...)`]: https://lwn.net/Articles/867818/
 </span><span class="attr">#[inline]

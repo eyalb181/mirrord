@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_with-2.3.1/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="serde_with" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (478cbb42b 2023-03-28)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-9ade54abd4bd73c8.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../serde_with/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_with-2.3.2/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="serde_with" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (478cbb42b 2023-03-28)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-9ade54abd4bd73c8.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../serde_with/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2309,6 +2309,34 @@
 <a href="#2309" id="2309">2309</a>
 <a href="#2310" id="2310">2310</a>
 <a href="#2311" id="2311">2311</a>
+<a href="#2312" id="2312">2312</a>
+<a href="#2313" id="2313">2313</a>
+<a href="#2314" id="2314">2314</a>
+<a href="#2315" id="2315">2315</a>
+<a href="#2316" id="2316">2316</a>
+<a href="#2317" id="2317">2317</a>
+<a href="#2318" id="2318">2318</a>
+<a href="#2319" id="2319">2319</a>
+<a href="#2320" id="2320">2320</a>
+<a href="#2321" id="2321">2321</a>
+<a href="#2322" id="2322">2322</a>
+<a href="#2323" id="2323">2323</a>
+<a href="#2324" id="2324">2324</a>
+<a href="#2325" id="2325">2325</a>
+<a href="#2326" id="2326">2326</a>
+<a href="#2327" id="2327">2327</a>
+<a href="#2328" id="2328">2328</a>
+<a href="#2329" id="2329">2329</a>
+<a href="#2330" id="2330">2330</a>
+<a href="#2331" id="2331">2331</a>
+<a href="#2332" id="2332">2332</a>
+<a href="#2333" id="2333">2333</a>
+<a href="#2334" id="2334">2334</a>
+<a href="#2335" id="2335">2335</a>
+<a href="#2336" id="2336">2336</a>
+<a href="#2337" id="2337">2337</a>
+<a href="#2338" id="2338">2338</a>
+<a href="#2339" id="2339">2339</a>
 </pre><pre class="rust"><code><span class="attr">#![warn(
     clippy::semicolon_if_nothing_returned,
     <span class="comment">// New clippy lints, not yet stable
@@ -2337,7 +2365,7 @@
 #![doc(test(attr(warn(rust_2018_idioms))))]
 </span><span class="comment">// Not needed for 2018 edition and conflicts with `rust_2018_idioms`
 </span><span class="attr">#![doc(test(no_crate_inject))]
-#![doc(html_root_url = <span class="string">&quot;https://docs.rs/serde_with/2.3.1/&quot;</span>)]
+#![doc(html_root_url = <span class="string">&quot;https://docs.rs/serde_with/2.3.2/&quot;</span>)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![allow(
     <span class="comment">// clippy is broken and shows wrong warnings
@@ -2394,6 +2422,11 @@
 //!
 //! Annotate your struct or enum to enable the custom de/serializer.
 //! The `#[serde_as]` attribute must be placed *before* the `#[derive]`.
+//!
+//! The `as` is analogous to the `with` attribute of serde.
+//! You mirror the type structure of the field you want to de/serialize.
+//! You can specify converters for the inner types of a field, e.g., `Vec&lt;DisplayFromStr&gt;`.
+//! The default de/serialization behavior can be restored by using `_` as a placeholder, e.g., `BTreeMap&lt;_, DisplayFromStr&gt;`.
 //!
 //! ## `DisplayFromStr`
 //!
@@ -2522,8 +2555,9 @@
 //! # use {
 //! #     serde::{Deserialize, Serialize},
 //! #     serde_with::{serde_as, DisplayFromStr, DurationSeconds, hex::Hex, Map},
-//! #     std::time::Duration,
 //! # };
+//! use std::time::Duration;
+//!
 //! # #[cfg(all(feature = &quot;macros&quot;, feature = &quot;hex&quot;))]
 //! #[serde_as]
 //! # #[derive(Debug, Eq, PartialEq)]
@@ -2586,14 +2620,14 @@
 //! # }
 //! ```
 //!
-//! [`DisplayFromStr`]: https://docs.rs/serde_with/2.3.1/serde_with/struct.DisplayFromStr.html
-//! [`with_prefix!`]: https://docs.rs/serde_with/2.3.1/serde_with/macro.with_prefix.html
-//! [feature flags]: https://docs.rs/serde_with/2.3.1/serde_with/guide/feature_flags/index.html
-//! [skip_serializing_none]: https://docs.rs/serde_with/2.3.1/serde_with/attr.skip_serializing_none.html
-//! [StringWithSeparator]: https://docs.rs/serde_with/2.3.1/serde_with/struct.StringWithSeparator.html
-//! [user guide]: https://docs.rs/serde_with/2.3.1/serde_with/guide/index.html
+//! [`DisplayFromStr`]: https://docs.rs/serde_with/2.3.2/serde_with/struct.DisplayFromStr.html
+//! [`with_prefix!`]: https://docs.rs/serde_with/2.3.2/serde_with/macro.with_prefix.html
+//! [feature flags]: https://docs.rs/serde_with/2.3.2/serde_with/guide/feature_flags/index.html
+//! [skip_serializing_none]: https://docs.rs/serde_with/2.3.2/serde_with/attr.skip_serializing_none.html
+//! [StringWithSeparator]: https://docs.rs/serde_with/2.3.2/serde_with/struct.StringWithSeparator.html
+//! [user guide]: https://docs.rs/serde_with/2.3.2/serde_with/guide/index.html
 //! [with-annotation]: https://serde.rs/field-attrs.html#with
-//! [as-annotation]: https://docs.rs/serde_with/2.3.1/serde_with/guide/serde_as/index.html
+//! [as-annotation]: https://docs.rs/serde_with/2.3.2/serde_with/guide/serde_as/index.html
 
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
 </span><span class="kw">extern crate </span>alloc;
@@ -2714,9 +2748,17 @@
         time::Duration,
     };
     <span class="kw">pub use </span>serde::{
-        de::{Error <span class="kw">as </span>DeError, <span class="kw-2">*</span>},
+        de::{
+            Deserialize, DeserializeOwned, DeserializeSeed, Deserializer, EnumAccess,
+            Error <span class="kw">as </span>DeError, Expected, IgnoredAny, IntoDeserializer, MapAccess, SeqAccess,
+            Unexpected, VariantAccess, Visitor,
+        },
         forward_to_deserialize_any,
-        ser::{Error <span class="kw">as </span>SerError, <span class="kw-2">*</span>},
+        ser::{
+            Error <span class="kw">as </span>SerError, Impossible, Serialize, SerializeMap, SerializeSeq, SerializeStruct,
+            SerializeStructVariant, SerializeTuple, SerializeTupleStruct, SerializeTupleVariant,
+            Serializer,
+        },
     };
     <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     </span><span class="kw">pub use </span>std::{
@@ -2792,7 +2834,7 @@
 /// # }
 /// ```
 ///
-/// [serde_as]: https://docs.rs/serde_with/2.3.1/serde_with/attr.serde_as.html
+/// [serde_as]: https://docs.rs/serde_with/2.3.2/serde_with/attr.serde_as.html
 </span><span class="kw">pub struct </span>As&lt;T: <span class="question-mark">?</span>Sized&gt;(PhantomData&lt;T&gt;);
 
 <span class="doccomment">/// Adapter to convert from `serde_as` to the serde traits.
@@ -3098,14 +3140,17 @@
 /// This type also supports [`chrono::Duration`] with the `chrono_0_4`-[feature flag].
 /// This type also supports [`time::Duration`][::time_0_3::Duration] with the `time_0_3`-[feature flag].
 ///
-/// | Duration Type         | Converter                 | Available `FORMAT`s    |
-/// | --------------------- | ------------------------- | ---------------------- |
-/// | `std::time::Duration` | `DurationSeconds`         | `u64`, `f64`, `String` |
-/// | `std::time::Duration` | `DurationSecondsWithFrac` | `f64`, `String`        |
-/// | `chrono::Duration`    | `DurationSeconds`         | `i64`, `f64`, `String` |
-/// | `chrono::Duration`    | `DurationSecondsWithFrac` | `f64`, `String`        |
-/// | `time::Duration`      | `DurationSeconds`         | `i64`, `f64`, `String` |
-/// | `time::Duration`      | `DurationSecondsWithFrac` | `f64`, `String`        |
+/// This table lists the available `FORMAT`s for the different duration types.
+/// The `FORMAT` specifier defaults to `u64`/`f64`.
+///
+/// | Duration Type         | Converter                 | Available `FORMAT`s      |
+/// | --------------------- | ------------------------- | ------------------------ |
+/// | `std::time::Duration` | `DurationSeconds`         | *`u64`*, `f64`, `String` |
+/// | `std::time::Duration` | `DurationSecondsWithFrac` | *`f64`*, `String`        |
+/// | `chrono::Duration`    | `DurationSeconds`         | `i64`, `f64`, `String`   |
+/// | `chrono::Duration`    | `DurationSecondsWithFrac` | *`f64`*, `String`        |
+/// | `time::Duration`      | `DurationSeconds`         | `i64`, `f64`, `String`   |
+/// | `time::Duration`      | `DurationSecondsWithFrac` | *`f64`*, `String`        |
 ///
 /// # Examples
 ///
@@ -3220,7 +3265,7 @@
 /// ```
 ///
 /// [`chrono::Duration`]: ::chrono_0_4::Duration
-/// [feature flag]: https://docs.rs/serde_with/2.3.1/serde_with/guide/feature_flags/index.html
+/// [feature flag]: https://docs.rs/serde_with/2.3.2/serde_with/guide/feature_flags/index.html
 </span><span class="kw">pub struct </span>DurationSeconds&lt;
     FORMAT: formats::Format = u64,
     STRICTNESS: formats::Strictness = formats::Strict,
@@ -3240,14 +3285,17 @@
 /// This type also supports [`chrono::Duration`] with the `chrono`-[feature flag].
 /// This type also supports [`time::Duration`][::time_0_3::Duration] with the `time_0_3`-[feature flag].
 ///
-/// | Duration Type         | Converter                 | Available `FORMAT`s    |
-/// | --------------------- | ------------------------- | ---------------------- |
-/// | `std::time::Duration` | `DurationSeconds`         | `u64`, `f64`, `String` |
-/// | `std::time::Duration` | `DurationSecondsWithFrac` | `f64`, `String`        |
-/// | `chrono::Duration`    | `DurationSeconds`         | `i64`, `f64`, `String` |
-/// | `chrono::Duration`    | `DurationSecondsWithFrac` | `f64`, `String`        |
-/// | `time::Duration`      | `DurationSeconds`         | `i64`, `f64`, `String` |
-/// | `time::Duration`      | `DurationSecondsWithFrac` | `f64`, `String`        |
+/// This table lists the available `FORMAT`s for the different duration types.
+/// The `FORMAT` specifier defaults to `u64`/`f64`.
+///
+/// | Duration Type         | Converter                 | Available `FORMAT`s      |
+/// | --------------------- | ------------------------- | ------------------------ |
+/// | `std::time::Duration` | `DurationSeconds`         | *`u64`*, `f64`, `String` |
+/// | `std::time::Duration` | `DurationSecondsWithFrac` | *`f64`*, `String`        |
+/// | `chrono::Duration`    | `DurationSeconds`         | `i64`, `f64`, `String`   |
+/// | `chrono::Duration`    | `DurationSecondsWithFrac` | *`f64`*, `String`        |
+/// | `time::Duration`      | `DurationSeconds`         | `i64`, `f64`, `String`   |
+/// | `time::Duration`      | `DurationSecondsWithFrac` | *`f64`*, `String`        |
 ///
 /// # Examples
 ///
@@ -3348,7 +3396,7 @@
 /// ```
 ///
 /// [`chrono::Duration`]: ::chrono_0_4::Duration
-/// [feature flag]: https://docs.rs/serde_with/2.3.1/serde_with/guide/feature_flags/index.html
+/// [feature flag]: https://docs.rs/serde_with/2.3.2/serde_with/guide/feature_flags/index.html
 </span><span class="kw">pub struct </span>DurationSecondsWithFrac&lt;
     FORMAT: formats::Format = f64,
     STRICTNESS: formats::Strictness = formats::Strict,
@@ -3416,18 +3464,23 @@
 /// This type also supports [`chrono::DateTime`] with the `chrono_0_4`-[feature flag].
 /// This type also supports [`time::OffsetDateTime`][::time_0_3::OffsetDateTime] and [`time::PrimitiveDateTime`][::time_0_3::PrimitiveDateTime] with the `time_0_3`-[feature flag].
 ///
-/// | Timestamp Type            | Converter                  | Available `FORMAT`s    |
-/// | ------------------------- | -------------------------- | ---------------------- |
-/// | `std::time::SystemTime`   | `TimestampSeconds`         | `i64`, `f64`, `String` |
-/// | `std::time::SystemTime`   | `TimestampSecondsWithFrac` | `f64`, `String`        |
-/// | `chrono::DateTime&lt;Utc&gt;`   | `TimestampSeconds`         | `i64`, `f64`, `String` |
-/// | `chrono::DateTime&lt;Utc&gt;`   | `TimestampSecondsWithFrac` | `f64`, `String`        |
-/// | `chrono::DateTime&lt;Local&gt;` | `TimestampSeconds`         | `i64`, `f64`, `String` |
-/// | `chrono::DateTime&lt;Local&gt;` | `TimestampSecondsWithFrac` | `f64`, `String`        |
-/// | `time::OffsetDateTime`    | `TimestampSeconds`         | `i64`, `f64`, `String` |
-/// | `time::OffsetDateTime`    | `TimestampSecondsWithFrac` | `f64`, `String`        |
-/// | `time::PrimitiveDateTime` | `TimestampSeconds`         | `i64`, `f64`, `String` |
-/// | `time::PrimitiveDateTime` | `TimestampSecondsWithFrac` | `f64`, `String`        |
+/// This table lists the available `FORMAT`s for the different timestamp types.
+/// The `FORMAT` specifier defaults to `i64` or `f64`.
+///
+/// | Timestamp Type            | Converter                  | Available `FORMAT`s      |
+/// | ------------------------- | -------------------------- | ------------------------ |
+/// | `std::time::SystemTime`   | `TimestampSeconds`         | *`i64`*, `f64`, `String` |
+/// | `std::time::SystemTime`   | `TimestampSecondsWithFrac` | *`f64`*, `String`        |
+/// | `chrono::DateTime&lt;Utc&gt;`   | `TimestampSeconds`         | *`i64`*, `f64`, `String` |
+/// | `chrono::DateTime&lt;Utc&gt;`   | `TimestampSecondsWithFrac` | *`f64`*, `String`        |
+/// | `chrono::DateTime&lt;Local&gt;` | `TimestampSeconds`         | *`i64`*, `f64`, `String` |
+/// | `chrono::DateTime&lt;Local&gt;` | `TimestampSecondsWithFrac` | *`f64`*, `String`        |
+/// | `chrono::NaiveDateTime`   | `TimestampSeconds`         | *`i64`*, `f64`, `String` |
+/// | `chrono::NaiveDateTime`   | `TimestampSecondsWithFrac` | *`f64`*, `String`        |
+/// | `time::OffsetDateTime`    | `TimestampSeconds`         | *`i64`*, `f64`, `String` |
+/// | `time::OffsetDateTime`    | `TimestampSecondsWithFrac` | *`f64`*, `String`        |
+/// | `time::PrimitiveDateTime` | `TimestampSeconds`         | *`i64`*, `f64`, `String` |
+/// | `time::PrimitiveDateTime` | `TimestampSecondsWithFrac` | *`f64`*, `String`        |
 ///
 /// # Examples
 ///
@@ -3544,7 +3597,7 @@
 /// [`SystemTime`]: std::time::SystemTime
 /// [`chrono::DateTime&lt;Local&gt;`]: ::chrono_0_4::DateTime
 /// [`chrono::DateTime&lt;Utc&gt;`]: ::chrono_0_4::DateTime
-/// [feature flag]: https://docs.rs/serde_with/2.3.1/serde_with/guide/feature_flags/index.html
+/// [feature flag]: https://docs.rs/serde_with/2.3.2/serde_with/guide/feature_flags/index.html
 </span><span class="kw">pub struct </span>TimestampSeconds&lt;
     FORMAT: formats::Format = i64,
     STRICTNESS: formats::Strictness = formats::Strict,
@@ -3564,20 +3617,23 @@
 /// This type also supports [`chrono::DateTime`] and [`chrono::NaiveDateTime`][NaiveDateTime] with the `chrono`-[feature flag].
 /// This type also supports [`time::OffsetDateTime`][::time_0_3::OffsetDateTime] and [`time::PrimitiveDateTime`][::time_0_3::PrimitiveDateTime] with the `time_0_3`-[feature flag].
 ///
-/// | Timestamp Type            | Converter                  | Available `FORMAT`s    |
-/// | ------------------------- | -------------------------- | ---------------------- |
-/// | `std::time::SystemTime`   | `TimestampSeconds`         | `i64`, `f64`, `String` |
-/// | `std::time::SystemTime`   | `TimestampSecondsWithFrac` | `f64`, `String`        |
-/// | `chrono::DateTime&lt;Utc&gt;`   | `TimestampSeconds`         | `i64`, `f64`, `String` |
-/// | `chrono::DateTime&lt;Utc&gt;`   | `TimestampSecondsWithFrac` | `f64`, `String`        |
-/// | `chrono::DateTime&lt;Local&gt;` | `TimestampSeconds`         | `i64`, `f64`, `String` |
-/// | `chrono::DateTime&lt;Local&gt;` | `TimestampSecondsWithFrac` | `f64`, `String`        |
-/// | `chrono::NaiveDateTime`   | `TimestampSeconds`         | `i64`, `f64`, `String` |
-/// | `chrono::NaiveDateTime`   | `TimestampSecondsWithFrac` | `f64`, `String`        |
-/// | `time::OffsetDateTime`    | `TimestampSeconds`         | `i64`, `f64`, `String` |
-/// | `time::OffsetDateTime`    | `TimestampSecondsWithFrac` | `f64`, `String`        |
-/// | `time::PrimitiveDateTime` | `TimestampSeconds`         | `i64`, `f64`, `String` |
-/// | `time::PrimitiveDateTime` | `TimestampSecondsWithFrac` | `f64`, `String`        |
+/// This table lists the available `FORMAT`s for the different timestamp types.
+/// The `FORMAT` specifier defaults to `i64` or `f64`.
+///
+/// | Timestamp Type            | Converter                  | Available `FORMAT`s      |
+/// | ------------------------- | -------------------------- | ------------------------ |
+/// | `std::time::SystemTime`   | `TimestampSeconds`         | *`i64`*, `f64`, `String` |
+/// | `std::time::SystemTime`   | `TimestampSecondsWithFrac` | *`f64`*, `String`        |
+/// | `chrono::DateTime&lt;Utc&gt;`   | `TimestampSeconds`         | *`i64`*, `f64`, `String` |
+/// | `chrono::DateTime&lt;Utc&gt;`   | `TimestampSecondsWithFrac` | *`f64`*, `String`        |
+/// | `chrono::DateTime&lt;Local&gt;` | `TimestampSeconds`         | *`i64`*, `f64`, `String` |
+/// | `chrono::DateTime&lt;Local&gt;` | `TimestampSecondsWithFrac` | *`f64`*, `String`        |
+/// | `chrono::NaiveDateTime`   | `TimestampSeconds`         | *`i64`*, `f64`, `String` |
+/// | `chrono::NaiveDateTime`   | `TimestampSecondsWithFrac` | *`f64`*, `String`        |
+/// | `time::OffsetDateTime`    | `TimestampSeconds`         | *`i64`*, `f64`, `String` |
+/// | `time::OffsetDateTime`    | `TimestampSecondsWithFrac` | *`f64`*, `String`        |
+/// | `time::PrimitiveDateTime` | `TimestampSeconds`         | *`i64`*, `f64`, `String` |
+/// | `time::PrimitiveDateTime` | `TimestampSecondsWithFrac` | *`f64`*, `String`        |
 ///
 /// # Examples
 ///
@@ -3682,7 +3738,7 @@
 /// [`chrono::DateTime&lt;Local&gt;`]: ::chrono_0_4::DateTime
 /// [`chrono::DateTime&lt;Utc&gt;`]: ::chrono_0_4::DateTime
 /// [NaiveDateTime]: ::chrono_0_4::NaiveDateTime
-/// [feature flag]: https://docs.rs/serde_with/2.3.1/serde_with/guide/feature_flags/index.html
+/// [feature flag]: https://docs.rs/serde_with/2.3.2/serde_with/guide/feature_flags/index.html
 </span><span class="kw">pub struct </span>TimestampSecondsWithFrac&lt;
     FORMAT: formats::Format = f64,
     STRICTNESS: formats::Strictness = formats::Strict,

@@ -908,6 +908,31 @@
 <a href="#908" id="908">908</a>
 <a href="#909" id="909">909</a>
 <a href="#910" id="910">910</a>
+<a href="#911" id="911">911</a>
+<a href="#912" id="912">912</a>
+<a href="#913" id="913">913</a>
+<a href="#914" id="914">914</a>
+<a href="#915" id="915">915</a>
+<a href="#916" id="916">916</a>
+<a href="#917" id="917">917</a>
+<a href="#918" id="918">918</a>
+<a href="#919" id="919">919</a>
+<a href="#920" id="920">920</a>
+<a href="#921" id="921">921</a>
+<a href="#922" id="922">922</a>
+<a href="#923" id="923">923</a>
+<a href="#924" id="924">924</a>
+<a href="#925" id="925">925</a>
+<a href="#926" id="926">926</a>
+<a href="#927" id="927">927</a>
+<a href="#928" id="928">928</a>
+<a href="#929" id="929">929</a>
+<a href="#930" id="930">930</a>
+<a href="#931" id="931">931</a>
+<a href="#932" id="932">932</a>
+<a href="#933" id="933">933</a>
+<a href="#934" id="934">934</a>
+<a href="#935" id="935">935</a>
 </pre><pre class="rust"><code><span class="attr">#![feature(stmt_expr_attributes)]
 
 </span><span class="kw">mod </span>env;
@@ -924,12 +949,12 @@
         fmt::Debug,
         net::Ipv4Addr,
         process::Stdio,
-        sync::{Arc, Mutex},
+        sync::{Arc, Condvar, Mutex},
         time::Duration,
     };
 
     <span class="kw">use </span>chrono::Utc;
-    <span class="kw">use </span>futures_util::stream::{StreamExt, TryStreamExt};
+    <span class="kw">use </span>futures_util::stream::TryStreamExt;
     <span class="kw">use </span>k8s_openapi::api::{
         apps::v1::Deployment,
         core::v1::{Namespace, Pod, Service},
@@ -949,13 +974,20 @@
     <span class="kw">use </span>tokio::{
         io::{AsyncReadExt, BufReader},
         process::{Child, Command},
-        task::JoinHandle,
+        sync::oneshot::{<span class="self">self</span>, Sender},
     };
-    <span class="comment">// 0.8
-    </span><span class="kw">use </span>tokio_util::sync::{CancellationToken, DropGuard};
 
-    <span class="kw">static </span>TEXT: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.&quot;</span>;
+    <span class="kw">const </span>TEXT: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.&quot;</span>;
     <span class="kw">pub const </span>CONTAINER_NAME: <span class="kw-2">&amp;</span>str = <span class="string">&quot;test&quot;</span>;
+
+    <span class="doccomment">/// Name of the environment variable used to control cleanup after failed tests.
+    /// By default, resources from failed tests are deleted.
+    /// However, if this variable is set, resources will always be preserved.
+    </span><span class="kw">pub const </span>PRESERVE_FAILED_ENV_NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;MIRRORD_E2E_PRESERVE_FAILED&quot;</span>;
+
+    <span class="doccomment">/// All Kubernetes resources created for testing purposes share this label.
+    </span><span class="kw">pub const </span>TEST_RESOURCE_LABEL: (<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) =
+        (<span class="string">&quot;mirrord-e2e-test-resource&quot;</span>, <span class="string">&quot;true&quot;</span>);
 
     <span class="kw">pub async fn </span>watch_resource_exists&lt;K: Debug + Clone + DeserializeOwned&gt;(
         api: <span class="kw-2">&amp;</span>Api&lt;K&gt;,
@@ -964,7 +996,8 @@
         <span class="kw">let </span>params = ListParams::default()
             .fields(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;metadata.name={name}&quot;</span>))
             .timeout(<span class="number">10</span>);
-        <span class="kw">let </span><span class="kw-2">mut </span>stream = api.watch(<span class="kw-2">&amp;</span>params, <span class="string">&quot;0&quot;</span>).<span class="kw">await</span>.unwrap().boxed();
+        <span class="kw">let </span>stream = api.watch(<span class="kw-2">&amp;</span>params, <span class="string">&quot;0&quot;</span>).<span class="kw">await</span>.unwrap();
+        <span class="macro">tokio::pin!</span>(stream);
         <span class="kw">while let </span><span class="prelude-val">Some</span>(status) = stream.try_next().<span class="kw">await</span>.unwrap() {
             <span class="kw">match </span>status {
                 WatchEvent::Modified(<span class="kw">_</span>) =&gt; <span class="kw">break</span>,
@@ -976,14 +1009,14 @@
         }
     }
 
-    <span class="kw">fn </span>random_string() -&gt; String {
-        <span class="kw">let </span><span class="kw-2">mut </span>rand_str: String = rand::thread_rng()
+    <span class="doccomment">/// Creates a random string of 7 alphanumeric lowercase characters.
+    </span><span class="kw">fn </span>random_string() -&gt; String {
+        rand::thread_rng()
             .sample_iter(<span class="kw-2">&amp;</span>Alphanumeric)
             .take(<span class="number">7</span>)
             .map(char::from)
-            .collect();
-        rand_str.make_ascii_lowercase();
-        rand_str
+            .collect::&lt;String&gt;()
+            .to_ascii_lowercase()
     }
 
     <span class="attr">#[derive(Debug)]
@@ -1312,59 +1345,72 @@
         Client::try_from(config).unwrap()
     }
 
-    <span class="kw">struct </span>ResourceGuard {
-        guard: <span class="prelude-ty">Option</span>&lt;DropGuard&gt;,
-        barrier: std::sync::Arc&lt;std::sync::Barrier&gt;,
-        handle: JoinHandle&lt;()&gt;,
-        delete_on_fail: bool,
+    <span class="doccomment">/// RAII-style guard for deleting kube resources after tests.
+    /// This guard spawns a background task to delete the kube resource.
+    </span><span class="kw">struct </span>ResourceGuard {
+        <span class="doccomment">/// Used in the implementation of [`Drop`] for this struct to block until the background
+        /// task exits.
+        </span>task_finished: Arc&lt;(Mutex&lt;bool&gt;, Condvar)&gt;,
+        <span class="doccomment">/// Used to inform the background task whether this guard was dropped during panic.
+        </span>panic_tx: <span class="prelude-ty">Option</span>&lt;Sender&lt;bool&gt;&gt;,
     }
 
     <span class="kw">impl </span>ResourceGuard {
-        <span class="doccomment">/// Creates a resource and spawns a task to delete it when dropped
-        /// Returns Error if already exists.
-        /// I&#39;m not sure why I have to add the `static here but this works?
+        <span class="doccomment">/// Create a kube resource and spawn a task to delete it when this guard is dropped.
+        /// Return [`Error`] if creating the resource failed.
         </span><span class="kw">pub async fn </span>create&lt;K: Debug + Clone + DeserializeOwned + Serialize + <span class="lifetime">&#39;static</span>&gt;(
-            api: <span class="kw-2">&amp;</span>Api&lt;K&gt;,
+            api: Api&lt;K&gt;,
             name: String,
             data: <span class="kw-2">&amp;</span>K,
             delete_on_fail: bool,
         ) -&gt; <span class="prelude-ty">Result</span>&lt;ResourceGuard, Error&gt; {
             api.create(<span class="kw-2">&amp;</span>PostParams::default(), data).<span class="kw">await</span><span class="question-mark">?</span>;
-            <span class="kw">let </span>cancel_token = CancellationToken::new();
-            <span class="kw">let </span>resource_token = cancel_token.clone();
-            <span class="kw">let </span>barrier = std::sync::Arc::new(std::sync::Barrier::new(<span class="number">2</span>));
-            <span class="kw">let </span>guard_barrier = barrier.clone();
-            <span class="kw">let </span>name = name.clone();
-            <span class="kw">let </span>cloned_api = api.clone();
-            <span class="kw">let </span>handle = tokio::spawn(<span class="kw">async move </span>{
-                cancel_token.cancelled().<span class="kw">await</span>;
-                <span class="comment">// Don&#39;t clean pods on failure, so that we can debug
-                </span><span class="macro">println!</span>(<span class="string">&quot;deleting {:?}&quot;</span>, <span class="kw-2">&amp;</span>name);
-                cloned_api
-                    .delete(<span class="kw-2">&amp;</span>name, <span class="kw-2">&amp;</span>DeleteParams::default())
-                    .<span class="kw">await
-                    </span>.unwrap();
-                barrier.wait();
+
+            <span class="kw">let </span>(panic_tx, panic_rx) = oneshot::channel::&lt;bool&gt;();
+            <span class="kw">let </span>task_finished = Arc::new((Mutex::new(<span class="bool-val">false</span>), Condvar::new()));
+            <span class="kw">let </span>finished = task_finished.clone();
+
+            tokio::spawn(<span class="kw">async move </span>{
+                <span class="kw">let </span>panic = panic_rx.<span class="kw">await</span>.unwrap_or(<span class="bool-val">true</span>);
+
+                <span class="kw">if </span>!panic || delete_on_fail {
+                    <span class="macro">println!</span>(<span class="string">&quot;Deleting resource `{name}`&quot;</span>,);
+                    <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = api.delete(<span class="kw-2">&amp;</span>name, <span class="kw-2">&amp;</span>DeleteParams::default()).<span class="kw">await </span>{
+                        <span class="macro">println!</span>(<span class="string">&quot;Failed to delete resource `{name}`: {e:?}&quot;</span>);
+                    }
+                }
+
+                <span class="kw-2">*</span>finished.<span class="number">0</span>.lock().expect(<span class="string">&quot;ResourceGuard lock poisoned&quot;</span>) = <span class="bool-val">true</span>;
+                finished.<span class="number">1</span>.notify_one();
             });
+
             <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
-                guard: <span class="prelude-val">Some</span>(resource_token.drop_guard()),
-                barrier: guard_barrier,
-                handle,
-                delete_on_fail,
+                task_finished,
+                panic_tx: <span class="prelude-val">Some</span>(panic_tx),
             })
         }
     }
 
     <span class="kw">impl </span>Drop <span class="kw">for </span>ResourceGuard {
         <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-            <span class="kw">if </span>!<span class="self">self</span>.delete_on_fail &amp;&amp; std::thread::panicking() {
-                <span class="comment">// If we&#39;re panicking and we shouldn&#39;t delete the resources on fail (to allow for
-                // inspection) then abort the cleaning task.
-                </span><span class="self">self</span>.handle.abort();
-            } <span class="kw">else </span>{
-                <span class="kw">let </span>guard = <span class="self">self</span>.guard.take();
-                drop(guard);
-                <span class="self">self</span>.barrier.wait();
+            <span class="kw">let </span>task_alive = <span class="self">self
+                </span>.panic_tx
+                .take()
+                .expect(<span class="string">&quot;ResourceGuard holds empty panic_tx&quot;</span>)
+                .send(std::thread::panicking())
+                .is_ok();
+
+            <span class="kw">if </span>task_alive {
+                <span class="kw">let </span>lock = <span class="self">self
+                    </span>.task_finished
+                    .<span class="number">0
+                    </span>.lock()
+                    .expect(<span class="string">&quot;ResourceGuard lock poisoned&quot;</span>);
+                <span class="kw">let </span>_lock = <span class="self">self
+                    </span>.task_finished
+                    .<span class="number">1
+                    </span>.wait_while(lock, |deleted| !<span class="kw-2">*</span>deleted)
+                    .expect(<span class="string">&quot;ResourceGuard lock poisoned&quot;</span>);
             }
         }
     }
@@ -1381,9 +1427,11 @@
         _namespace: <span class="prelude-ty">Option</span>&lt;ResourceGuard&gt;,
     }
 
-    <span class="doccomment">/// randomize_name: should a random suffix be added to the end of resource names? e.g.
-    ///                 for `echo-service`, should we create as `echo-service-ybtdb`.
-    /// delete_after_fail: delete resources even if the test fails.
+    <span class="doccomment">/// Create a new [`KubeService`] and related Kubernetes resources. The resources will be deleted
+    /// when the returned service is dropped, unless it is dropped during panic.
+    /// This behavior can be changed, see [`FORCE_CLEANUP_ENV_NAME`].
+    /// * `randomize_name` - whether a random suffix should be added to the end of the resource
+    ///   names
     </span><span class="attr">#[fixture]
     </span><span class="kw">pub async fn </span>service(
         <span class="attr">#[default(<span class="string">&quot;default&quot;</span>)] </span>namespace: <span class="kw-2">&amp;</span>str,
@@ -1391,52 +1439,55 @@
         <span class="attr">#[default(<span class="string">&quot;ghcr.io/metalbear-co/mirrord-pytest:latest&quot;</span>)] </span>image: <span class="kw-2">&amp;</span>str,
         <span class="attr">#[default(<span class="string">&quot;http-echo&quot;</span>)] </span>service_name: <span class="kw-2">&amp;</span>str,
         <span class="attr">#[default(<span class="bool-val">true</span>)] </span>randomize_name: bool,
-        <span class="attr">#[default(<span class="bool-val">false</span>)] </span>delete_after_fail: bool,
         <span class="attr">#[future] </span>kube_client: Client,
     ) -&gt; KubeService {
+        <span class="kw">let </span>delete_after_fail = std::env::var_os(PRESERVE_FAILED_ENV_NAME).is_none();
+
         <span class="macro">println!</span>(
             <span class="string">&quot;{:?} creating service {service_name:?} in namespace {namespace:?}&quot;</span>,
             Utc::now()
         );
+
         <span class="kw">let </span>kube_client = kube_client.<span class="kw">await</span>;
         <span class="kw">let </span>namespace_api: Api&lt;Namespace&gt; = Api::all(kube_client.clone());
         <span class="kw">let </span>deployment_api: Api&lt;Deployment&gt; = Api::namespaced(kube_client.clone(), namespace);
         <span class="kw">let </span>service_api: Api&lt;Service&gt; = Api::namespaced(kube_client.clone(), namespace);
-        <span class="kw">let </span>name;
-        <span class="kw">if </span>randomize_name {
-            name = <span class="macro">format!</span>(<span class="string">&quot;{}-{}&quot;</span>, service_name, random_string());
+
+        <span class="kw">let </span>name = <span class="kw">if </span>randomize_name {
+            <span class="macro">format!</span>(<span class="string">&quot;{}-{}&quot;</span>, service_name, random_string())
         } <span class="kw">else </span>{
-            <span class="comment">// if using non-random name, delete existing resources first.
+            <span class="comment">// If using a non-random name, delete existing resources first.
             // Just continue if they don&#39;t exist.
-            </span><span class="kw">let </span>_res = service_api
+            </span><span class="kw">let _ </span>= service_api
                 .delete(service_name, <span class="kw-2">&amp;</span>DeleteParams::default())
                 .<span class="kw">await</span>;
-            <span class="kw">let </span>_res = deployment_api
+            <span class="kw">let _ </span>= deployment_api
                 .delete(service_name, <span class="kw-2">&amp;</span>DeleteParams::default())
                 .<span class="kw">await</span>;
-            name = service_name.to_string();
-        }
+
+            service_name.to_string()
+        };
 
         <span class="kw">let </span>namespace_resource: Namespace = serde_json::from_value(<span class="macro">json!</span>({
             <span class="string">&quot;apiVersion&quot;</span>: <span class="string">&quot;v1&quot;</span>,
             <span class="string">&quot;kind&quot;</span>: <span class="string">&quot;Namespace&quot;</span>,
             <span class="string">&quot;metadata&quot;</span>: {
                 <span class="string">&quot;name&quot;</span>: namespace,
+                <span class="string">&quot;labels&quot;</span>: {
+                    TEST_RESOURCE_LABEL.<span class="number">0</span>: TEST_RESOURCE_LABEL.<span class="number">1</span>,
+                }
             },
         }))
         .unwrap();
-
-        <span class="comment">// Create namespace if does not yet exist. If already exits, it will also not going to be
-        // deleted when the calling test is done.
+        <span class="comment">// Create namespace and wrap it in ResourceGuard if it does not yet exist.
         </span><span class="kw">let </span>namespace_guard = ResourceGuard::create(
-            <span class="kw-2">&amp;</span>namespace_api,
+            namespace_api.clone(),
             namespace.to_string(),
             <span class="kw-2">&amp;</span>namespace_resource,
             delete_after_fail,
         )
         .<span class="kw">await
         </span>.ok();
-
         <span class="kw">if </span>namespace_guard.is_some() {
             watch_resource_exists(<span class="kw-2">&amp;</span>namespace_api, namespace).<span class="kw">await</span>;
         }
@@ -1447,7 +1498,8 @@
             <span class="string">&quot;metadata&quot;</span>: {
                 <span class="string">&quot;name&quot;</span>: <span class="kw-2">&amp;</span>name,
                 <span class="string">&quot;labels&quot;</span>: {
-                    <span class="string">&quot;app&quot;</span>: <span class="kw-2">&amp;</span>name
+                    <span class="string">&quot;app&quot;</span>: <span class="kw-2">&amp;</span>name,
+                    TEST_RESOURCE_LABEL.<span class="number">0</span>: TEST_RESOURCE_LABEL.<span class="number">1</span>,
                 }
             },
             <span class="string">&quot;spec&quot;</span>: {
@@ -1495,7 +1547,7 @@
         }))
         .unwrap();
         <span class="kw">let </span>pod_guard = ResourceGuard::create(
-            <span class="kw-2">&amp;</span>deployment_api,
+            deployment_api.clone(),
             name.to_string(),
             <span class="kw-2">&amp;</span>deployment,
             delete_after_fail,
@@ -1510,7 +1562,8 @@
             <span class="string">&quot;metadata&quot;</span>: {
                 <span class="string">&quot;name&quot;</span>: <span class="kw-2">&amp;</span>name,
                 <span class="string">&quot;labels&quot;</span>: {
-                    <span class="string">&quot;app&quot;</span>: <span class="kw-2">&amp;</span>name
+                    <span class="string">&quot;app&quot;</span>: <span class="kw-2">&amp;</span>name,
+                    TEST_RESOURCE_LABEL.<span class="number">0</span>: TEST_RESOURCE_LABEL.<span class="number">1</span>,
                 }
             },
             <span class="string">&quot;spec&quot;</span>: {
@@ -1535,14 +1588,17 @@
             }
         }))
         .unwrap();
-
-        <span class="kw">let </span>service_guard =
-            ResourceGuard::create(<span class="kw-2">&amp;</span>service_api, name.to_string(), <span class="kw-2">&amp;</span>service, delete_after_fail)
-                .<span class="kw">await
-                </span>.unwrap();
+        <span class="kw">let </span>service_guard = ResourceGuard::create(
+            service_api.clone(),
+            name.clone(),
+            <span class="kw-2">&amp;</span>service,
+            delete_after_fail,
+        )
+        .<span class="kw">await
+        </span>.unwrap();
         watch_resource_exists(<span class="kw-2">&amp;</span>service_api, <span class="string">&quot;default&quot;</span>).<span class="kw">await</span>;
 
-        <span class="kw">let </span>target = get_pod_instance(<span class="kw-2">&amp;</span>kube_client, <span class="kw-2">&amp;</span>name, namespace)
+        <span class="kw">let </span>target = get_pod_instance(kube_client.clone(), <span class="kw-2">&amp;</span>name, namespace)
             .<span class="kw">await
             </span>.unwrap();
         <span class="kw">let </span>pod_api: Api&lt;Pod&gt; = Api::namespaced(kube_client.clone(), namespace);
@@ -1554,8 +1610,9 @@
             <span class="string">&quot;{:?} done creating service {service_name:?} in namespace {namespace:?}&quot;</span>,
             Utc::now()
         );
+
         KubeService {
-            name: name.to_string(),
+            name,
             namespace: namespace.to_string(),
             target: <span class="macro">format!</span>(<span class="string">&quot;pod/{target}/container/{CONTAINER_NAME}&quot;</span>),
             _pod: pod_guard,
@@ -1575,7 +1632,6 @@
             <span class="string">&quot;ghcr.io/metalbear-co/mirrord-node-udp-logger:latest&quot;</span>,
             <span class="string">&quot;udp-logger&quot;</span>,
             <span class="bool-val">true</span>,
-            <span class="bool-val">false</span>,
             kube_client,
         )
         .<span class="kw">await
@@ -1589,8 +1645,7 @@
             <span class="string">&quot;ghcr.io/metalbear-co/mirrord-http-logger:latest&quot;</span>,
             <span class="string">&quot;mirrord-tests-http-logger&quot;</span>,
             <span class="bool-val">false</span>, <span class="comment">// So that requester can reach logger by name.
-            </span><span class="bool-val">true</span>,
-            kube_client,
+            </span>kube_client,
         )
         .<span class="kw">await
     </span>}
@@ -1605,8 +1660,7 @@
             <span class="comment">// Have a non-random name, so that there can only be one requester at any point in time
             // so that another requester does not send requests while this one is paused.
             </span><span class="bool-val">false</span>,
-            <span class="bool-val">true</span>, <span class="comment">// Delete also on fail, cause this service constantly does work.
-            </span>kube_client,
+            kube_client,
         )
         .<span class="kw">await
     </span>}
@@ -1621,7 +1675,6 @@
             <span class="string">&quot;ghcr.io/metalbear-co/mirrord-tcp-echo:latest&quot;</span>,
             <span class="string">&quot;tcp-echo&quot;</span>,
             <span class="bool-val">true</span>,
-            <span class="bool-val">false</span>,
             kube_client,
         )
         .<span class="kw">await
@@ -1638,7 +1691,6 @@
             <span class="string">&quot;ghcr.io/metalbear-co/mirrord-websocket:latest&quot;</span>,
             <span class="string">&quot;websocket&quot;</span>,
             <span class="bool-val">true</span>,
-            <span class="bool-val">false</span>,
             kube_client,
         )
         .<span class="kw">await
@@ -1652,7 +1704,6 @@
             <span class="string">&quot;ghcr.io/metalbear-co/mirrord-pytest:latest&quot;</span>,
             <span class="string">&quot;http2-echo&quot;</span>,
             <span class="bool-val">true</span>,
-            <span class="bool-val">false</span>,
             kube_client,
         )
         .<span class="kw">await
@@ -1667,7 +1718,6 @@
             <span class="string">&quot;NodePort&quot;</span>,
             <span class="string">&quot;ghcr.io/metalbear-co/mirrord-pytest:latest&quot;</span>,
             <span class="string">&quot;hostname-echo&quot;</span>,
-            <span class="bool-val">true</span>,
             <span class="bool-val">true</span>,
             kube_client,
         )
@@ -1684,7 +1734,6 @@
             <span class="string">&quot;NodePort&quot;</span>,
             <span class="string">&quot;ghcr.io/metalbear-co/mirrord-pytest:latest&quot;</span>,
             <span class="string">&quot;pytest-echo&quot;</span>,
-            <span class="bool-val">true</span>,
             <span class="bool-val">true</span>,
             kube_client,
         )
@@ -1743,18 +1792,19 @@
         <span class="macro">format!</span>(<span class="string">&quot;http://{host_ip}:{port}&quot;</span>)
     }
 
-    <span class="kw">pub async fn </span>get_pod_instance(
-        client: <span class="kw-2">&amp;</span>Client,
+    <span class="doccomment">/// Returns a name of any pod belonging to the given app.
+    </span><span class="kw">pub async fn </span>get_pod_instance(
+        client: Client,
         app_name: <span class="kw-2">&amp;</span>str,
         namespace: <span class="kw-2">&amp;</span>str,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
-        <span class="kw">let </span>pod_api: Api&lt;Pod&gt; = Api::namespaced(client.clone(), namespace);
-        <span class="kw">let </span>pods = pod_api
+        <span class="kw">let </span>pod_api: Api&lt;Pod&gt; = Api::namespaced(client, namespace);
+        pod_api
             .list(<span class="kw-2">&amp;</span>ListParams::default().labels(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;app={app_name}&quot;</span>)))
             .<span class="kw">await
-            </span>.unwrap();
-        <span class="kw">let </span>pod = pods.iter().next().and_then(|pod| pod.metadata.name.clone());
-        pod
+            </span>.unwrap()
+            .into_iter()
+            .find_map(|pod| pod.metadata.name)
     }
 
     <span class="doccomment">/// Take a request builder of any method, add headers, send the request, verify success, and

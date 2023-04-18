@@ -6,7 +6,7 @@
 ) -&gt; <a class="type" href="../io/type.Result.html" title="type rustix::io::Result">Result</a>&lt;<a class="type" href="type.Statx.html" title="type rustix::fs::Statx">Statx</a>&gt;</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p><code>statx(dirfd, path, flags, mask, statxbuf)</code></p>
 <p>This function returns <a href="../io/struct.Errno.html#associatedconstant.NOSYS" title="associated constant rustix::io::Errno::NOSYS"><code>io::Errno::NOSYS</code></a> if <code>statx</code> is not available on
 the platform, such as Linux before 4.11. This also includes older Docker
-versions where the actual syscall fails with different error codes; Rustix
+versions where the actual syscall fails with different error codes; rustix
 handles this and translates them into <code>NOSYS</code>.</p>
 <h2 id="references"><a href="#references">References</a></h2>
 <ul>

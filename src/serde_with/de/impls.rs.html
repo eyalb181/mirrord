@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_with-2.3.1/src/de/impls.rs`."><title>impls.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="serde_with" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (478cbb42b 2023-03-28)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-9ade54abd4bd73c8.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../serde_with/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_with-2.3.2/src/de/impls.rs`."><title>impls.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="serde_with" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (478cbb42b 2023-03-28)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-9ade54abd4bd73c8.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../serde_with/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1935,23 +1935,6 @@
 <a href="#1935" id="1935">1935</a>
 <a href="#1936" id="1936">1936</a>
 <a href="#1937" id="1937">1937</a>
-<a href="#1938" id="1938">1938</a>
-<a href="#1939" id="1939">1939</a>
-<a href="#1940" id="1940">1940</a>
-<a href="#1941" id="1941">1941</a>
-<a href="#1942" id="1942">1942</a>
-<a href="#1943" id="1943">1943</a>
-<a href="#1944" id="1944">1944</a>
-<a href="#1945" id="1945">1945</a>
-<a href="#1946" id="1946">1946</a>
-<a href="#1947" id="1947">1947</a>
-<a href="#1948" id="1948">1948</a>
-<a href="#1949" id="1949">1949</a>
-<a href="#1950" id="1950">1950</a>
-<a href="#1951" id="1951">1951</a>
-<a href="#1952" id="1952">1952</a>
-<a href="#1953" id="1953">1953</a>
-<a href="#1954" id="1954">1954</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{formats::<span class="kw-2">*</span>, prelude::<span class="kw-2">*</span>};
 <span class="attr">#[cfg(feature = <span class="string">&quot;indexmap_1&quot;</span>)]
 </span><span class="kw">use </span>indexmap_1::{IndexMap, IndexSet};
@@ -2796,22 +2779,32 @@
     <span class="kw">where
         </span>D: Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="attr">#[derive(serde::Deserialize)]
-        #[serde(
-            untagged,
-            bound(deserialize = <span class="string">&quot;DeserializeAsWrap&lt;T, TAs&gt;: Deserialize&lt;&#39;de&gt;&quot;</span>)
-        )]
-        </span><span class="kw">enum </span>GoodOrError&lt;<span class="lifetime">&#39;a</span>, T, TAs&gt;
+        <span class="kw">enum </span>GoodOrError&lt;T, TAs&gt; {
+            Good(T),
+            <span class="comment">// Only here to consume the TAs generic
+            </span>Error(PhantomData&lt;TAs&gt;),
+        }
+
+        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, T, TAs&gt; Deserialize&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>GoodOrError&lt;T, TAs&gt;
         <span class="kw">where
-            </span>TAs: DeserializeAs&lt;<span class="lifetime">&#39;a</span>, T&gt;,
+            </span>TAs: DeserializeAs&lt;<span class="lifetime">&#39;de</span>, T&gt;,
         {
-            Good(DeserializeAsWrap&lt;T, TAs&gt;),
-            <span class="comment">// This consumes one &quot;item&quot; when `T` errors while deserializing.
-            // This is necessary to make this work, when instead of having a direct value
-            // like integer or string, the deserializer sees a list or map.
-            </span>Error(IgnoredAny),
-            <span class="attr">#[serde(skip)]
-            </span>_JustAMarkerForTheLifetime(PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>u32&gt;),
+            <span class="kw">fn </span>deserialize&lt;D&gt;(deserializer: D) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, D::Error&gt;
+            <span class="kw">where
+                </span>D: Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;,
+            {
+                <span class="kw">let </span>is_hr = deserializer.is_human_readable();
+                <span class="kw">let </span>content: content::de::Content&lt;<span class="lifetime">&#39;de</span>&gt; = Deserialize::deserialize(deserializer)<span class="question-mark">?</span>;
+
+                <span class="prelude-val">Ok</span>(
+                    <span class="kw">match </span>&lt;DeserializeAsWrap&lt;T, TAs&gt;&gt;::deserialize(
+                        content::de::ContentDeserializer::&lt;D::Error&gt;::new(content, is_hr),
+                    ) {
+                        <span class="prelude-val">Ok</span>(elem) =&gt; GoodOrError::Good(elem.into_inner()),
+                        <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; GoodOrError::Error(PhantomData),
+                    },
+                )
+            }
         }
 
         <span class="kw">struct </span>SeqVisitor&lt;T, U&gt; {
@@ -2819,9 +2812,9 @@
             marker2: PhantomData&lt;U&gt;,
         }
 
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, T, U&gt; Visitor&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>SeqVisitor&lt;T, U&gt;
+        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, T, TAs&gt; Visitor&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>SeqVisitor&lt;T, TAs&gt;
         <span class="kw">where
-            </span>U: DeserializeAs&lt;<span class="lifetime">&#39;de</span>, T&gt;,
+            </span>TAs: DeserializeAs&lt;<span class="lifetime">&#39;de</span>, T&gt;,
         {
             <span class="kw">type </span>Value = Vec&lt;T&gt;;
 
@@ -2829,18 +2822,17 @@
                 formatter.write_str(<span class="string">&quot;a sequence&quot;</span>)
             }
 
-            <span class="kw">fn </span>visit_seq&lt;A&gt;(<span class="self">self</span>, <span class="kw-2">mut </span>seq: A) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, A::Error&gt;
+            <span class="kw">fn </span>visit_seq&lt;A&gt;(<span class="self">self</span>, seq: A) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, A::Error&gt;
             <span class="kw">where
                 </span>A: SeqAccess&lt;<span class="lifetime">&#39;de</span>&gt;,
             {
-                <span class="kw">let </span><span class="kw-2">mut </span>values = Vec::with_capacity(seq.size_hint().unwrap_or_default());
-
-                <span class="kw">while let </span><span class="prelude-val">Some</span>(value) = seq.next_element()<span class="question-mark">? </span>{
-                    <span class="kw">if let </span>GoodOrError::&lt;T, U&gt;::Good(value) = value {
-                        values.push(value.into_inner());
-                    }
-                }
-                <span class="prelude-val">Ok</span>(values)
+                utils::SeqIter::new(seq)
+                    .filter_map(|res: <span class="prelude-ty">Result</span>&lt;GoodOrError&lt;T, TAs&gt;, A::Error&gt;| <span class="kw">match </span>res {
+                        <span class="prelude-val">Ok</span>(GoodOrError::Good(value)) =&gt; <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(value)),
+                        <span class="prelude-val">Ok</span>(GoodOrError::Error(<span class="kw">_</span>)) =&gt; <span class="prelude-val">None</span>,
+                        <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(err)),
+                    })
+                    .collect()
             }
         }
 
@@ -2906,28 +2898,21 @@
     <span class="kw">where
         </span>D: Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="attr">#[derive(serde::Deserialize)]
-        #[serde(
-            untagged,
-            bound(deserialize = <span class="string">&quot;DeserializeAsWrap&lt;T, TAs&gt;: Deserialize&lt;&#39;de&gt;&quot;</span>)
-        )]
-        </span><span class="kw">enum </span>GoodOrError&lt;<span class="lifetime">&#39;a</span>, T, TAs&gt;
-        <span class="kw">where
-            </span>TAs: DeserializeAs&lt;<span class="lifetime">&#39;a</span>, T&gt;,
-        {
-            Good(DeserializeAsWrap&lt;T, TAs&gt;),
-            <span class="comment">// This consumes one &quot;item&quot; when `T` errors while deserializing.
-            // This is necessary to make this work, when instead of having a direct value
-            // like integer or string, the deserializer sees a list or map.
-            </span>Error(IgnoredAny),
-            <span class="attr">#[serde(skip)]
-            </span>_JustAMarkerForTheLifetime(PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>u32&gt;),
-        }
+        <span class="kw">let </span>is_hr = deserializer.is_human_readable();
+        <span class="kw">let </span>content: content::de::Content&lt;<span class="lifetime">&#39;de</span>&gt; = <span class="kw">match </span>Deserialize::deserialize(deserializer) {
+            <span class="prelude-val">Ok</span>(content) =&gt; content,
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(Default::default()),
+        };
 
-        <span class="prelude-val">Ok</span>(<span class="kw">match </span>Deserialize::deserialize(deserializer) {
-            <span class="prelude-val">Ok</span>(GoodOrError::&lt;T, TAs&gt;::Good(res)) =&gt; res.into_inner(),
-            <span class="kw">_ </span>=&gt; Default::default(),
-        })
+        <span class="prelude-val">Ok</span>(
+            <span class="kw">match </span>&lt;DeserializeAsWrap&lt;T, TAs&gt;&gt;::deserialize(content::de::ContentDeserializer::&lt;
+                D::Error,
+            &gt;::new(content, is_hr))
+            {
+                <span class="prelude-val">Ok</span>(elem) =&gt; elem.into_inner(),
+                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; Default::default(),
+            },
+        )
     }
 }
 
@@ -3476,38 +3461,34 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, T, U, FORMAT&gt; DeserializeAs&lt;<span class="lifetime">&#39;de</span>, Vec&lt;T&gt;&gt; <span class="kw">for </span>OneOrMany&lt;U, FORMAT&gt;
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, T, TAs, FORMAT&gt; DeserializeAs&lt;<span class="lifetime">&#39;de</span>, Vec&lt;T&gt;&gt; <span class="kw">for </span>OneOrMany&lt;TAs, FORMAT&gt;
 <span class="kw">where
-    </span>U: DeserializeAs&lt;<span class="lifetime">&#39;de</span>, T&gt;,
+    </span>TAs: DeserializeAs&lt;<span class="lifetime">&#39;de</span>, T&gt;,
     FORMAT: Format,
 {
     <span class="kw">fn </span>deserialize_as&lt;D&gt;(deserializer: D) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;T&gt;, D::Error&gt;
     <span class="kw">where
         </span>D: Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="attr">#[derive(serde::Deserialize)]
-        #[serde(
-            untagged,
-            bound(deserialize = <span class="string">r#&quot;DeserializeAsWrap&lt;T, U&gt;: Deserialize&lt;&#39;de&gt;,
-                DeserializeAsWrap&lt;Vec&lt;T&gt;, Vec&lt;U&gt;&gt;: Deserialize&lt;&#39;de&gt;&quot;#</span>),
-            expecting = <span class="string">&quot;a list or single element&quot;
-        </span>)]
-        </span><span class="kw">enum </span>Helper&lt;<span class="lifetime">&#39;a</span>, T, U&gt;
-        <span class="kw">where
-            </span>U: DeserializeAs&lt;<span class="lifetime">&#39;a</span>, T&gt;,
-        {
-            One(DeserializeAsWrap&lt;T, U&gt;),
-            Many(DeserializeAsWrap&lt;Vec&lt;T&gt;, Vec&lt;U&gt;&gt;),
-            <span class="attr">#[serde(skip)]
-            </span>_JustAMarkerForTheLifetime(PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>u32&gt;),
-        }
+        <span class="kw">let </span>is_hr = deserializer.is_human_readable();
+        <span class="kw">let </span>content: content::de::Content&lt;<span class="lifetime">&#39;de</span>&gt; = Deserialize::deserialize(deserializer)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>h: Helper&lt;<span class="lifetime">&#39;de</span>, T, U&gt; = Deserialize::deserialize(deserializer)<span class="question-mark">?</span>;
-        <span class="kw">match </span>h {
-            Helper::One(one) =&gt; <span class="prelude-val">Ok</span>(<span class="macro">alloc::vec!</span>[one.into_inner()]),
-            Helper::Many(many) =&gt; <span class="prelude-val">Ok</span>(many.into_inner()),
-            Helper::_JustAMarkerForTheLifetime(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
-        }
+        <span class="kw">let </span>one_err: D::Error = <span class="kw">match </span>&lt;DeserializeAsWrap&lt;T, TAs&gt;&gt;::deserialize(
+            content::de::ContentRefDeserializer::new(<span class="kw-2">&amp;</span>content, is_hr),
+        ) {
+            <span class="prelude-val">Ok</span>(one) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="macro">alloc::vec!</span>[one.into_inner()]),
+            <span class="prelude-val">Err</span>(err) =&gt; err,
+        };
+        <span class="kw">let </span>many_err: D::Error = <span class="kw">match </span>&lt;DeserializeAsWrap&lt;Vec&lt;T&gt;, Vec&lt;TAs&gt;&gt;&gt;::deserialize(
+            content::de::ContentDeserializer::new(content, is_hr),
+        ) {
+            <span class="prelude-val">Ok</span>(many) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(many.into_inner()),
+            <span class="prelude-val">Err</span>(err) =&gt; err,
+        };
+        <span class="prelude-val">Err</span>(DeError::custom(<span class="macro">format_args!</span>(
+            <span class="string">&quot;OneOrMany could not deserialize any variant:\n  One: {}\n  Many: {}&quot;</span>,
+            one_err, many_err
+        )))
     }
 }
 
@@ -3534,32 +3515,25 @@
     <span class="kw">where
         </span>D: Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="attr">#[derive(serde::Deserialize)]
-        #[serde(
-            untagged,
-            bound(deserialize = <span class="string">r#&quot;
-                DeserializeAsWrap&lt;T, TAs1&gt;: Deserialize&lt;&#39;de&gt;,
-                DeserializeAsWrap&lt;T, TAs2&gt;: Deserialize&lt;&#39;de&gt;,
-            &quot;#</span>),
-            expecting = <span class="string">&quot;PickFirst could not deserialize data&quot;
-        </span>)]
-        </span><span class="kw">enum </span>Helper&lt;<span class="lifetime">&#39;a</span>, T, TAs1, TAs2&gt;
-        <span class="kw">where
-            </span>TAs1: DeserializeAs&lt;<span class="lifetime">&#39;a</span>, T&gt;,
-            TAs2: DeserializeAs&lt;<span class="lifetime">&#39;a</span>, T&gt;,
-        {
-            First(DeserializeAsWrap&lt;T, TAs1&gt;),
-            Second(DeserializeAsWrap&lt;T, TAs2&gt;),
-            <span class="attr">#[serde(skip)]
-            </span>_JustAMarkerForTheLifetime(PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>u32&gt;),
-        }
+        <span class="kw">let </span>is_hr = deserializer.is_human_readable();
+        <span class="kw">let </span>content: content::de::Content&lt;<span class="lifetime">&#39;de</span>&gt; = Deserialize::deserialize(deserializer)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>h: Helper&lt;<span class="lifetime">&#39;de</span>, T, TAs1, TAs2&gt; = Deserialize::deserialize(deserializer)<span class="question-mark">?</span>;
-        <span class="kw">match </span>h {
-            Helper::First(first) =&gt; <span class="prelude-val">Ok</span>(first.into_inner()),
-            Helper::Second(second) =&gt; <span class="prelude-val">Ok</span>(second.into_inner()),
-            Helper::_JustAMarkerForTheLifetime(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
-        }
+        <span class="kw">let </span>first_err: D::Error = <span class="kw">match </span>&lt;DeserializeAsWrap&lt;T, TAs1&gt;&gt;::deserialize(
+            content::de::ContentRefDeserializer::new(<span class="kw-2">&amp;</span>content, is_hr),
+        ) {
+            <span class="prelude-val">Ok</span>(first) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(first.into_inner()),
+            <span class="prelude-val">Err</span>(err) =&gt; err,
+        };
+        <span class="kw">let </span>second_err: D::Error = <span class="kw">match </span>&lt;DeserializeAsWrap&lt;T, TAs2&gt;&gt;::deserialize(
+            content::de::ContentDeserializer::new(content, is_hr),
+        ) {
+            <span class="prelude-val">Ok</span>(second) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(second.into_inner()),
+            <span class="prelude-val">Err</span>(err) =&gt; err,
+        };
+        <span class="prelude-val">Err</span>(DeError::custom(<span class="macro">format_args!</span>(
+            <span class="string">&quot;PickFirst could not deserialize any variant:\n  First: {}\n  Second: {}&quot;</span>,
+            first_err, second_err
+        )))
     }
 }
 
@@ -3574,36 +3548,31 @@
     <span class="kw">where
         </span>D: Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="attr">#[derive(serde::Deserialize)]
-        #[serde(
-            untagged,
-            bound(deserialize = <span class="string">r#&quot;
-                DeserializeAsWrap&lt;T, TAs1&gt;: Deserialize&lt;&#39;de&gt;,
-                DeserializeAsWrap&lt;T, TAs2&gt;: Deserialize&lt;&#39;de&gt;,
-                DeserializeAsWrap&lt;T, TAs3&gt;: Deserialize&lt;&#39;de&gt;,
-            &quot;#</span>),
-            expecting = <span class="string">&quot;PickFirst could not deserialize data&quot;
-        </span>)]
-        </span><span class="kw">enum </span>Helper&lt;<span class="lifetime">&#39;a</span>, T, TAs1, TAs2, TAs3&gt;
-        <span class="kw">where
-            </span>TAs1: DeserializeAs&lt;<span class="lifetime">&#39;a</span>, T&gt;,
-            TAs2: DeserializeAs&lt;<span class="lifetime">&#39;a</span>, T&gt;,
-            TAs3: DeserializeAs&lt;<span class="lifetime">&#39;a</span>, T&gt;,
-        {
-            First(DeserializeAsWrap&lt;T, TAs1&gt;),
-            Second(DeserializeAsWrap&lt;T, TAs2&gt;),
-            Third(DeserializeAsWrap&lt;T, TAs3&gt;),
-            <span class="attr">#[serde(skip)]
-            </span>_JustAMarkerForTheLifetime(PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>u32&gt;),
-        }
+        <span class="kw">let </span>is_hr = deserializer.is_human_readable();
+        <span class="kw">let </span>content: content::de::Content&lt;<span class="lifetime">&#39;de</span>&gt; = Deserialize::deserialize(deserializer)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>h: Helper&lt;<span class="lifetime">&#39;de</span>, T, TAs1, TAs2, TAs3&gt; = Deserialize::deserialize(deserializer)<span class="question-mark">?</span>;
-        <span class="kw">match </span>h {
-            Helper::First(first) =&gt; <span class="prelude-val">Ok</span>(first.into_inner()),
-            Helper::Second(second) =&gt; <span class="prelude-val">Ok</span>(second.into_inner()),
-            Helper::Third(third) =&gt; <span class="prelude-val">Ok</span>(third.into_inner()),
-            Helper::_JustAMarkerForTheLifetime(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
-        }
+        <span class="kw">let </span>first_err: D::Error = <span class="kw">match </span>&lt;DeserializeAsWrap&lt;T, TAs1&gt;&gt;::deserialize(
+            content::de::ContentRefDeserializer::new(<span class="kw-2">&amp;</span>content, is_hr),
+        ) {
+            <span class="prelude-val">Ok</span>(first) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(first.into_inner()),
+            <span class="prelude-val">Err</span>(err) =&gt; err,
+        };
+        <span class="kw">let </span>second_err: D::Error = <span class="kw">match </span>&lt;DeserializeAsWrap&lt;T, TAs2&gt;&gt;::deserialize(
+            content::de::ContentRefDeserializer::new(<span class="kw-2">&amp;</span>content, is_hr),
+        ) {
+            <span class="prelude-val">Ok</span>(second) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(second.into_inner()),
+            <span class="prelude-val">Err</span>(err) =&gt; err,
+        };
+        <span class="kw">let </span>third_err: D::Error = <span class="kw">match </span>&lt;DeserializeAsWrap&lt;T, TAs3&gt;&gt;::deserialize(
+            content::de::ContentDeserializer::new(content, is_hr),
+        ) {
+            <span class="prelude-val">Ok</span>(third) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(third.into_inner()),
+            <span class="prelude-val">Err</span>(err) =&gt; err,
+        };
+        <span class="prelude-val">Err</span>(DeError::custom(<span class="macro">format_args!</span>(
+            <span class="string">&quot;PickFirst could not deserialize any variant:\n  First: {}\n  Second: {}\n  Third: {}&quot;</span>,
+            first_err, second_err, third_err,
+        )))
     }
 }
 
@@ -3619,40 +3588,37 @@
     <span class="kw">where
         </span>D: Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="attr">#[derive(serde::Deserialize)]
-        #[serde(
-            untagged,
-            bound(deserialize = <span class="string">r#&quot;
-                DeserializeAsWrap&lt;T, TAs1&gt;: Deserialize&lt;&#39;de&gt;,
-                DeserializeAsWrap&lt;T, TAs2&gt;: Deserialize&lt;&#39;de&gt;,
-                DeserializeAsWrap&lt;T, TAs3&gt;: Deserialize&lt;&#39;de&gt;,
-                DeserializeAsWrap&lt;T, TAs4&gt;: Deserialize&lt;&#39;de&gt;,
-            &quot;#</span>),
-            expecting = <span class="string">&quot;PickFirst could not deserialize data&quot;
-        </span>)]
-        </span><span class="kw">enum </span>Helper&lt;<span class="lifetime">&#39;a</span>, T, TAs1, TAs2, TAs3, TAs4&gt;
-        <span class="kw">where
-            </span>TAs1: DeserializeAs&lt;<span class="lifetime">&#39;a</span>, T&gt;,
-            TAs2: DeserializeAs&lt;<span class="lifetime">&#39;a</span>, T&gt;,
-            TAs3: DeserializeAs&lt;<span class="lifetime">&#39;a</span>, T&gt;,
-            TAs4: DeserializeAs&lt;<span class="lifetime">&#39;a</span>, T&gt;,
-        {
-            First(DeserializeAsWrap&lt;T, TAs1&gt;),
-            Second(DeserializeAsWrap&lt;T, TAs2&gt;),
-            Third(DeserializeAsWrap&lt;T, TAs3&gt;),
-            Forth(DeserializeAsWrap&lt;T, TAs4&gt;),
-            <span class="attr">#[serde(skip)]
-            </span>_JustAMarkerForTheLifetime(PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>u32&gt;),
-        }
+        <span class="kw">let </span>is_hr = deserializer.is_human_readable();
+        <span class="kw">let </span>content: content::de::Content&lt;<span class="lifetime">&#39;de</span>&gt; = Deserialize::deserialize(deserializer)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>h: Helper&lt;<span class="lifetime">&#39;de</span>, T, TAs1, TAs2, TAs3, TAs4&gt; = Deserialize::deserialize(deserializer)<span class="question-mark">?</span>;
-        <span class="kw">match </span>h {
-            Helper::First(first) =&gt; <span class="prelude-val">Ok</span>(first.into_inner()),
-            Helper::Second(second) =&gt; <span class="prelude-val">Ok</span>(second.into_inner()),
-            Helper::Third(third) =&gt; <span class="prelude-val">Ok</span>(third.into_inner()),
-            Helper::Forth(forth) =&gt; <span class="prelude-val">Ok</span>(forth.into_inner()),
-            Helper::_JustAMarkerForTheLifetime(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
-        }
+        <span class="kw">let </span>first_err: D::Error = <span class="kw">match </span>&lt;DeserializeAsWrap&lt;T, TAs1&gt;&gt;::deserialize(
+            content::de::ContentRefDeserializer::new(<span class="kw-2">&amp;</span>content, is_hr),
+        ) {
+            <span class="prelude-val">Ok</span>(first) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(first.into_inner()),
+            <span class="prelude-val">Err</span>(err) =&gt; err,
+        };
+        <span class="kw">let </span>second_err: D::Error = <span class="kw">match </span>&lt;DeserializeAsWrap&lt;T, TAs2&gt;&gt;::deserialize(
+            content::de::ContentRefDeserializer::new(<span class="kw-2">&amp;</span>content, is_hr),
+        ) {
+            <span class="prelude-val">Ok</span>(second) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(second.into_inner()),
+            <span class="prelude-val">Err</span>(err) =&gt; err,
+        };
+        <span class="kw">let </span>third_err: D::Error = <span class="kw">match </span>&lt;DeserializeAsWrap&lt;T, TAs3&gt;&gt;::deserialize(
+            content::de::ContentRefDeserializer::new(<span class="kw-2">&amp;</span>content, is_hr),
+        ) {
+            <span class="prelude-val">Ok</span>(third) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(third.into_inner()),
+            <span class="prelude-val">Err</span>(err) =&gt; err,
+        };
+        <span class="kw">let </span>fourth_err: D::Error = <span class="kw">match </span>&lt;DeserializeAsWrap&lt;T, TAs4&gt;&gt;::deserialize(
+            content::de::ContentDeserializer::new(content, is_hr),
+        ) {
+            <span class="prelude-val">Ok</span>(fourth) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(fourth.into_inner()),
+            <span class="prelude-val">Err</span>(err) =&gt; err,
+        };
+        <span class="prelude-val">Err</span>(DeError::custom(<span class="macro">format_args!</span>(
+            <span class="string">&quot;PickFirst could not deserialize any variant:\n  First: {}\n  Second: {}\n  Third: {}\n  Fourth: {}&quot;</span>,
+            first_err, second_err, third_err, fourth_err,
+        )))
     }
 }
 

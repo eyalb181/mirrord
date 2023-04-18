@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["FIELDS","VARIANTS"],"enum":["IncomingFileConfig","IncomingMode","__Field"],"mod":["http_filter"],"struct":["IncomingAdvancedFileConfig","IncomingConfig","IncomingConfigParseError","__FieldVisitor","__Visitor"]};
+window.SIDEBAR_ITEMS = {"enum":["IncomingFileConfig","IncomingMode"],"mod":["http_filter"],"struct":["IncomingAdvancedFileConfig","IncomingConfig","IncomingConfigParseError"]};

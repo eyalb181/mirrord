@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bincode-2.0.0-rc.2/src/config.rs`."><title>config.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="bincode" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (478cbb42b 2023-03-28)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-9ade54abd4bd73c8.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../bincode/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bincode-2.0.0-rc.3/src/config.rs`."><title>config.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="bincode" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (478cbb42b 2023-03-28)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-9ade54abd4bd73c8.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../bincode/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -265,66 +265,6 @@
 <a href="#265" id="265">265</a>
 <a href="#266" id="266">266</a>
 <a href="#267" id="267">267</a>
-<a href="#268" id="268">268</a>
-<a href="#269" id="269">269</a>
-<a href="#270" id="270">270</a>
-<a href="#271" id="271">271</a>
-<a href="#272" id="272">272</a>
-<a href="#273" id="273">273</a>
-<a href="#274" id="274">274</a>
-<a href="#275" id="275">275</a>
-<a href="#276" id="276">276</a>
-<a href="#277" id="277">277</a>
-<a href="#278" id="278">278</a>
-<a href="#279" id="279">279</a>
-<a href="#280" id="280">280</a>
-<a href="#281" id="281">281</a>
-<a href="#282" id="282">282</a>
-<a href="#283" id="283">283</a>
-<a href="#284" id="284">284</a>
-<a href="#285" id="285">285</a>
-<a href="#286" id="286">286</a>
-<a href="#287" id="287">287</a>
-<a href="#288" id="288">288</a>
-<a href="#289" id="289">289</a>
-<a href="#290" id="290">290</a>
-<a href="#291" id="291">291</a>
-<a href="#292" id="292">292</a>
-<a href="#293" id="293">293</a>
-<a href="#294" id="294">294</a>
-<a href="#295" id="295">295</a>
-<a href="#296" id="296">296</a>
-<a href="#297" id="297">297</a>
-<a href="#298" id="298">298</a>
-<a href="#299" id="299">299</a>
-<a href="#300" id="300">300</a>
-<a href="#301" id="301">301</a>
-<a href="#302" id="302">302</a>
-<a href="#303" id="303">303</a>
-<a href="#304" id="304">304</a>
-<a href="#305" id="305">305</a>
-<a href="#306" id="306">306</a>
-<a href="#307" id="307">307</a>
-<a href="#308" id="308">308</a>
-<a href="#309" id="309">309</a>
-<a href="#310" id="310">310</a>
-<a href="#311" id="311">311</a>
-<a href="#312" id="312">312</a>
-<a href="#313" id="313">313</a>
-<a href="#314" id="314">314</a>
-<a href="#315" id="315">315</a>
-<a href="#316" id="316">316</a>
-<a href="#317" id="317">317</a>
-<a href="#318" id="318">318</a>
-<a href="#319" id="319">319</a>
-<a href="#320" id="320">320</a>
-<a href="#321" id="321">321</a>
-<a href="#322" id="322">322</a>
-<a href="#323" id="323">323</a>
-<a href="#324" id="324">324</a>
-<a href="#325" id="325">325</a>
-<a href="#326" id="326">326</a>
-<a href="#327" id="327">327</a>
 </pre><pre class="rust"><code><span class="doccomment">//! The config module is used to change the behavior of bincode&#39;s encoding and decoding logic.
 //!
 //! *Important* make sure you use the same config for encoding and decoding, or else bincode will not work properly.
@@ -338,10 +278,7 @@
 //!     .with_little_endian()
 //!     // pick one of:
 //!     .with_variable_int_encoding()
-//!     .with_fixed_int_encoding()
-//!     // pick one of:
-//!     .skip_fixed_array_length()
-//!     .write_fixed_array_length();
+//!     .with_fixed_int_encoding();
 //! ```
 //!
 //! See [Configuration] for more information on the configuration options.
@@ -356,20 +293,16 @@
 ///
 /// - [with_little_endian] and [with_big_endian]
 /// - [with_fixed_int_encoding] and [with_variable_int_encoding]
-/// - [skip_fixed_array_length] and [write_fixed_array_length]
 ///
 ///
 /// [with_little_endian]: #method.with_little_endian
 /// [with_big_endian]: #method.with_big_endian
 /// [with_fixed_int_encoding]: #method.with_fixed_int_encoding
 /// [with_variable_int_encoding]: #method.with_variable_int_encoding
-/// [skip_fixed_array_length]: #method.skip_fixed_array_length
-/// [write_fixed_array_length]: #method.write_fixed_array_length
 </span><span class="attr">#[derive(Copy, Clone)]
-</span><span class="kw">pub struct </span>Configuration&lt;E = LittleEndian, I = Varint, A = WriteFixedArrayLength, L = NoLimit&gt; {
+</span><span class="kw">pub struct </span>Configuration&lt;E = LittleEndian, I = Varint, L = NoLimit&gt; {
     _e: PhantomData&lt;E&gt;,
     _i: PhantomData&lt;I&gt;,
-    _a: PhantomData&lt;A&gt;,
     _l: PhantomData&lt;L&gt;,
 }
 
@@ -386,7 +319,6 @@
 </span><span class="doccomment">/// The default config for bincode 2.0. By default this will be:
 /// - Little endian
 /// - Variable int encoding
-/// - Write fixed array length
 </span><span class="kw">pub const fn </span>standard() -&gt; Configuration {
     generate()
 }
@@ -394,34 +326,32 @@
 <span class="doccomment">/// Creates the &quot;legacy&quot; default config. This is the default config that was present in bincode 1.0
 /// - Little endian
 /// - Fixed int length encoding
-/// - Write fixed array length
-</span><span class="kw">pub const fn </span>legacy() -&gt; Configuration&lt;LittleEndian, Fixint, WriteFixedArrayLength, NoLimit&gt; {
+</span><span class="kw">pub const fn </span>legacy() -&gt; Configuration&lt;LittleEndian, Fixint, NoLimit&gt; {
     generate()
 }
 
-<span class="kw">impl</span>&lt;E, I, A, L&gt; Default <span class="kw">for </span>Configuration&lt;E, I, A, L&gt; {
+<span class="kw">impl</span>&lt;E, I, L&gt; Default <span class="kw">for </span>Configuration&lt;E, I, L&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         generate()
     }
 }
 
-<span class="kw">const fn </span>generate&lt;E, I, A, L&gt;() -&gt; Configuration&lt;E, I, A, L&gt; {
+<span class="kw">const fn </span>generate&lt;E, I, L&gt;() -&gt; Configuration&lt;E, I, L&gt; {
     Configuration {
         _e: PhantomData,
         _i: PhantomData,
-        _a: PhantomData,
         _l: PhantomData,
     }
 }
 
-<span class="kw">impl</span>&lt;E, I, A, L&gt; Configuration&lt;E, I, A, L&gt; {
+<span class="kw">impl</span>&lt;E, I, L&gt; Configuration&lt;E, I, L&gt; {
     <span class="doccomment">/// Makes bincode encode all integer types in big endian.
-    </span><span class="kw">pub const fn </span>with_big_endian(<span class="self">self</span>) -&gt; Configuration&lt;BigEndian, I, A, L&gt; {
+    </span><span class="kw">pub const fn </span>with_big_endian(<span class="self">self</span>) -&gt; Configuration&lt;BigEndian, I, L&gt; {
         generate()
     }
 
     <span class="doccomment">/// Makes bincode encode all integer types in little endian.
-    </span><span class="kw">pub const fn </span>with_little_endian(<span class="self">self</span>) -&gt; Configuration&lt;LittleEndian, I, A, L&gt; {
+    </span><span class="kw">pub const fn </span>with_little_endian(<span class="self">self</span>) -&gt; Configuration&lt;LittleEndian, I, L&gt; {
         generate()
     }
 
@@ -482,7 +412,7 @@
     ///
     /// Note that u256 and the like are unsupported by this format; if and when they are added to the
     /// language, they may be supported via the extension point given by the 255 byte.
-    </span><span class="kw">pub const fn </span>with_variable_int_encoding(<span class="self">self</span>) -&gt; Configuration&lt;E, Varint, A, L&gt; {
+    </span><span class="kw">pub const fn </span>with_variable_int_encoding(<span class="self">self</span>) -&gt; Configuration&lt;E, Varint, L&gt; {
         generate()
     }
 
@@ -491,51 +421,29 @@
     /// * Fixed size integers are encoded directly
     /// * Enum discriminants are encoded as u32
     /// * Lengths and usize are encoded as u64
-    </span><span class="kw">pub const fn </span>with_fixed_int_encoding(<span class="self">self</span>) -&gt; Configuration&lt;E, Fixint, A, L&gt; {
-        generate()
-    }
-
-    <span class="doccomment">/// Skip writing the length of fixed size arrays (`[u8; N]`) before writing the array
-    ///
-    /// **NOTE:** This is not supported if you&#39;re using the `bincode::serde::*` functions, the `#[bincode(with_serde)]` attribute, or the `Compat` struct.
-    </span><span class="kw">pub const fn </span>skip_fixed_array_length(<span class="self">self</span>) -&gt; Configuration&lt;E, I, SkipFixedArrayLength, L&gt; {
-        generate()
-    }
-
-    <span class="doccomment">/// Write the length of fixed size arrays (`[u8; N]`) before writing the array
-    </span><span class="kw">pub const fn </span>write_fixed_array_length(<span class="self">self</span>) -&gt; Configuration&lt;E, I, WriteFixedArrayLength, L&gt; {
+    </span><span class="kw">pub const fn </span>with_fixed_int_encoding(<span class="self">self</span>) -&gt; Configuration&lt;E, Fixint, L&gt; {
         generate()
     }
 
     <span class="doccomment">/// Sets the byte limit to `limit`.
-    </span><span class="kw">pub const fn </span>with_limit&lt;<span class="kw">const </span>N: usize&gt;(<span class="self">self</span>) -&gt; Configuration&lt;E, I, A, Limit&lt;N&gt;&gt; {
+    </span><span class="kw">pub const fn </span>with_limit&lt;<span class="kw">const </span>N: usize&gt;(<span class="self">self</span>) -&gt; Configuration&lt;E, I, Limit&lt;N&gt;&gt; {
         generate()
     }
 
     <span class="doccomment">/// Clear the byte limit.
-    </span><span class="kw">pub const fn </span>with_no_limit(<span class="self">self</span>) -&gt; Configuration&lt;E, I, A, NoLimit&gt; {
+    </span><span class="kw">pub const fn </span>with_no_limit(<span class="self">self</span>) -&gt; Configuration&lt;E, I, NoLimit&gt; {
         generate()
     }
 }
 
 <span class="doccomment">/// Indicates a type is valid for controlling the bincode configuration
 </span><span class="kw">pub trait </span>Config:
-    InternalEndianConfig
-    + InternalArrayLengthConfig
-    + InternalIntEncodingConfig
-    + InternalLimitConfig
-    + Copy
-    + Clone
+    InternalEndianConfig + InternalIntEncodingConfig + InternalLimitConfig + Copy + Clone
 {
 }
 
 <span class="kw">impl</span>&lt;T&gt; Config <span class="kw">for </span>T <span class="kw">where
-    </span>T: InternalEndianConfig
-        + InternalArrayLengthConfig
-        + InternalIntEncodingConfig
-        + InternalLimitConfig
-        + Copy
-        + Clone
+    </span>T: InternalEndianConfig + InternalIntEncodingConfig + InternalLimitConfig + Copy + Clone
 {
 }
 
@@ -571,22 +479,6 @@
     <span class="kw">const </span>INT_ENCODING: IntEncoding = IntEncoding::Variable;
 }
 
-<span class="doccomment">/// Skip writing the length of fixed size arrays (`[u8; N]`) before writing the array.
-</span><span class="attr">#[derive(Copy, Clone)]
-</span><span class="kw">pub struct </span>SkipFixedArrayLength {}
-
-<span class="kw">impl </span>InternalArrayLengthConfig <span class="kw">for </span>SkipFixedArrayLength {
-    <span class="kw">const </span>SKIP_FIXED_ARRAY_LENGTH: bool = <span class="bool-val">true</span>;
-}
-
-<span class="doccomment">/// Write the length of fixed size arrays (`[u8; N]`) before writing the array.
-</span><span class="attr">#[derive(Copy, Clone)]
-</span><span class="kw">pub struct </span>WriteFixedArrayLength {}
-
-<span class="kw">impl </span>InternalArrayLengthConfig <span class="kw">for </span>WriteFixedArrayLength {
-    <span class="kw">const </span>SKIP_FIXED_ARRAY_LENGTH: bool = <span class="bool-val">false</span>;
-}
-
 <span class="doccomment">/// Sets an unlimited byte limit.
 </span><span class="attr">#[derive(Copy, Clone)]
 </span><span class="kw">pub struct </span>NoLimit {}
@@ -608,7 +500,7 @@
         <span class="kw">const </span>ENDIAN: Endian;
     }
 
-    <span class="kw">impl</span>&lt;E: InternalEndianConfig, I, A, L&gt; InternalEndianConfig <span class="kw">for </span>Configuration&lt;E, I, A, L&gt; {
+    <span class="kw">impl</span>&lt;E: InternalEndianConfig, I, L&gt; InternalEndianConfig <span class="kw">for </span>Configuration&lt;E, I, L&gt; {
         <span class="kw">const </span>ENDIAN: Endian = E::ENDIAN;
     }
 
@@ -622,9 +514,7 @@
         <span class="kw">const </span>INT_ENCODING: IntEncoding;
     }
 
-    <span class="kw">impl</span>&lt;E, I: InternalIntEncodingConfig, A, L&gt; InternalIntEncodingConfig
-        <span class="kw">for </span>Configuration&lt;E, I, A, L&gt;
-    {
+    <span class="kw">impl</span>&lt;E, I: InternalIntEncodingConfig, L&gt; InternalIntEncodingConfig <span class="kw">for </span>Configuration&lt;E, I, L&gt; {
         <span class="kw">const </span>INT_ENCODING: IntEncoding = I::INT_ENCODING;
     }
 
@@ -634,21 +524,11 @@
         Variable,
     }
 
-    <span class="kw">pub trait </span>InternalArrayLengthConfig {
-        <span class="kw">const </span>SKIP_FIXED_ARRAY_LENGTH: bool;
-    }
-
-    <span class="kw">impl</span>&lt;E, I, A: InternalArrayLengthConfig, L&gt; InternalArrayLengthConfig
-        <span class="kw">for </span>Configuration&lt;E, I, A, L&gt;
-    {
-        <span class="kw">const </span>SKIP_FIXED_ARRAY_LENGTH: bool = A::SKIP_FIXED_ARRAY_LENGTH;
-    }
-
     <span class="kw">pub trait </span>InternalLimitConfig {
         <span class="kw">const </span>LIMIT: <span class="prelude-ty">Option</span>&lt;usize&gt;;
     }
 
-    <span class="kw">impl</span>&lt;E, I, A, L: InternalLimitConfig&gt; InternalLimitConfig <span class="kw">for </span>Configuration&lt;E, I, A, L&gt; {
+    <span class="kw">impl</span>&lt;E, I, L: InternalLimitConfig&gt; InternalLimitConfig <span class="kw">for </span>Configuration&lt;E, I, L&gt; {
         <span class="kw">const </span>LIMIT: <span class="prelude-ty">Option</span>&lt;usize&gt; = L::LIMIT;
     }
 }

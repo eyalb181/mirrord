@@ -24,10 +24,10 @@
 </span><span class="kw">pub enum </span>ConsoleError {
     <span class="attr">#[error(<span class="string">&quot;failed to connect to console `{0}`&quot;</span>)]
     #[diagnostic(help(<span class="string">&quot;Please check that the console is running and address is correct.&quot;</span>))]
-    </span>ConnectError(<span class="attr">#[source] </span>tokio_tungstenite::tungstenite::Error),
+    </span>ConnectError(<span class="attr">#[source] </span>tungstenite::Error),
     <span class="attr">#[error(<span class="string">&quot;WS Socket occured after connection `{0}`&quot;</span>)]
     #[diagnostic(help(<span class="string">&quot;Please report a bug.&quot;</span>))]
-    </span>WsSocketError(<span class="attr">#[from] </span>tokio_tungstenite::tungstenite::Error),
+    </span>WsSocketError(<span class="attr">#[from] </span>tungstenite::Error),
     <span class="attr">#[error(<span class="string">&quot;Set logger failed `{0}`&quot;</span>)]
     #[diagnostic(help(<span class="string">&quot;Please report a bug.&quot;</span>))]
     </span>SetLoggerError(<span class="attr">#[from] </span>log::SetLoggerError),
