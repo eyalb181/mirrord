@@ -96,6 +96,8 @@
 <a href="#96" id="96">96</a>
 <a href="#97" id="97">97</a>
 <a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Module for the mirrord-layer/mirrord-agent connection mechanism.
 //!
 //! The layer will connect to the internal proxy to communicate with the agent.
@@ -115,11 +117,13 @@
 </span><span class="kw">const </span>CONNECTION_CHANNEL_SIZE: usize = <span class="number">1000</span>;
 
 <span class="kw">const </span>FAIL_STILL_STUCK: <span class="kw-2">&amp;</span>str = <span class="string">r#&quot;
-- If you&#39;re still stuck and everything looks fine:
+- If you&#39;re still stuck:
 
 &gt;&gt; Please open a new bug report at https://github.com/metalbear-co/mirrord/issues/new/choose
 
-&gt;&gt; Or join our discord https://discord.gg/metalbear and request help in #mirrord-help.
+&gt;&gt; Or join our Discord https://discord.gg/metalbear and request help in #mirrord-help
+
+&gt;&gt; Or email us at hi@metalbear.co
 
 &quot;#</span>;
 

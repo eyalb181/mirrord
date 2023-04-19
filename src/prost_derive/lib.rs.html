@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-derive-0.9.0/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="prost_derive" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (478cbb42b 2023-03-28)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-9ade54abd4bd73c8.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../prost_derive/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/github/home/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-derive-0.11.9/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="prost_derive" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (478cbb42b 2023-03-28)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-9ade54abd4bd73c8.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../prost_derive/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -468,7 +468,22 @@
 <a href="#468" id="468">468</a>
 <a href="#469" id="469">469</a>
 <a href="#470" id="470">470</a>
-</pre><pre class="rust"><code><span class="attr">#![doc(html_root_url = <span class="string">&quot;https://docs.rs/prost-derive/0.9.0&quot;</span>)]
+<a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
+<a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
+<a href="#476" id="476">476</a>
+<a href="#477" id="477">477</a>
+<a href="#478" id="478">478</a>
+<a href="#479" id="479">479</a>
+<a href="#480" id="480">480</a>
+<a href="#481" id="481">481</a>
+<a href="#482" id="482">482</a>
+<a href="#483" id="483">483</a>
+<a href="#484" id="484">484</a>
+<a href="#485" id="485">485</a>
+</pre><pre class="rust"><code><span class="attr">#![doc(html_root_url = <span class="string">&quot;https://docs.rs/prost-derive/0.11.9&quot;</span>)]
 </span><span class="comment">// The `quote!` macro requires deep recursion.
 </span><span class="attr">#![recursion_limit = <span class="string">&quot;4096&quot;</span>]
 
@@ -482,7 +497,7 @@
 <span class="kw">use </span>quote::quote;
 <span class="kw">use </span>syn::{
     punctuated::Punctuated, Data, DataEnum, DataStruct, DeriveInput, Expr, Fields, FieldsNamed,
-    FieldsUnnamed, Ident, Variant,
+    FieldsUnnamed, Ident, Index, Variant,
 };
 
 <span class="kw">mod </span>field;
@@ -502,32 +517,36 @@
     <span class="kw">let </span>generics = <span class="kw-2">&amp;</span>input.generics;
     <span class="kw">let </span>(impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
-    <span class="kw">let </span>fields = <span class="kw">match </span>variant_data {
+    <span class="kw">let </span>(is_struct, fields) = <span class="kw">match </span>variant_data {
         DataStruct {
             fields: Fields::Named(FieldsNamed { named: fields, .. }),
             ..
-        }
-        | DataStruct {
+        } =&gt; (<span class="bool-val">true</span>, fields.into_iter().collect()),
+        DataStruct {
             fields:
                 Fields::Unnamed(FieldsUnnamed {
                     unnamed: fields, ..
                 }),
             ..
-        } =&gt; fields.into_iter().collect(),
+        } =&gt; (<span class="bool-val">false</span>, fields.into_iter().collect()),
         DataStruct {
             fields: Fields::Unit,
             ..
-        } =&gt; Vec::new(),
+        } =&gt; (<span class="bool-val">false</span>, Vec::new()),
     };
 
     <span class="kw">let </span><span class="kw-2">mut </span>next_tag: u32 = <span class="number">1</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>fields = fields
         .into_iter()
         .enumerate()
-        .flat_map(|(idx, field)| {
-            <span class="kw">let </span>field_ident = field
-                .ident
-                .unwrap_or_else(|| Ident::new(<span class="kw-2">&amp;</span>idx.to_string(), Span::call_site()));
+        .flat_map(|(i, field)| {
+            <span class="kw">let </span>field_ident = field.ident.map(|x| <span class="macro">quote!</span>(#x)).unwrap_or_else(|| {
+                <span class="kw">let </span>index = Index {
+                    index: i <span class="kw">as </span>u32,
+                    span: Span::call_site(),
+                };
+                <span class="macro">quote!</span>(#index)
+            });
             <span class="kw">match </span>Field::new(field.attrs, <span class="prelude-val">Some</span>(next_tag)) {
                 <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(field)) =&gt; {
                     next_tag = field.tags().iter().max().map(|t| t + <span class="number">1</span>).unwrap_or(next_tag);
@@ -594,17 +613,27 @@
         )
     };
 
-    <span class="comment">// TODO
-    </span><span class="kw">let </span>is_struct = <span class="bool-val">true</span>;
-
     <span class="kw">let </span>clear = fields
         .iter()
         .map(|<span class="kw-2">&amp;</span>(<span class="kw-2">ref </span>field_ident, <span class="kw-2">ref </span>field)| field.clear(<span class="macro">quote!</span>(<span class="self">self</span>.#field_ident)));
 
-    <span class="kw">let </span>default = fields.iter().map(|<span class="kw-2">&amp;</span>(<span class="kw-2">ref </span>field_ident, <span class="kw-2">ref </span>field)| {
-        <span class="kw">let </span>value = field.default();
-        <span class="macro">quote!</span>(#field_ident: #value,)
-    });
+    <span class="kw">let </span>default = <span class="kw">if </span>is_struct {
+        <span class="kw">let </span>default = fields.iter().map(|(field_ident, field)| {
+            <span class="kw">let </span>value = field.default();
+            <span class="macro">quote!</span>(#field_ident: #value,)
+        });
+        <span class="macro">quote! </span>{#ident {
+            #(#default)*
+        }}
+    } <span class="kw">else </span>{
+        <span class="kw">let </span>default = fields.iter().map(|(<span class="kw">_</span>, field)| {
+            <span class="kw">let </span>value = field.default();
+            <span class="macro">quote!</span>(#value,)
+        });
+        <span class="macro">quote! </span>{#ident (
+            #(#default)*
+        )}
+    };
 
     <span class="kw">let </span>methods = fields
         .iter()
@@ -676,9 +705,7 @@
 
         <span class="kw">impl </span>#impl_generics ::core::default::Default <span class="kw">for </span>#ident #ty_generics #where_clause {
             <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-                #ident {
-                    #(#default)*
-                }
+                #default
             }
         }
 
@@ -894,13 +921,15 @@
 
     <span class="kw">let </span>expanded = <span class="macro">quote! </span>{
         <span class="kw">impl </span>#impl_generics #ident #ty_generics #where_clause {
-            <span class="kw">pub fn </span>encode&lt;B&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>B) <span class="kw">where </span>B: ::prost::bytes::BufMut {
+            <span class="doccomment">/// Encodes the message to a buffer.
+            </span><span class="kw">pub fn </span>encode&lt;B&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>B) <span class="kw">where </span>B: ::prost::bytes::BufMut {
                 <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
                     #(#encode,)*
                 }
             }
 
-            <span class="kw">pub fn </span>merge&lt;B&gt;(
+            <span class="doccomment">/// Decodes an instance of the message from a buffer, and merges it into self.
+            </span><span class="kw">pub fn </span>merge&lt;B&gt;(
                 field: <span class="kw-2">&amp;mut </span>::core::option::Option&lt;#ident #ty_generics&gt;,
                 tag: u32,
                 wire_type: ::prost::encoding::WireType,
@@ -914,7 +943,8 @@
                 }
             }
 
-            <span class="attr">#[inline]
+            <span class="doccomment">/// Returns the encoded length of the message without a length delimiter.
+            </span><span class="attr">#[inline]
             </span><span class="kw">pub fn </span>encoded_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
                 <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
                     #(#encoded_len,)*

@@ -279,6 +279,23 @@
 <a href="#279" id="279">279</a>
 <a href="#280" id="280">280</a>
 <a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     collections::HashMap,
     fs::File,
@@ -288,7 +305,6 @@
 
 <span class="kw">use </span>bollard::{container::InspectContainerOptions, Docker, API_DEFAULT_VERSION};
 <span class="kw">use </span>containerd_client::{
-    connect,
     services::v1::{
         containers_client::ContainersClient, tasks_client::TasksClient, GetContainerRequest,
         GetRequest, PauseTaskRequest, ResumeTaskRequest,
@@ -299,12 +315,18 @@
 <span class="kw">use </span>enum_dispatch::enum_dispatch;
 <span class="kw">use </span>nix::sched::setns;
 <span class="kw">use </span>oci_spec::runtime::Spec;
-<span class="kw">use </span>tracing::trace;
+<span class="kw">use </span>tokio::net::UnixStream;
+<span class="kw">use </span>tonic::transport::{Endpoint, Uri};
+<span class="kw">use </span>tower::service_fn;
+<span class="kw">use </span>tracing::{trace, warn};
 
 <span class="kw">use crate</span>::{
     env::parse_raw_env,
     error::{AgentError, <span class="prelude-ty">Result</span>},
+    runtime::crio::CriOContainer,
 };
+
+<span class="kw">mod </span>crio;
 
 <span class="kw">const </span>CONTAINERD_DEFAULT_SOCK_PATH: <span class="kw-2">&amp;</span>str = <span class="string">&quot;/host/run/containerd/containerd.sock&quot;</span>;
 <span class="kw">const </span>CONTAINERD_ALTERNATIVE_SOCK_PATH: <span class="kw-2">&amp;</span>str = <span class="string">&quot;/host/run/dockershim.sock&quot;</span>;
@@ -321,7 +343,8 @@
 
 <span class="kw">const </span>DEFAULT_CONTAINERD_NAMESPACE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;k8s.io&quot;</span>;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ContainerInfo {
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ContainerInfo {
     <span class="doccomment">/// External PID of the container
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) pid: u64,
     <span class="doccomment">/// Environment variables of the container
@@ -349,6 +372,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>Container {
     Docker(DockerContainer),
     Containerd(ContainerdContainer),
+    CriO(CriOContainer),
 }
 
 <span class="doccomment">/// get a container object according to args.
@@ -366,6 +390,7 @@
             <span class="string">&quot;containerd&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Container::Containerd(ContainerdContainer {
                 container_id,
             }))),
+            <span class="string">&quot;cri-o&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Container::CriO(CriOContainer::from_id(container_id)))),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(AgentError::NotFound(<span class="macro">format!</span>(
                 <span class="string">&quot;Unknown runtime {container_runtime:?}&quot;
             </span>))),
@@ -444,6 +469,15 @@
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ContainerdContainer {
     container_id: String,
+}
+
+<span class="kw">async fn </span>connect(path: <span class="kw">impl </span>AsRef&lt;std::path::Path&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Channel&gt; {
+    <span class="kw">let </span>path = path.as_ref().to_path_buf();
+
+    Endpoint::try_from(<span class="string">&quot;http://localhost&quot;</span>)<span class="question-mark">?
+        </span>.connect_with_connector(service_fn(<span class="kw">move </span>|<span class="kw">_</span>: Uri| UnixStream::connect(path.clone())))
+        .<span class="kw">await
+        </span>.map_err(AgentError::from)
 }
 
 <span class="doccomment">/// Connects to the given containerd socket

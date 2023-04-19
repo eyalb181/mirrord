@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["DecodeBuf","EncodeBuf","ProstCodec","Streaming"],"trait":["Codec","Decoder","Encoder"]};
+window.SIDEBAR_ITEMS = {"enum":["CompressionEncoding"],"struct":["DecodeBuf","EnabledCompressionEncodings","EncodeBuf","ProstCodec","Streaming"],"trait":["Codec","Decoder","Encoder"]};

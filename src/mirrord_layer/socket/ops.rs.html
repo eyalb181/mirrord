@@ -735,6 +735,9 @@
 <a href="#735" id="735">735</a>
 <a href="#736" id="736">736</a>
 <a href="#737" id="737">737</a>
+<a href="#738" id="738">738</a>
+<a href="#739" id="739">739</a>
+<a href="#740" id="740">740</a>
 </pre><pre class="rust"><code><span class="kw">use </span>alloc::ffi::CString;
 <span class="kw">use </span>core::{ffi::CStr, mem};
 <span class="kw">use </span>std::{
@@ -747,14 +750,16 @@
 };
 
 <span class="kw">use </span>libc::{c_int, sockaddr, socklen_t};
-<span class="kw">use </span>mirrord_protocol::{dns::LookupRecord, file::OpenOptionsInternal};
+<span class="kw">use </span>mirrord_protocol::{
+    dns::LookupRecord,
+    file::{OpenFileResponse, OpenOptionsInternal, ReadFileResponse},
+};
 <span class="kw">use </span>socket2::SockAddr;
 <span class="kw">use </span>tokio::sync::oneshot;
 <span class="kw">use </span>tracing::{debug, error, trace};
 
 <span class="kw">use super</span>::{hooks::<span class="kw-2">*</span>, <span class="kw-2">*</span>};
 <span class="kw">use crate</span>::{
-    close_layer_fd,
     common::{blocking_send_hook_message, HookMessage},
     detour::{Detour, OnceLockExt, OptionExt},
     dns::GetAddrInfo,
@@ -1445,23 +1450,24 @@
 </span><span class="kw">fn </span>remote_hostname_string() -&gt; Detour&lt;CString&gt; {
     <span class="kw">let </span>hostname_path = PathBuf::from(<span class="string">&quot;/etc/hostname&quot;</span>);
 
-    <span class="kw">let </span>hostname_fd = file::ops::open(
-        Detour::Success(hostname_path),
+    <span class="kw">let </span>OpenFileResponse { fd } = file::ops::RemoteFile::remote_open(
+        hostname_path,
         OpenOptionsInternal {
             read: <span class="bool-val">true</span>,
             ..Default::default()
         },
     )<span class="question-mark">?</span>;
 
-    <span class="kw">let </span>hostname_file = file::ops::read(hostname_fd, <span class="number">256</span>)<span class="question-mark">?</span>;
+    <span class="kw">let </span>ReadFileResponse { bytes, read_amount } = file::ops::RemoteFile::remote_read(fd, <span class="number">256</span>)<span class="question-mark">?</span>;
 
-    close_layer_fd(hostname_fd);
+    <span class="kw">let _ </span>= file::ops::RemoteFile::remote_close(fd).inspect_err(|fail| {
+        <span class="macro">trace!</span>(<span class="string">&quot;Leaking remote file fd (should be harmless) due to {fail:#?}!&quot;</span>)
+    });
 
     CString::new(
-        hostname_file
-            .bytes
+        bytes
             .into_iter()
-            .take(hostname_file.read_amount <span class="kw">as </span>usize - <span class="number">1</span>)
+            .take(read_amount <span class="kw">as </span>usize - <span class="number">1</span>)
             .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(),
     )
     .map(Detour::Success)<span class="question-mark">?

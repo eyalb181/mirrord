@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Router","RouterService","Server","TcpConnectInfo"],"trait":["Connected","NamedService"]};
+window.SIDEBAR_ITEMS = {"struct":["Router","Routes","Server","ServerTlsConfig","TcpConnectInfo","TcpIncoming","TlsConnectInfo","UdsConnectInfo"],"trait":["Connected"]};

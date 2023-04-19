@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tonic-0.6.2/src/transport/channel/endpoint.rs`."><title>endpoint.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tonic" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (478cbb42b 2023-03-28)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-9ade54abd4bd73c8.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../tonic/index.html"><img src="https://raw.githubusercontent.com/tokio-rs/website/master/public/img/icons/tonic.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/github/home/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tonic-0.8.3/src/transport/channel/endpoint.rs`."><title>endpoint.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tonic" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (478cbb42b 2023-03-28)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-9ade54abd4bd73c8.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../tonic/index.html"><img src="https://raw.githubusercontent.com/tokio-rs/website/master/public/img/icons/tonic.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -440,32 +440,67 @@
 <a href="#440" id="440">440</a>
 <a href="#441" id="441">441</a>
 <a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
+<a href="#456" id="456">456</a>
+<a href="#457" id="457">457</a>
+<a href="#458" id="458">458</a>
+<a href="#459" id="459">459</a>
+<a href="#460" id="460">460</a>
+<a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
+<a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
+<a href="#476" id="476">476</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::service;
 <span class="kw">use </span><span class="kw">super</span>::Channel;
 <span class="attr">#[cfg(feature = <span class="string">&quot;tls&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">super</span>::ClientTlsConfig;
 <span class="attr">#[cfg(feature = <span class="string">&quot;tls&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::transport::service::TlsConnector;
-<span class="kw">use </span><span class="kw">crate</span>::transport::Error;
+<span class="kw">use </span><span class="kw">crate</span>::transport::{service::SharedExec, Error, Executor};
 <span class="kw">use </span>bytes::Bytes;
-<span class="kw">use </span>http::{
-    uri::{InvalidUri, Uri},
-    HeaderValue,
-};
+<span class="kw">use </span>http::{uri::Uri, HeaderValue};
 <span class="kw">use </span>std::{
     convert::{TryFrom, TryInto},
     fmt,
+    future::Future,
+    pin::Pin,
     str::FromStr,
     time::Duration,
 };
 <span class="kw">use </span>tower::make::MakeConnection;
+<span class="comment">// use crate::transport::E
 
-<span class="doccomment">/// Channel builder.
+</span><span class="doccomment">/// Channel builder.
 ///
 /// This struct is used to build and configure HTTP/2 channels.
 </span><span class="attr">#[derive(Clone)]
 </span><span class="kw">pub struct </span>Endpoint {
     <span class="kw">pub</span>(<span class="kw">crate</span>) uri: Uri,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) origin: <span class="prelude-ty">Option</span>&lt;Uri&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) user_agent: <span class="prelude-ty">Option</span>&lt;HeaderValue&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) concurrency_limit: <span class="prelude-ty">Option</span>&lt;usize&gt;,
@@ -482,6 +517,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) http2_keep_alive_while_idle: <span class="prelude-ty">Option</span>&lt;bool&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) connect_timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) http2_adaptive_window: <span class="prelude-ty">Option</span>&lt;bool&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) executor: SharedExec,
 }
 
 <span class="kw">impl </span>Endpoint {
@@ -518,8 +554,8 @@
     /// # use tonic::transport::Endpoint;
     /// Endpoint::from_shared(&quot;https://example.com&quot;.to_string());
     /// ```
-    </span><span class="kw">pub fn </span>from_shared(s: <span class="kw">impl </span>Into&lt;Bytes&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, InvalidUri&gt; {
-        <span class="kw">let </span>uri = Uri::from_maybe_shared(s.into())<span class="question-mark">?</span>;
+    </span><span class="kw">pub fn </span>from_shared(s: <span class="kw">impl </span>Into&lt;Bytes&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
+        <span class="kw">let </span>uri = Uri::from_maybe_shared(s.into()).map_err(|e| Error::new_invalid_uri().with(e))<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="self">Self</span>::from(uri))
     }
 
@@ -545,6 +581,25 @@
                 ..<span class="self">self
             </span>})
             .map_err(|<span class="kw">_</span>| Error::new_invalid_user_agent())
+    }
+
+    <span class="doccomment">/// Set a custom origin.
+    ///
+    /// Override the `origin`, mainly useful when you are reaching a Server/LoadBalancer
+    /// which serves multiple services at the same time.
+    /// It will play the role of SNI (Server Name Indication).
+    ///
+    /// ```
+    /// # use tonic::transport::Endpoint;
+    /// # let mut builder = Endpoint::from_static(&quot;https://proxy.com&quot;);
+    /// builder.origin(&quot;https://example.com&quot;.parse().expect(&quot;http://example.com must be a valid URI&quot;));
+    /// // origin: &quot;https://example.com&quot;
+    /// ```
+    </span><span class="kw">pub fn </span>origin(<span class="self">self</span>, origin: Uri) -&gt; <span class="self">Self </span>{
+        Endpoint {
+            origin: <span class="prelude-val">Some</span>(origin),
+            ..<span class="self">self
+        </span>}
     }
 
     <span class="doccomment">/// Apply a timeout to each request.
@@ -708,6 +763,17 @@
         </span>}
     }
 
+    <span class="doccomment">/// Sets the executor used to spawn async tasks.
+    ///
+    /// Uses `tokio::spawn` by default.
+    </span><span class="kw">pub fn </span>executor&lt;E&gt;(<span class="kw-2">mut </span><span class="self">self</span>, executor: E) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>E: Executor&lt;Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = ()&gt; + Send&gt;&gt;&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
+    {
+        <span class="self">self</span>.executor = SharedExec::new(executor);
+        <span class="self">self
+    </span>}
+
     <span class="doccomment">/// Create a channel from this config.
     </span><span class="kw">pub async fn </span>connect(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Channel, Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>http = hyper::client::connect::HttpConnector::new();
@@ -787,11 +853,11 @@
     <span class="doccomment">/// Connect with a custom connector lazily.
     ///
     /// This allows you to build a [Channel](struct.Channel.html) that uses a non-HTTP transport
-    /// connec to it lazily.
+    /// connect to it lazily.
     ///
     /// See the `uds` example for an example on how to use this function to build channel that
     /// uses a Unix socket transport.
-    </span><span class="kw">pub fn </span>connect_with_connector_lazy&lt;C&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, connector: C) -&gt; <span class="prelude-ty">Result</span>&lt;Channel, Error&gt;
+    </span><span class="kw">pub fn </span>connect_with_connector_lazy&lt;C&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, connector: C) -&gt; Channel
     <span class="kw">where
         </span>C: MakeConnection&lt;Uri&gt; + Send + <span class="lifetime">&#39;static</span>,
         C::Connection: Unpin + Send + <span class="lifetime">&#39;static</span>,
@@ -804,7 +870,7 @@
         <span class="attr">#[cfg(not(feature = <span class="string">&quot;tls&quot;</span>))]
         </span><span class="kw">let </span>connector = service::connector(connector);
 
-        <span class="prelude-val">Ok</span>(Channel::new(connector, <span class="self">self</span>.clone()))
+        Channel::new(connector, <span class="self">self</span>.clone())
     }
 
     <span class="doccomment">/// Get the endpoint uri.
@@ -825,6 +891,7 @@
     <span class="kw">fn </span>from(uri: Uri) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             uri,
+            origin: <span class="prelude-val">None</span>,
             user_agent: <span class="prelude-val">None</span>,
             concurrency_limit: <span class="prelude-val">None</span>,
             rate_limit: <span class="prelude-val">None</span>,
@@ -841,12 +908,13 @@
             http2_keep_alive_while_idle: <span class="prelude-val">None</span>,
             connect_timeout: <span class="prelude-val">None</span>,
             http2_adaptive_window: <span class="prelude-val">None</span>,
+            executor: SharedExec::tokio(),
         }
     }
 }
 
 <span class="kw">impl </span>TryFrom&lt;Bytes&gt; <span class="kw">for </span>Endpoint {
-    <span class="kw">type </span>Error = InvalidUri;
+    <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>try_from(t: Bytes) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
         <span class="self">Self</span>::from_shared(t)
@@ -854,7 +922,7 @@
 }
 
 <span class="kw">impl </span>TryFrom&lt;String&gt; <span class="kw">for </span>Endpoint {
-    <span class="kw">type </span>Error = InvalidUri;
+    <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>try_from(t: String) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
         <span class="self">Self</span>::from_shared(t.into_bytes())
@@ -862,7 +930,7 @@
 }
 
 <span class="kw">impl </span>TryFrom&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; <span class="kw">for </span>Endpoint {
-    <span class="kw">type </span>Error = InvalidUri;
+    <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>try_from(t: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
         <span class="self">Self</span>::from_shared(t.as_bytes())
@@ -876,7 +944,7 @@
 }
 
 <span class="kw">impl </span>FromStr <span class="kw">for </span>Endpoint {
-    <span class="kw">type </span><span class="prelude-val">Err </span>= InvalidUri;
+    <span class="kw">type </span><span class="prelude-val">Err </span>= Error;
 
     <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
         <span class="self">Self</span>::try_from(s.to_string())

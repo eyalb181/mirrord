@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-0.9.0/src/encoding.rs`."><title>encoding.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="prost" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (478cbb42b 2023-03-28)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-9ade54abd4bd73c8.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../prost/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/github/home/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-0.11.9/src/encoding.rs`."><title>encoding.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="prost" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (478cbb42b 2023-03-28)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-9ade54abd4bd73c8.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../prost/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1777,6 +1777,21 @@
 <a href="#1777" id="1777">1777</a>
 <a href="#1778" id="1778">1778</a>
 <a href="#1779" id="1779">1779</a>
+<a href="#1780" id="1780">1780</a>
+<a href="#1781" id="1781">1781</a>
+<a href="#1782" id="1782">1782</a>
+<a href="#1783" id="1783">1783</a>
+<a href="#1784" id="1784">1784</a>
+<a href="#1785" id="1785">1785</a>
+<a href="#1786" id="1786">1786</a>
+<a href="#1787" id="1787">1787</a>
+<a href="#1788" id="1788">1788</a>
+<a href="#1789" id="1789">1789</a>
+<a href="#1790" id="1790">1790</a>
+<a href="#1791" id="1791">1791</a>
+<a href="#1792" id="1792">1792</a>
+<a href="#1793" id="1793">1793</a>
+<a href="#1794" id="1794">1794</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Utility functions and types for encoding and decoding Protobuf types.
 //!
 //! Meant to be used only from `Message` implementations.
@@ -1863,10 +1878,8 @@
     </span><span class="macro">assert!</span>(!bytes.is_empty());
     <span class="macro">assert!</span>(bytes.len() &gt; <span class="number">10 </span>|| bytes[bytes.len() - <span class="number">1</span>] &lt; <span class="number">0x80</span>);
 
-    <span class="kw">let </span><span class="kw-2">mut </span>b: u8;
-    <span class="kw">let </span><span class="kw-2">mut </span>part0: u32;
-    b = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>bytes.get_unchecked(<span class="number">0</span>) };
-    part0 = u32::from(b);
+    <span class="kw">let </span><span class="kw-2">mut </span>b: u8 = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>bytes.get_unchecked(<span class="number">0</span>) };
+    <span class="kw">let </span><span class="kw-2">mut </span>part0: u32 = u32::from(b);
     <span class="kw">if </span>b &lt; <span class="number">0x80 </span>{
         <span class="kw">return </span><span class="prelude-val">Ok</span>((u64::from(part0), <span class="number">1</span>));
     };
@@ -1891,9 +1904,8 @@
     part0 -= <span class="number">0x80 </span>&lt;&lt; <span class="number">21</span>;
     <span class="kw">let </span>value = u64::from(part0);
 
-    <span class="kw">let </span><span class="kw-2">mut </span>part1: u32;
     b = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>bytes.get_unchecked(<span class="number">4</span>) };
-    part1 = u32::from(b);
+    <span class="kw">let </span><span class="kw-2">mut </span>part1: u32 = u32::from(b);
     <span class="kw">if </span>b &lt; <span class="number">0x80 </span>{
         <span class="kw">return </span><span class="prelude-val">Ok</span>((value + (u64::from(part1) &lt;&lt; <span class="number">28</span>), <span class="number">5</span>));
     };
@@ -1918,9 +1930,8 @@
     part1 -= <span class="number">0x80 </span>&lt;&lt; <span class="number">21</span>;
     <span class="kw">let </span>value = value + ((u64::from(part1)) &lt;&lt; <span class="number">28</span>);
 
-    <span class="kw">let </span><span class="kw-2">mut </span>part2: u32;
     b = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>bytes.get_unchecked(<span class="number">8</span>) };
-    part2 = u32::from(b);
+    <span class="kw">let </span><span class="kw-2">mut </span>part2: u32 = u32::from(b);
     <span class="kw">if </span>b &lt; <span class="number">0x80 </span>{
         <span class="kw">return </span><span class="prelude-val">Ok</span>((value + (u64::from(part2) &lt;&lt; <span class="number">56</span>), <span class="number">9</span>));
     };
@@ -1973,6 +1984,7 @@
 /// The context should be passed by value and can be freely cloned. When passing
 /// to a function which is decoding a nested object, then use `enter_recursion`.
 </span><span class="attr">#[derive(Clone, Debug)]
+#[cfg_attr(feature = <span class="string">&quot;no-recursion-limit&quot;</span>, derive(Default))]
 </span><span class="kw">pub struct </span>DecodeContext {
     <span class="doccomment">/// How many times we can recurse in the current decode stack before we hit
     /// the recursion limit.
@@ -1984,19 +1996,13 @@
     </span>recurse_count: u32,
 }
 
-<span class="kw">impl </span>Default <span class="kw">for </span>DecodeContext {
-    <span class="attr">#[cfg(not(feature = <span class="string">&quot;no-recursion-limit&quot;</span>))]
-    #[inline]
+<span class="attr">#[cfg(not(feature = <span class="string">&quot;no-recursion-limit&quot;</span>))]
+</span><span class="kw">impl </span>Default <span class="kw">for </span>DecodeContext {
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>default() -&gt; DecodeContext {
         DecodeContext {
             recurse_count: <span class="kw">crate</span>::RECURSION_LIMIT,
         }
-    }
-
-    <span class="attr">#[cfg(feature = <span class="string">&quot;no-recursion-limit&quot;</span>)]
-    #[inline]
-    </span><span class="kw">fn </span>default() -&gt; DecodeContext {
-        DecodeContext {}
     }
 }
 
@@ -2052,7 +2058,7 @@
     </span>((((value | <span class="number">1</span>).leading_zeros() ^ <span class="number">63</span>) * <span class="number">9 </span>+ <span class="number">73</span>) / <span class="number">64</span>) <span class="kw">as </span>usize
 }
 
-<span class="attr">#[derive(Clone, Copy, Debug, PartialEq)]
+<span class="attr">#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[repr(u8)]
 </span><span class="kw">pub enum </span>WireType {
     Varint = <span class="number">0</span>,
@@ -2363,7 +2369,7 @@
     );
 }
 <span class="macro">varint!</span>(bool, bool,
-        to_uint64(value) <span class="kw">if </span><span class="kw-2">*</span>value { <span class="number">1u64 </span>} <span class="kw">else </span>{ <span class="number">0u64 </span>},
+        to_uint64(value) u64::from(<span class="kw-2">*</span>value),
         from_uint64(value) value != <span class="number">0</span>);
 <span class="macro">varint!</span>(i32, int32);
 <span class="macro">varint!</span>(i64, int64);
@@ -2622,7 +2628,7 @@ from_uint64(value) {
             }
 
             <span class="kw">let </span>drop_guard = DropGuard(value.as_mut_vec());
-            bytes::merge(wire_type, drop_guard.<span class="number">0</span>, buf, ctx)<span class="question-mark">?</span>;
+            bytes::merge_one_copy(wire_type, drop_guard.<span class="number">0</span>, buf, ctx)<span class="question-mark">?</span>;
             <span class="kw">match </span>str::from_utf8(drop_guard.<span class="number">0</span>) {
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
                     <span class="comment">// Success; do not clear the bytes.
@@ -2769,7 +2775,33 @@ from_uint64(value) {
         // &gt; last value it sees.
         //
         // [1]: https://developers.google.com/protocol-buffers/docs/encoding#optional
+        //
+        // This is intended for A and B both being Bytes so it is zero-copy.
+        // Some combinations of A and B types may cause a double-copy,
+        // in which case merge_one_copy() should be used instead.
         </span>value.replace_with(buf.copy_to_bytes(len));
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>merge_one_copy&lt;A, B&gt;(
+        wire_type: WireType,
+        value: <span class="kw-2">&amp;mut </span>A,
+        buf: <span class="kw-2">&amp;mut </span>B,
+        _ctx: DecodeContext,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), DecodeError&gt;
+    <span class="kw">where
+        </span>A: BytesAdapter,
+        B: Buf,
+    {
+        check_wire_type(WireType::LengthDelimited, wire_type)<span class="question-mark">?</span>;
+        <span class="kw">let </span>len = decode_varint(buf)<span class="question-mark">?</span>;
+        <span class="kw">if </span>len &gt; buf.remaining() <span class="kw">as </span>u64 {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(DecodeError::new(<span class="string">&quot;buffer underflow&quot;</span>));
+        }
+        <span class="kw">let </span>len = len <span class="kw">as </span>usize;
+
+        <span class="comment">// If we must copy, make sure to copy only once.
+        </span>value.replace_with(buf.take(len));
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -3056,7 +3088,7 @@ from_uint64(value) {
             encoded_len_with_default(key_encoded_len, val_encoded_len, <span class="kw-2">&amp;</span>V::default(), tag, values)
         }
 
-        <span class="doccomment">/// Generic protobuf map encode function with an overriden value default.
+        <span class="doccomment">/// Generic protobuf map encode function with an overridden value default.
         ///
         /// This is necessary because enumeration values can have a default value other
         /// than 0 in proto2.
@@ -3096,7 +3128,7 @@ from_uint64(value) {
             }
         }
 
-        <span class="doccomment">/// Generic protobuf map merge function with an overriden value default.
+        <span class="doccomment">/// Generic protobuf map merge function with an overridden value default.
         ///
         /// This is necessary because enumeration values can have a default value other
         /// than 0 in proto2.
@@ -3135,7 +3167,7 @@ from_uint64(value) {
             <span class="prelude-val">Ok</span>(())
         }
 
-        <span class="doccomment">/// Generic protobuf map encode function with an overriden value default.
+        <span class="doccomment">/// Generic protobuf map encode function with an overridden value default.
         ///
         /// This is necessary because enumeration values can have a default value other
         /// than 0 in proto2.
@@ -3206,7 +3238,7 @@ from_uint64(value) {
         </span>T: Debug + Default + PartialEq + Borrow&lt;B&gt;,
         B: <span class="question-mark">?</span>Sized,
     {
-        <span class="macro">prop_assume!</span>(MIN_TAG &lt;= tag &amp;&amp; tag &lt;= MAX_TAG);
+        <span class="macro">prop_assume!</span>((MIN_TAG..=MAX_TAG).contains(<span class="kw-2">&amp;</span>tag));
 
         <span class="kw">let </span>expected_len = encoded_len(tag, value.borrow());
 
@@ -3295,7 +3327,7 @@ from_uint64(value) {
         M: FnMut(WireType, <span class="kw-2">&amp;mut </span>T, <span class="kw-2">&amp;mut </span>Bytes, DecodeContext) -&gt; <span class="prelude-ty">Result</span>&lt;(), DecodeError&gt;,
         L: FnOnce(u32, <span class="kw-2">&amp;</span>B) -&gt; usize,
     {
-        <span class="macro">prop_assume!</span>(MIN_TAG &lt;= tag &amp;&amp; tag &lt;= MAX_TAG);
+        <span class="macro">prop_assume!</span>((MIN_TAG..=MAX_TAG).contains(<span class="kw-2">&amp;</span>tag));
 
         <span class="kw">let </span>expected_len = encoded_len(tag, value.borrow());
 
@@ -3365,10 +3397,7 @@ from_uint64(value) {
     <span class="attr">#[test]
     </span><span class="kw">fn </span>varint() {
         <span class="kw">fn </span>check(value: u64, <span class="kw-2">mut </span>encoded: <span class="kw-2">&amp;</span>[u8]) {
-            <span class="comment">// TODO(rust-lang/rust-clippy#5494)
-            </span><span class="attr">#![allow(clippy::clone_double_ref)]
-
-            </span><span class="comment">// Small buffer.
+            <span class="comment">// Small buffer.
             </span><span class="kw">let </span><span class="kw-2">mut </span>buf = Vec::with_capacity(<span class="number">1</span>);
             encode_varint(value, <span class="kw-2">&amp;mut </span>buf);
             <span class="macro">assert_eq!</span>(buf, encoded);
@@ -3380,7 +3409,8 @@ from_uint64(value) {
 
             <span class="macro">assert_eq!</span>(encoded_len_varint(value), encoded.len());
 
-            <span class="kw">let </span>roundtrip_value = decode_varint(<span class="kw-2">&amp;mut </span>encoded.clone()).expect(<span class="string">&quot;decoding failed&quot;</span>);
+            <span class="kw">let </span>roundtrip_value =
+                decode_varint(<span class="kw-2">&amp;mut </span>&lt;<span class="kw-2">&amp;</span>[u8]&gt;::clone(<span class="kw-2">&amp;</span>encoded)).expect(<span class="string">&quot;decoding failed&quot;</span>);
             <span class="macro">assert_eq!</span>(value, roundtrip_value);
 
             <span class="kw">let </span>roundtrip_value = decode_varint_slow(<span class="kw-2">&amp;mut </span>encoded).expect(<span class="string">&quot;slow decoding failed&quot;</span>);

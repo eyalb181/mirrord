@@ -729,6 +729,7 @@
 <a href="#729" id="729">729</a>
 <a href="#730" id="730">730</a>
 <a href="#731" id="731">731</a>
+<a href="#732" id="732">732</a>
 </pre><pre class="rust"><code><span class="attr">#![feature(result_option_inspect)]
 #![feature(hash_drain_filter)]
 #![feature(once_cell)]
@@ -837,6 +838,7 @@
     </span><span class="kw">pub async fn </span>new(args: <span class="kw-2">&amp;</span>Args) -&gt; <span class="prelude-ty">Result</span>&lt;State&gt; {
         <span class="kw">let </span>container =
             get_container(args.container_id.as_ref(), args.container_runtime.as_ref()).<span class="kw">await</span><span class="question-mark">?</span>;
+
         <span class="kw">if </span>container.is_none() &amp;&amp; args.pause {
             <span class="prelude-val">Err</span>(AgentError::MissingContainerInfo)<span class="question-mark">?
         </span>}

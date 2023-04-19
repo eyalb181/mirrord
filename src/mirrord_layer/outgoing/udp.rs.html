@@ -339,6 +339,7 @@
 <a href="#339" id="339">339</a>
 <a href="#340" id="340">340</a>
 <a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     collections::HashMap,
     future::Future,
@@ -481,7 +482,7 @@
                             <span class="kw">break</span>;
                         },
                         <span class="prelude-val">Ok</span>((read_amount, from)) =&gt; {
-                            <span class="macro">trace!</span>(<span class="string">&quot;interceptor_task -&gt; Received data from {:#?}&quot;</span>, from);
+                            <span class="macro">trace!</span>(<span class="string">&quot;interceptor_task -&gt; Received data from user socket {:#?}&quot;</span>, from);
                             user_address = <span class="prelude-val">Some</span>(from);
                             <span class="comment">// Sends the message that the user wrote to our interceptor socket to
                             // be handled on the `agent`, where it&#39;ll be forwarded to the remote.
@@ -499,6 +500,7 @@
                 bytes = remote_stream.next() =&gt; {
                     <span class="kw">match </span>bytes {
                         <span class="prelude-val">Some</span>(bytes) =&gt; {
+                            <span class="macro">trace!</span>(<span class="string">&quot;interceptor_task -&gt; Received data from remote socket&quot;</span>);
                             <span class="comment">// Writes the data sent by `agent` (that came from the actual remote
                             // stream) to our interceptor socket. When the user tries to read the
                             // remote data, this&#39;ll be what they receive.

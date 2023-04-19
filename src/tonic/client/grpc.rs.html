@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tonic-0.6.2/src/client/grpc.rs`."><title>grpc.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tonic" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (478cbb42b 2023-03-28)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-9ade54abd4bd73c8.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../tonic/index.html"><img src="https://raw.githubusercontent.com/tokio-rs/website/master/public/img/icons/tonic.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/github/home/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tonic-0.8.3/src/client/grpc.rs`."><title>grpc.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tonic" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (478cbb42b 2023-03-28)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-9ade54abd4bd73c8.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../tonic/index.html"><img src="https://raw.githubusercontent.com/tokio-rs/website/master/public/img/icons/tonic.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -355,12 +355,32 @@
 <a href="#355" id="355">355</a>
 <a href="#356" id="356">356</a>
 <a href="#357" id="357">357</a>
-</pre><pre class="rust"><code><span class="attr">#[cfg(feature = <span class="string">&quot;compression&quot;</span>)]
-</span><span class="kw">use </span><span class="kw">crate</span>::codec::compression::{CompressionEncoding, EnabledCompressionEncodings};
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::codec::compression::{CompressionEncoding, EnabledCompressionEncodings};
 <span class="kw">use crate</span>::{
     body::BoxBody,
     client::GrpcService,
-    codec::{encode_client, Codec, Streaming},
+    codec::{encode_client, Codec, Decoder, Streaming},
     request::SanitizeHeaders,
     Code, Request, Response, Status,
 };
@@ -388,29 +408,41 @@
 /// [gRPC protocol definition]: https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md#requests
 </span><span class="kw">pub struct </span>Grpc&lt;T&gt; {
     inner: T,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;compression&quot;</span>)]
-    </span><span class="doccomment">/// Which compression encodings does the client accept?
+    config: GrpcConfig,
+}
+
+<span class="kw">struct </span>GrpcConfig {
+    origin: Uri,
+    <span class="doccomment">/// Which compression encodings does the client accept?
     </span>accept_compression_encodings: EnabledCompressionEncodings,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;compression&quot;</span>)]
-    </span><span class="doccomment">/// The compression encoding that will be applied to requests.
+    <span class="doccomment">/// The compression encoding that will be applied to requests.
     </span>send_compression_encodings: <span class="prelude-ty">Option</span>&lt;CompressionEncoding&gt;,
 }
 
 <span class="kw">impl</span>&lt;T&gt; Grpc&lt;T&gt; {
     <span class="doccomment">/// Creates a new gRPC client with the provided [`GrpcService`].
     </span><span class="kw">pub fn </span>new(inner: T) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::with_origin(inner, Uri::default())
+    }
+
+    <span class="doccomment">/// Creates a new gRPC client with the provided [`GrpcService`] and `Uri`.
+    ///
+    /// The provided Uri will use only the scheme and authority parts as the
+    /// path_and_query portion will be set for each method.
+    </span><span class="kw">pub fn </span>with_origin(inner: T, origin: Uri) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             inner,
-            <span class="attr">#[cfg(feature = <span class="string">&quot;compression&quot;</span>)]
-            </span>send_compression_encodings: <span class="prelude-val">None</span>,
-            <span class="attr">#[cfg(feature = <span class="string">&quot;compression&quot;</span>)]
-            </span>accept_compression_encodings: EnabledCompressionEncodings::default(),
+            config: GrpcConfig {
+                origin,
+                send_compression_encodings: <span class="prelude-val">None</span>,
+                accept_compression_encodings: EnabledCompressionEncodings::default(),
+            },
         }
     }
 
-    <span class="doccomment">/// Compress requests with `gzip`.
+    <span class="doccomment">/// Compress requests with the provided encoding.
     ///
-    /// Requires the server to accept `gzip` otherwise it might return an error.
+    /// Requires the server to accept the specified encoding, otherwise it might return an error.
     ///
     /// # Example
     ///
@@ -418,10 +450,11 @@
     ///
     /// ```rust
     /// use tonic::transport::Channel;
+    /// # enum CompressionEncoding { Gzip }
     /// # struct TestClient&lt;T&gt;(T);
     /// # impl&lt;T&gt; TestClient&lt;T&gt; {
     /// #     fn new(channel: T) -&gt; Self { Self(channel) }
-    /// #     fn send_gzip(self) -&gt; Self { self }
+    /// #     fn send_compressed(self, _: CompressionEncoding) -&gt; Self { self }
     /// # }
     ///
     /// # async {
@@ -430,25 +463,15 @@
     ///     .await
     ///     .unwrap();
     ///
-    /// let client = TestClient::new(channel).send_gzip();
+    /// let client = TestClient::new(channel).send_compressed(CompressionEncoding::Gzip);
     /// # };
     /// ```
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;compression&quot;</span>)]
-    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;compression&quot;</span>)))]
-    </span><span class="kw">pub fn </span>send_gzip(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.send_compression_encodings = <span class="prelude-val">Some</span>(CompressionEncoding::Gzip);
+    </span><span class="kw">pub fn </span>send_compressed(<span class="kw-2">mut </span><span class="self">self</span>, encoding: CompressionEncoding) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.config.send_compression_encodings = <span class="prelude-val">Some</span>(encoding);
         <span class="self">self
     </span>}
 
-    <span class="attr">#[doc(hidden)]
-    #[cfg(not(feature = <span class="string">&quot;compression&quot;</span>))]
-    </span><span class="kw">pub fn </span>send_gzip(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="macro">panic!</span>(
-            <span class="string">&quot;`send_gzip` called on a client but the `compression` feature is not enabled on tonic&quot;
-        </span>);
-    }
-
-    <span class="doccomment">/// Enable accepting `gzip` compressed responses.
+    <span class="doccomment">/// Enable accepting compressed responses.
     ///
     /// Requires the server to also support sending compressed responses.
     ///
@@ -458,10 +481,11 @@
     ///
     /// ```rust
     /// use tonic::transport::Channel;
+    /// # enum CompressionEncoding { Gzip }
     /// # struct TestClient&lt;T&gt;(T);
     /// # impl&lt;T&gt; TestClient&lt;T&gt; {
     /// #     fn new(channel: T) -&gt; Self { Self(channel) }
-    /// #     fn accept_gzip(self) -&gt; Self { self }
+    /// #     fn accept_compressed(self, _: CompressionEncoding) -&gt; Self { self }
     /// # }
     ///
     /// # async {
@@ -470,21 +494,13 @@
     ///     .await
     ///     .unwrap();
     ///
-    /// let client = TestClient::new(channel).accept_gzip();
+    /// let client = TestClient::new(channel).accept_compressed(CompressionEncoding::Gzip);
     /// # };
     /// ```
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;compression&quot;</span>)]
-    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;compression&quot;</span>)))]
-    </span><span class="kw">pub fn </span>accept_gzip(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.accept_compression_encodings.enable_gzip();
+    </span><span class="kw">pub fn </span>accept_compressed(<span class="kw-2">mut </span><span class="self">self</span>, encoding: CompressionEncoding) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.config.accept_compression_encodings.enable(encoding);
         <span class="self">self
     </span>}
-
-    <span class="attr">#[doc(hidden)]
-    #[cfg(not(feature = <span class="string">&quot;compression&quot;</span>))]
-    </span><span class="kw">pub fn </span>accept_gzip(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="macro">panic!</span>(<span class="string">&quot;`accept_gzip` called on a client but the `compression` feature is not enabled on tonic&quot;</span>);
-    }
 
     <span class="doccomment">/// Check if the inner [`GrpcService`] is able to accept a  new request.
     ///
@@ -589,64 +605,38 @@
         M1: Send + Sync + <span class="lifetime">&#39;static</span>,
         M2: Send + Sync + <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">let </span><span class="kw-2">mut </span>parts = Parts::default();
-        parts.path_and_query = <span class="prelude-val">Some</span>(path);
-
-        <span class="kw">let </span>uri = Uri::from_parts(parts).expect(<span class="string">&quot;path_and_query only is valid Uri&quot;</span>);
-
         <span class="kw">let </span>request = request
-            .map(|s| {
-                encode_client(
-                    codec.encoder(),
-                    s,
-                    <span class="attr">#[cfg(feature = <span class="string">&quot;compression&quot;</span>)]
-                    </span><span class="self">self</span>.send_compression_encodings,
-                )
-            })
+            .map(|s| encode_client(codec.encoder(), s, <span class="self">self</span>.config.send_compression_encodings))
             .map(BoxBody::new);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>request = request.into_http(uri, SanitizeHeaders::Yes);
-
-        <span class="comment">// Add the gRPC related HTTP headers
-        </span>request
-            .headers_mut()
-            .insert(TE, HeaderValue::from_static(<span class="string">&quot;trailers&quot;</span>));
-
-        <span class="comment">// Set the content type
-        </span>request
-            .headers_mut()
-            .insert(CONTENT_TYPE, HeaderValue::from_static(<span class="string">&quot;application/grpc&quot;</span>));
-
-        <span class="attr">#[cfg(feature = <span class="string">&quot;compression&quot;</span>)]
-        </span>{
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(encoding) = <span class="self">self</span>.send_compression_encodings {
-                request.headers_mut().insert(
-                    <span class="kw">crate</span>::codec::compression::ENCODING_HEADER,
-                    encoding.into_header_value(),
-                );
-            }
-
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(header_value) = <span class="self">self
-                </span>.accept_compression_encodings
-                .into_accept_encoding_header_value()
-            {
-                request.headers_mut().insert(
-                    <span class="kw">crate</span>::codec::compression::ACCEPT_ENCODING_HEADER,
-                    header_value,
-                );
-            }
-        }
+        <span class="kw">let </span>request = <span class="self">self</span>.config.prepare_request(request, path);
 
         <span class="kw">let </span>response = <span class="self">self
             </span>.inner
             .call(request)
             .<span class="kw">await
-            </span>.map_err(|err| Status::from_error(err.into()))<span class="question-mark">?</span>;
+            </span>.map_err(Status::from_error_generic)<span class="question-mark">?</span>;
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;compression&quot;</span>)]
-        </span><span class="kw">let </span>encoding = CompressionEncoding::from_encoding_header(
+        <span class="kw">let </span>decoder = codec.decoder();
+
+        <span class="self">self</span>.create_response(decoder, response)
+    }
+
+    <span class="comment">// Keeping this code in a separate function from Self::streaming lets functions that return the
+    // same output share the generated binary code
+    </span><span class="kw">fn </span>create_response&lt;M2&gt;(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        decoder: <span class="kw">impl </span>Decoder&lt;Item = M2, Error = Status&gt; + Send + <span class="lifetime">&#39;static</span>,
+        response: http::Response&lt;T::ResponseBody&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Response&lt;Streaming&lt;M2&gt;&gt;, Status&gt;
+    <span class="kw">where
+        </span>T: GrpcService&lt;BoxBody&gt;,
+        T::ResponseBody: Body + Send + <span class="lifetime">&#39;static</span>,
+        &lt;T::ResponseBody <span class="kw">as </span>Body&gt;::Error: Into&lt;<span class="kw">crate</span>::Error&gt;,
+    {
+        <span class="kw">let </span>encoding = CompressionEncoding::from_encoding_header(
             response.headers(),
-            <span class="self">self</span>.accept_compression_encodings,
+            <span class="self">self</span>.config.accept_compression_encodings,
         )<span class="question-mark">?</span>;
 
         <span class="kw">let </span>status_code = response.status();
@@ -666,15 +656,9 @@
 
         <span class="kw">let </span>response = response.map(|body| {
             <span class="kw">if </span>expect_additional_trailers {
-                Streaming::new_response(
-                    codec.decoder(),
-                    body,
-                    status_code,
-                    <span class="attr">#[cfg(feature = <span class="string">&quot;compression&quot;</span>)]
-                    </span>encoding,
-                )
+                Streaming::new_response(decoder, body, status_code, encoding)
             } <span class="kw">else </span>{
-                Streaming::new_empty(codec.decoder(), body)
+                Streaming::new_empty(decoder, body)
             }
         });
 
@@ -682,14 +666,69 @@
     }
 }
 
+<span class="kw">impl </span>GrpcConfig {
+    <span class="kw">fn </span>prepare_request(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        request: Request&lt;http_body::combinators::UnsyncBoxBody&lt;bytes::Bytes, Status&gt;&gt;,
+        path: PathAndQuery,
+    ) -&gt; http::Request&lt;http_body::combinators::UnsyncBoxBody&lt;bytes::Bytes, Status&gt;&gt; {
+        <span class="kw">let </span>scheme = <span class="self">self</span>.origin.scheme().cloned();
+        <span class="kw">let </span>authority = <span class="self">self</span>.origin.authority().cloned();
+
+        <span class="kw">let </span><span class="kw-2">mut </span>parts = Parts::default();
+        parts.path_and_query = <span class="prelude-val">Some</span>(path);
+        parts.scheme = scheme;
+        parts.authority = authority;
+
+        <span class="kw">let </span>uri = Uri::from_parts(parts).expect(<span class="string">&quot;path_and_query only is valid Uri&quot;</span>);
+
+        <span class="kw">let </span><span class="kw-2">mut </span>request = request.into_http(
+            uri,
+            http::Method::POST,
+            http::Version::HTTP_2,
+            SanitizeHeaders::Yes,
+        );
+
+        <span class="comment">// Add the gRPC related HTTP headers
+        </span>request
+            .headers_mut()
+            .insert(TE, HeaderValue::from_static(<span class="string">&quot;trailers&quot;</span>));
+
+        <span class="comment">// Set the content type
+        </span>request
+            .headers_mut()
+            .insert(CONTENT_TYPE, HeaderValue::from_static(<span class="string">&quot;application/grpc&quot;</span>));
+
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(encoding) = <span class="self">self</span>.send_compression_encodings {
+            request.headers_mut().insert(
+                <span class="kw">crate</span>::codec::compression::ENCODING_HEADER,
+                encoding.into_header_value(),
+            );
+        }
+
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(header_value) = <span class="self">self
+            </span>.accept_compression_encodings
+            .into_accept_encoding_header_value()
+        {
+            request.headers_mut().insert(
+                <span class="kw">crate</span>::codec::compression::ACCEPT_ENCODING_HEADER,
+                header_value,
+            );
+        }
+
+        request
+    }
+}
+
 <span class="kw">impl</span>&lt;T: Clone&gt; Clone <span class="kw">for </span>Grpc&lt;T&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             inner: <span class="self">self</span>.inner.clone(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;compression&quot;</span>)]
-            </span>send_compression_encodings: <span class="self">self</span>.send_compression_encodings,
-            <span class="attr">#[cfg(feature = <span class="string">&quot;compression&quot;</span>)]
-            </span>accept_compression_encodings: <span class="self">self</span>.accept_compression_encodings,
+            config: GrpcConfig {
+                origin: <span class="self">self</span>.config.origin.clone(),
+                send_compression_encodings: <span class="self">self</span>.config.send_compression_encodings,
+                accept_compression_encodings: <span class="self">self</span>.config.accept_compression_encodings,
+            },
         }
     }
 }
@@ -700,13 +739,16 @@
 
         f.field(<span class="string">&quot;inner&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner);
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;compression&quot;</span>)]
-        </span>f.field(<span class="string">&quot;compression_encoding&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.send_compression_encodings);
+        f.field(<span class="string">&quot;origin&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.config.origin);
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;compression&quot;</span>)]
-        </span>f.field(
+        f.field(
+            <span class="string">&quot;compression_encoding&quot;</span>,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.config.send_compression_encodings,
+        );
+
+        f.field(
             <span class="string">&quot;accept_compression_encodings&quot;</span>,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.accept_compression_encodings,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.config.accept_compression_encodings,
         );
 
         f.finish()

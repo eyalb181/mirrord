@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tonic-0.6.2/src/transport/server/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tonic" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (478cbb42b 2023-03-28)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-9ade54abd4bd73c8.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../tonic/index.html"><img src="https://raw.githubusercontent.com/tokio-rs/website/master/public/img/icons/tonic.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/github/home/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tonic-0.8.3/src/transport/server/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tonic" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (478cbb42b 2023-03-28)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-9ade54abd4bd73c8.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../tonic/index.html"><img src="https://raw.githubusercontent.com/tokio-rs/website/master/public/img/icons/tonic.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -846,87 +846,6 @@
 <a href="#846" id="846">846</a>
 <a href="#847" id="847">847</a>
 <a href="#848" id="848">848</a>
-<a href="#849" id="849">849</a>
-<a href="#850" id="850">850</a>
-<a href="#851" id="851">851</a>
-<a href="#852" id="852">852</a>
-<a href="#853" id="853">853</a>
-<a href="#854" id="854">854</a>
-<a href="#855" id="855">855</a>
-<a href="#856" id="856">856</a>
-<a href="#857" id="857">857</a>
-<a href="#858" id="858">858</a>
-<a href="#859" id="859">859</a>
-<a href="#860" id="860">860</a>
-<a href="#861" id="861">861</a>
-<a href="#862" id="862">862</a>
-<a href="#863" id="863">863</a>
-<a href="#864" id="864">864</a>
-<a href="#865" id="865">865</a>
-<a href="#866" id="866">866</a>
-<a href="#867" id="867">867</a>
-<a href="#868" id="868">868</a>
-<a href="#869" id="869">869</a>
-<a href="#870" id="870">870</a>
-<a href="#871" id="871">871</a>
-<a href="#872" id="872">872</a>
-<a href="#873" id="873">873</a>
-<a href="#874" id="874">874</a>
-<a href="#875" id="875">875</a>
-<a href="#876" id="876">876</a>
-<a href="#877" id="877">877</a>
-<a href="#878" id="878">878</a>
-<a href="#879" id="879">879</a>
-<a href="#880" id="880">880</a>
-<a href="#881" id="881">881</a>
-<a href="#882" id="882">882</a>
-<a href="#883" id="883">883</a>
-<a href="#884" id="884">884</a>
-<a href="#885" id="885">885</a>
-<a href="#886" id="886">886</a>
-<a href="#887" id="887">887</a>
-<a href="#888" id="888">888</a>
-<a href="#889" id="889">889</a>
-<a href="#890" id="890">890</a>
-<a href="#891" id="891">891</a>
-<a href="#892" id="892">892</a>
-<a href="#893" id="893">893</a>
-<a href="#894" id="894">894</a>
-<a href="#895" id="895">895</a>
-<a href="#896" id="896">896</a>
-<a href="#897" id="897">897</a>
-<a href="#898" id="898">898</a>
-<a href="#899" id="899">899</a>
-<a href="#900" id="900">900</a>
-<a href="#901" id="901">901</a>
-<a href="#902" id="902">902</a>
-<a href="#903" id="903">903</a>
-<a href="#904" id="904">904</a>
-<a href="#905" id="905">905</a>
-<a href="#906" id="906">906</a>
-<a href="#907" id="907">907</a>
-<a href="#908" id="908">908</a>
-<a href="#909" id="909">909</a>
-<a href="#910" id="910">910</a>
-<a href="#911" id="911">911</a>
-<a href="#912" id="912">912</a>
-<a href="#913" id="913">913</a>
-<a href="#914" id="914">914</a>
-<a href="#915" id="915">915</a>
-<a href="#916" id="916">916</a>
-<a href="#917" id="917">917</a>
-<a href="#918" id="918">918</a>
-<a href="#919" id="919">919</a>
-<a href="#920" id="920">920</a>
-<a href="#921" id="921">921</a>
-<a href="#922" id="922">922</a>
-<a href="#923" id="923">923</a>
-<a href="#924" id="924">924</a>
-<a href="#925" id="925">925</a>
-<a href="#926" id="926">926</a>
-<a href="#927" id="927">927</a>
-<a href="#928" id="928">928</a>
-<a href="#929" id="929">929</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Server implementation and builder.
 
 </span><span class="kw">mod </span>conn;
@@ -935,7 +854,11 @@
 <span class="attr">#[cfg(feature = <span class="string">&quot;tls&quot;</span>)]
 #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;tls&quot;</span>)))]
 </span><span class="kw">mod </span>tls;
+<span class="attr">#[cfg(unix)]
+</span><span class="kw">mod </span>unix;
 
+<span class="kw">pub use </span><span class="kw">super</span>::service::Routes;
+<span class="kw">pub use </span><span class="kw">crate</span>::server::NamedService;
 <span class="kw">pub use </span>conn::{Connected, TcpConnectInfo};
 <span class="attr">#[cfg(feature = <span class="string">&quot;tls&quot;</span>)]
 </span><span class="kw">pub use </span>tls::ServerTlsConfig;
@@ -946,7 +869,10 @@
 <span class="attr">#[cfg(feature = <span class="string">&quot;tls&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">super</span>::service::TlsAcceptor;
 
-<span class="kw">use </span>incoming::TcpIncoming;
+<span class="attr">#[cfg(unix)]
+</span><span class="kw">pub use </span>unix::UdsConnectInfo;
+
+<span class="kw">pub use </span>incoming::TcpIncoming;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;tls&quot;</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>tokio_rustls::server::TlsStream;
@@ -955,19 +881,17 @@
 </span><span class="kw">use </span><span class="kw">crate</span>::transport::Error;
 
 <span class="kw">use </span><span class="self">self</span>::recover_error::RecoverError;
-<span class="kw">use </span><span class="kw">super</span>::service::{GrpcTimeout, Or, Routes, ServerIo};
+<span class="kw">use </span><span class="kw">super</span>::service::{GrpcTimeout, ServerIo};
 <span class="kw">use </span><span class="kw">crate</span>::body::BoxBody;
 <span class="kw">use </span>bytes::Bytes;
 <span class="kw">use </span>futures_core::Stream;
-<span class="kw">use </span>futures_util::{
-    future::{<span class="self">self</span>, MapErr},
-    ready, TryFutureExt,
-};
+<span class="kw">use </span>futures_util::{future, ready};
 <span class="kw">use </span>http::{Request, Response};
 <span class="kw">use </span>http_body::Body <span class="kw">as _</span>;
 <span class="kw">use </span>hyper::{server::accept, Body};
 <span class="kw">use </span>pin_project::pin_project;
 <span class="kw">use </span>std::{
+    convert::Infallible,
     fmt,
     future::Future,
     marker::PhantomData,
@@ -979,7 +903,10 @@
 };
 <span class="kw">use </span>tokio::io::{AsyncRead, AsyncWrite};
 <span class="kw">use </span>tower::{
-    layer::util::Identity, layer::Layer, limit::concurrency::ConcurrencyLimitLayer, util::Either,
+    layer::util::{Identity, Stack},
+    layer::Layer,
+    limit::concurrency::ConcurrencyLimitLayer,
+    util::Either,
     Service, ServiceBuilder,
 };
 
@@ -997,7 +924,7 @@
 /// a very good out of the box http2 server for use with tonic but is also a
 /// reference implementation that should be a good starting point for anyone
 /// wanting to create a more complex and/or specific implementation.
-</span><span class="attr">#[derive(Default, Clone)]
+</span><span class="attr">#[derive(Clone)]
 </span><span class="kw">pub struct </span>Server&lt;L = Identity&gt; {
     trace_interceptor: <span class="prelude-ty">Option</span>&lt;TraceInterceptor&gt;,
     concurrency_limit: <span class="prelude-ty">Option</span>&lt;usize&gt;,
@@ -1011,57 +938,40 @@
     tcp_nodelay: bool,
     http2_keepalive_interval: <span class="prelude-ty">Option</span>&lt;Duration&gt;,
     http2_keepalive_timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;,
+    http2_adaptive_window: <span class="prelude-ty">Option</span>&lt;bool&gt;,
     max_frame_size: <span class="prelude-ty">Option</span>&lt;u32&gt;,
     accept_http1: bool,
-    layer: L,
+    service_builder: ServiceBuilder&lt;L&gt;,
+}
+
+<span class="kw">impl </span>Default <span class="kw">for </span>Server&lt;Identity&gt; {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            trace_interceptor: <span class="prelude-val">None</span>,
+            concurrency_limit: <span class="prelude-val">None</span>,
+            timeout: <span class="prelude-val">None</span>,
+            <span class="attr">#[cfg(feature = <span class="string">&quot;tls&quot;</span>)]
+            </span>tls: <span class="prelude-val">None</span>,
+            init_stream_window_size: <span class="prelude-val">None</span>,
+            init_connection_window_size: <span class="prelude-val">None</span>,
+            max_concurrent_streams: <span class="prelude-val">None</span>,
+            tcp_keepalive: <span class="prelude-val">None</span>,
+            tcp_nodelay: <span class="bool-val">false</span>,
+            http2_keepalive_interval: <span class="prelude-val">None</span>,
+            http2_keepalive_timeout: <span class="prelude-val">None</span>,
+            http2_adaptive_window: <span class="prelude-val">None</span>,
+            max_frame_size: <span class="prelude-val">None</span>,
+            accept_http1: <span class="bool-val">false</span>,
+            service_builder: Default::default(),
+        }
+    }
 }
 
 <span class="doccomment">/// A stack based `Service` router.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>Router&lt;A, B, L = Identity&gt; {
+</span><span class="kw">pub struct </span>Router&lt;L = Identity&gt; {
     server: Server&lt;L&gt;,
-    routes: Routes&lt;A, B, Request&lt;Body&gt;&gt;,
-}
-
-<span class="doccomment">/// A service that is produced from a Tonic `Router`.
-///
-/// This service implementation will route between multiple Tonic
-/// gRPC endpoints and can be consumed with the rest of the `tower`
-/// ecosystem.
-</span><span class="attr">#[derive(Debug, Clone)]
-</span><span class="kw">pub struct </span>RouterService&lt;S&gt; {
-    inner: S,
-}
-
-<span class="kw">impl</span>&lt;S&gt; Service&lt;Request&lt;Body&gt;&gt; <span class="kw">for </span>RouterService&lt;S&gt;
-<span class="kw">where
-    </span>S: Service&lt;Request&lt;Body&gt;, Response = Response&lt;BoxBody&gt;&gt; + Clone + Send + <span class="lifetime">&#39;static</span>,
-    S::Future: Send + <span class="lifetime">&#39;static</span>,
-    S::Error: Into&lt;<span class="kw">crate</span>::Error&gt; + Send,
-{
-    <span class="kw">type </span>Response = Response&lt;BoxBody&gt;;
-    <span class="kw">type </span>Error = <span class="kw">crate</span>::Error;
-
-    <span class="attr">#[allow(clippy::type_complexity)]
-    </span><span class="kw">type </span>Future = MapErr&lt;S::Future, <span class="kw">fn</span>(S::Error) -&gt; <span class="kw">crate</span>::Error&gt;;
-
-    <span class="attr">#[inline]
-    </span><span class="kw">fn </span>poll_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
-        Poll::Ready(<span class="prelude-val">Ok</span>(()))
-    }
-
-    <span class="kw">fn </span>call(<span class="kw-2">&amp;mut </span><span class="self">self</span>, req: Request&lt;Body&gt;) -&gt; <span class="self">Self</span>::Future {
-        <span class="self">self</span>.inner.call(req).map_err(Into::into)
-    }
-}
-
-<span class="doccomment">/// A trait to provide a static reference to the service&#39;s
-/// name. This is used for routing service&#39;s within the router.
-</span><span class="kw">pub trait </span>NamedService {
-    <span class="doccomment">/// The `Service-Name` as described [here].
-    ///
-    /// [here]: https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md#requests
-    </span><span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str;
+    routes: Routes,
 }
 
 <span class="kw">impl</span>&lt;S: NamedService, T&gt; NamedService <span class="kw">for </span>Either&lt;S, T&gt; {
@@ -1100,6 +1010,7 @@
     /// # let builder = Server::builder();
     /// builder.concurrency_limit_per_connection(32);
     /// ```
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>concurrency_limit_per_connection(<span class="self">self</span>, limit: usize) -&gt; <span class="self">Self </span>{
         Server {
             concurrency_limit: <span class="prelude-val">Some</span>(limit),
@@ -1115,13 +1026,16 @@
     /// # use tonic::transport::Server;
     /// # use tower_service::Service;
     /// # use std::time::Duration;
-    /// # let mut builder = Server::builder();
+    /// # let builder = Server::builder();
     /// builder.timeout(Duration::from_secs(30));
     /// ```
-    </span><span class="kw">pub fn </span>timeout(<span class="kw-2">&amp;mut </span><span class="self">self</span>, timeout: Duration) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <span class="self">self</span>.timeout = <span class="prelude-val">Some</span>(timeout);
-        <span class="self">self
-    </span>}
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>timeout(<span class="self">self</span>, timeout: Duration) -&gt; <span class="self">Self </span>{
+        Server {
+            timeout: <span class="prelude-val">Some</span>(timeout),
+            ..<span class="self">self
+        </span>}
+    }
 
     <span class="doccomment">/// Sets the [`SETTINGS_INITIAL_WINDOW_SIZE`][spec] option for HTTP2
     /// stream-level flow control.
@@ -1129,6 +1043,7 @@
     /// Default is 65,535
     ///
     /// [spec]: https://http2.github.io/http2-spec/#SETTINGS_INITIAL_WINDOW_SIZE
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>initial_stream_window_size(<span class="self">self</span>, sz: <span class="kw">impl </span>Into&lt;<span class="prelude-ty">Option</span>&lt;u32&gt;&gt;) -&gt; <span class="self">Self </span>{
         Server {
             init_stream_window_size: sz.into(),
@@ -1139,6 +1054,7 @@
     <span class="doccomment">/// Sets the max connection-level flow control for HTTP2
     ///
     /// Default is 65,535
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>initial_connection_window_size(<span class="self">self</span>, sz: <span class="kw">impl </span>Into&lt;<span class="prelude-ty">Option</span>&lt;u32&gt;&gt;) -&gt; <span class="self">Self </span>{
         Server {
             init_connection_window_size: sz.into(),
@@ -1152,6 +1068,7 @@
     /// Default is no limit (`None`).
     ///
     /// [spec]: https://http2.github.io/http2-spec/#SETTINGS_MAX_CONCURRENT_STREAMS
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>max_concurrent_streams(<span class="self">self</span>, max: <span class="kw">impl </span>Into&lt;<span class="prelude-ty">Option</span>&lt;u32&gt;&gt;) -&gt; <span class="self">Self </span>{
         Server {
             max_concurrent_streams: max.into(),
@@ -1168,6 +1085,7 @@
     ///
     /// Default is no HTTP2 keepalive (`None`)
     ///
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>http2_keepalive_interval(<span class="self">self</span>, http2_keepalive_interval: <span class="prelude-ty">Option</span>&lt;Duration&gt;) -&gt; <span class="self">Self </span>{
         Server {
             http2_keepalive_interval,
@@ -1182,9 +1100,21 @@
     ///
     /// Default is 20 seconds.
     ///
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>http2_keepalive_timeout(<span class="self">self</span>, http2_keepalive_timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;) -&gt; <span class="self">Self </span>{
         Server {
             http2_keepalive_timeout,
+            ..<span class="self">self
+        </span>}
+    }
+
+    <span class="doccomment">/// Sets whether to use an adaptive flow control. Defaults to false.
+    /// Enabling this will override the limits set in http2_initial_stream_window_size and
+    /// http2_initial_connection_window_size.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>http2_adaptive_window(<span class="self">self</span>, enabled: <span class="prelude-ty">Option</span>&lt;bool&gt;) -&gt; <span class="self">Self </span>{
+        Server {
+            http2_adaptive_window: enabled,
             ..<span class="self">self
         </span>}
     }
@@ -1197,6 +1127,7 @@
     ///
     /// Default is no keepalive (`None`)
     ///
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>tcp_keepalive(<span class="self">self</span>, tcp_keepalive: <span class="prelude-ty">Option</span>&lt;Duration&gt;) -&gt; <span class="self">Self </span>{
         Server {
             tcp_keepalive,
@@ -1205,6 +1136,7 @@
     }
 
     <span class="doccomment">/// Set the value of `TCP_NODELAY` option for accepted connections. Enabled by default.
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>tcp_nodelay(<span class="self">self</span>, enabled: bool) -&gt; <span class="self">Self </span>{
         Server {
             tcp_nodelay: enabled,
@@ -1217,6 +1149,7 @@
     /// Passing `None` will do nothing.
     ///
     /// If not set, will default from underlying transport.
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>max_frame_size(<span class="self">self</span>, frame_size: <span class="kw">impl </span>Into&lt;<span class="prelude-ty">Option</span>&lt;u32&gt;&gt;) -&gt; <span class="self">Self </span>{
         Server {
             max_frame_size: frame_size.into(),
@@ -1232,6 +1165,7 @@
     /// return confusing (but correct) protocol errors.
     ///
     /// Default is `false`.
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>accept_http1(<span class="self">self</span>, accept_http1: bool) -&gt; <span class="self">Self </span>{
         Server {
             accept_http1,
@@ -1240,6 +1174,7 @@
     }
 
     <span class="doccomment">/// Intercept inbound headers and add a [`tracing::Span`] to each response future.
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>trace_fn&lt;F&gt;(<span class="self">self</span>, f: F) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>F: Fn(<span class="kw-2">&amp;</span>http::Request&lt;()&gt;) -&gt; tracing::Span + Send + Sync + <span class="lifetime">&#39;static</span>,
@@ -1254,18 +1189,17 @@
     ///
     /// This will clone the `Server` builder and create a router that will
     /// route around different services.
-    </span><span class="kw">pub fn </span>add_service&lt;S&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, svc: S) -&gt; Router&lt;S, Unimplemented, L&gt;
+    </span><span class="kw">pub fn </span>add_service&lt;S&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, svc: S) -&gt; Router&lt;L&gt;
     <span class="kw">where
-        </span>S: Service&lt;Request&lt;Body&gt;, Response = Response&lt;BoxBody&gt;&gt;
+        </span>S: Service&lt;Request&lt;Body&gt;, Response = Response&lt;BoxBody&gt;, Error = Infallible&gt;
             + NamedService
             + Clone
             + Send
             + <span class="lifetime">&#39;static</span>,
         S::Future: Send + <span class="lifetime">&#39;static</span>,
-        S::Error: Into&lt;<span class="kw">crate</span>::Error&gt; + Send,
         L: Clone,
     {
-        Router::new(<span class="self">self</span>.clone(), svc)
+        Router::new(<span class="self">self</span>.clone(), Routes::new(svc))
     }
 
     <span class="doccomment">/// Create a router with the optional `S` typed service as the first service.
@@ -1276,25 +1210,18 @@
     /// # Note
     /// Even when the argument given is `None` this will capture *all* requests to this service name.
     /// As a result, one cannot use this to toggle between two identically named implementations.
-    </span><span class="kw">pub fn </span>add_optional_service&lt;S&gt;(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        svc: <span class="prelude-ty">Option</span>&lt;S&gt;,
-    ) -&gt; Router&lt;Either&lt;S, Unimplemented&gt;, Unimplemented, L&gt;
+    </span><span class="kw">pub fn </span>add_optional_service&lt;S&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, svc: <span class="prelude-ty">Option</span>&lt;S&gt;) -&gt; Router&lt;L&gt;
     <span class="kw">where
-        </span>S: Service&lt;Request&lt;Body&gt;, Response = Response&lt;BoxBody&gt;&gt;
+        </span>S: Service&lt;Request&lt;Body&gt;, Response = Response&lt;BoxBody&gt;, Error = Infallible&gt;
             + NamedService
             + Clone
             + Send
             + <span class="lifetime">&#39;static</span>,
         S::Future: Send + <span class="lifetime">&#39;static</span>,
-        S::Error: Into&lt;<span class="kw">crate</span>::Error&gt; + Send,
         L: Clone,
     {
-        <span class="kw">let </span>svc = <span class="kw">match </span>svc {
-            <span class="prelude-val">Some</span>(some) =&gt; Either::A(some),
-            <span class="prelude-val">None </span>=&gt; Either::B(Unimplemented::default()),
-        };
-        Router::new(<span class="self">self</span>.clone(), svc)
+        <span class="kw">let </span>routes = svc.map(Routes::new).unwrap_or_default();
+        Router::new(<span class="self">self</span>.clone(), routes)
     }
 
     <span class="doccomment">/// Set the [Tower] [`Layer`] all services will be wrapped in.
@@ -1358,9 +1285,9 @@
     /// [eco]: https://github.com/tower-rs
     /// [`ServiceBuilder`]: tower::ServiceBuilder
     /// [interceptors]: crate::service::Interceptor
-    </span><span class="kw">pub fn </span>layer&lt;NewLayer&gt;(<span class="self">self</span>, new_layer: NewLayer) -&gt; Server&lt;NewLayer&gt; {
+    </span><span class="kw">pub fn </span>layer&lt;NewLayer&gt;(<span class="self">self</span>, new_layer: NewLayer) -&gt; Server&lt;Stack&lt;NewLayer, L&gt;&gt; {
         Server {
-            layer: new_layer,
+            service_builder: <span class="self">self</span>.service_builder.layer(new_layer),
             trace_interceptor: <span class="self">self</span>.trace_interceptor,
             concurrency_limit: <span class="self">self</span>.concurrency_limit,
             timeout: <span class="self">self</span>.timeout,
@@ -1373,6 +1300,7 @@
             tcp_nodelay: <span class="self">self</span>.tcp_nodelay,
             http2_keepalive_interval: <span class="self">self</span>.http2_keepalive_interval,
             http2_keepalive_timeout: <span class="self">self</span>.http2_keepalive_timeout,
+            http2_adaptive_window: <span class="self">self</span>.http2_adaptive_window,
             max_frame_size: <span class="self">self</span>.max_frame_size,
             accept_http1: <span class="self">self</span>.accept_http1,
         }
@@ -1410,8 +1338,9 @@
         <span class="kw">let </span>http2_keepalive_timeout = <span class="self">self
             </span>.http2_keepalive_timeout
             .unwrap_or_else(|| Duration::new(DEFAULT_HTTP2_KEEPALIVE_TIMEOUT_SECS, <span class="number">0</span>));
+        <span class="kw">let </span>http2_adaptive_window = <span class="self">self</span>.http2_adaptive_window;
 
-        <span class="kw">let </span>svc = <span class="self">self</span>.layer.layer(svc);
+        <span class="kw">let </span>svc = <span class="self">self</span>.service_builder.service(svc);
 
         <span class="kw">let </span>tcp = incoming::tcp_incoming(incoming, <span class="self">self</span>);
         <span class="kw">let </span>incoming = accept::from_stream::&lt;<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">crate</span>::Error&gt;(tcp);
@@ -1431,6 +1360,7 @@
             .http2_max_concurrent_streams(max_concurrent_streams)
             .http2_keep_alive_interval(http2_keepalive_interval)
             .http2_keep_alive_timeout(http2_keepalive_timeout)
+            .http2_adaptive_window(http2_adaptive_window.unwrap_or_default())
             .http2_max_frame_size(max_frame_size);
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(signal) = signal {
@@ -1447,64 +1377,26 @@
     }
 }
 
-<span class="kw">impl</span>&lt;S, L&gt; Router&lt;S, Unimplemented, L&gt; {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(server: Server&lt;L&gt;, svc: S) -&gt; <span class="self">Self
-    </span><span class="kw">where
-        </span>S: Service&lt;Request&lt;Body&gt;, Response = Response&lt;BoxBody&gt;&gt;
-            + NamedService
-            + Clone
-            + Send
-            + <span class="lifetime">&#39;static</span>,
-        S::Future: Send + <span class="lifetime">&#39;static</span>,
-        S::Error: Into&lt;<span class="kw">crate</span>::Error&gt; + Send,
-    {
-        <span class="kw">let </span>svc_name = &lt;S <span class="kw">as </span>NamedService&gt;::NAME;
-        <span class="kw">let </span>svc_route = <span class="macro">format!</span>(<span class="string">&quot;/{}&quot;</span>, svc_name);
-        <span class="kw">let </span>pred = <span class="kw">move </span>|req: <span class="kw-2">&amp;</span>Request&lt;Body&gt;| {
-            <span class="kw">let </span>path = req.uri().path();
-
-            path.starts_with(<span class="kw-2">&amp;</span>svc_route)
-        };
-        <span class="self">Self </span>{
-            server,
-            routes: Routes::new(pred, svc, Unimplemented::default()),
-        }
+<span class="kw">impl</span>&lt;L&gt; Router&lt;L&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(server: Server&lt;L&gt;, routes: Routes) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ server, routes }
     }
 }
 
-<span class="kw">impl</span>&lt;A, B, L&gt; Router&lt;A, B, L&gt;
-<span class="kw">where
-    </span>A: Service&lt;Request&lt;Body&gt;, Response = Response&lt;BoxBody&gt;&gt; + Clone + Send + <span class="lifetime">&#39;static</span>,
-    A::Future: Send + <span class="lifetime">&#39;static</span>,
-    A::Error: Into&lt;<span class="kw">crate</span>::Error&gt; + Send,
-    B: Service&lt;Request&lt;Body&gt;, Response = Response&lt;BoxBody&gt;&gt; + Clone + Send + <span class="lifetime">&#39;static</span>,
-    B::Future: Send + <span class="lifetime">&#39;static</span>,
-    B::Error: Into&lt;<span class="kw">crate</span>::Error&gt; + Send,
-{
+<span class="kw">impl</span>&lt;L&gt; Router&lt;L&gt; {
     <span class="doccomment">/// Add a new service to this router.
-    </span><span class="kw">pub fn </span>add_service&lt;S&gt;(<span class="self">self</span>, svc: S) -&gt; Router&lt;S, Or&lt;A, B, Request&lt;Body&gt;&gt;, L&gt;
-    <span class="kw">where
-        </span>S: Service&lt;Request&lt;Body&gt;, Response = Response&lt;BoxBody&gt;&gt;
+    </span><span class="kw">pub fn </span>add_service&lt;S&gt;(<span class="kw-2">mut </span><span class="self">self</span>, svc: S) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>S: Service&lt;Request&lt;Body&gt;, Response = Response&lt;BoxBody&gt;, Error = Infallible&gt;
             + NamedService
             + Clone
             + Send
             + <span class="lifetime">&#39;static</span>,
         S::Future: Send + <span class="lifetime">&#39;static</span>,
-        S::Error: Into&lt;<span class="kw">crate</span>::Error&gt; + Send,
     {
-        <span class="kw">let </span><span class="self">Self </span>{ routes, server } = <span class="self">self</span>;
-
-        <span class="kw">let </span>svc_name = &lt;S <span class="kw">as </span>NamedService&gt;::NAME;
-        <span class="kw">let </span>svc_route = <span class="macro">format!</span>(<span class="string">&quot;/{}&quot;</span>, svc_name);
-        <span class="kw">let </span>pred = <span class="kw">move </span>|req: <span class="kw-2">&amp;</span>Request&lt;Body&gt;| {
-            <span class="kw">let </span>path = req.uri().path();
-
-            path.starts_with(<span class="kw-2">&amp;</span>svc_route)
-        };
-        <span class="kw">let </span>routes = routes.push(pred, svc);
-
-        Router { server, routes }
-    }
+        <span class="self">self</span>.routes = <span class="self">self</span>.routes.add_service(svc);
+        <span class="self">self
+    </span>}
 
     <span class="doccomment">/// Add a new optional service to this router.
     ///
@@ -1512,36 +1404,20 @@
     /// Even when the argument given is `None` this will capture *all* requests to this service name.
     /// As a result, one cannot use this to toggle between two identically named implementations.
     </span><span class="attr">#[allow(clippy::type_complexity)]
-    </span><span class="kw">pub fn </span>add_optional_service&lt;S&gt;(
-        <span class="self">self</span>,
-        svc: <span class="prelude-ty">Option</span>&lt;S&gt;,
-    ) -&gt; Router&lt;Either&lt;S, Unimplemented&gt;, Or&lt;A, B, Request&lt;Body&gt;&gt;, L&gt;
-    <span class="kw">where
-        </span>S: Service&lt;Request&lt;Body&gt;, Response = Response&lt;BoxBody&gt;&gt;
+    </span><span class="kw">pub fn </span>add_optional_service&lt;S&gt;(<span class="kw-2">mut </span><span class="self">self</span>, svc: <span class="prelude-ty">Option</span>&lt;S&gt;) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>S: Service&lt;Request&lt;Body&gt;, Response = Response&lt;BoxBody&gt;, Error = Infallible&gt;
             + NamedService
             + Clone
             + Send
             + <span class="lifetime">&#39;static</span>,
         S::Future: Send + <span class="lifetime">&#39;static</span>,
-        S::Error: Into&lt;<span class="kw">crate</span>::Error&gt; + Send,
     {
-        <span class="kw">let </span><span class="self">Self </span>{ routes, server } = <span class="self">self</span>;
-
-        <span class="kw">let </span>svc_name = &lt;S <span class="kw">as </span>NamedService&gt;::NAME;
-        <span class="kw">let </span>svc_route = <span class="macro">format!</span>(<span class="string">&quot;/{}&quot;</span>, svc_name);
-        <span class="kw">let </span>pred = <span class="kw">move </span>|req: <span class="kw-2">&amp;</span>Request&lt;Body&gt;| {
-            <span class="kw">let </span>path = req.uri().path();
-
-            path.starts_with(<span class="kw-2">&amp;</span>svc_route)
-        };
-        <span class="kw">let </span>svc = <span class="kw">match </span>svc {
-            <span class="prelude-val">Some</span>(some) =&gt; Either::A(some),
-            <span class="prelude-val">None </span>=&gt; Either::B(Unimplemented::default()),
-        };
-        <span class="kw">let </span>routes = routes.push(pred, svc);
-
-        Router { server, routes }
-    }
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(svc) = svc {
+            <span class="self">self</span>.routes = <span class="self">self</span>.routes.add_service(svc);
+        }
+        <span class="self">self
+    </span>}
 
     <span class="doccomment">/// Consume this [`Server`] creating a future that will execute the server
     /// on [tokio]&#39;s default executor.
@@ -1550,12 +1426,10 @@
     /// [tokio]: https://docs.rs/tokio
     </span><span class="kw">pub async fn </span>serve&lt;ResBody&gt;(<span class="self">self</span>, addr: SocketAddr) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw">super</span>::Error&gt;
     <span class="kw">where
-        </span>L: Layer&lt;Routes&lt;A, B, Request&lt;Body&gt;&gt;&gt;,
+        </span>L: Layer&lt;Routes&gt;,
         L::Service: Service&lt;Request&lt;Body&gt;, Response = Response&lt;ResBody&gt;&gt; + Clone + Send + <span class="lifetime">&#39;static</span>,
-        &lt;&lt;L <span class="kw">as </span>Layer&lt;Routes&lt;A, B, Request&lt;Body&gt;&gt;&gt;&gt;::Service <span class="kw">as </span>Service&lt;Request&lt;Body&gt;&gt;&gt;::Future:
-            Send + <span class="lifetime">&#39;static</span>,
-        &lt;&lt;L <span class="kw">as </span>Layer&lt;Routes&lt;A, B, Request&lt;Body&gt;&gt;&gt;&gt;::Service <span class="kw">as </span>Service&lt;Request&lt;Body&gt;&gt;&gt;::Error:
-            Into&lt;<span class="kw">crate</span>::Error&gt; + Send,
+        &lt;&lt;L <span class="kw">as </span>Layer&lt;Routes&gt;&gt;::Service <span class="kw">as </span>Service&lt;Request&lt;Body&gt;&gt;&gt;::Future: Send + <span class="lifetime">&#39;static</span>,
+        &lt;&lt;L <span class="kw">as </span>Layer&lt;Routes&gt;&gt;::Service <span class="kw">as </span>Service&lt;Request&lt;Body&gt;&gt;&gt;::Error: Into&lt;<span class="kw">crate</span>::Error&gt; + Send,
         ResBody: http_body::Body&lt;Data = Bytes&gt; + Send + <span class="lifetime">&#39;static</span>,
         ResBody::Error: Into&lt;<span class="kw">crate</span>::Error&gt;,
     {
@@ -1563,7 +1437,7 @@
             .map_err(<span class="kw">super</span>::Error::from_source)<span class="question-mark">?</span>;
         <span class="self">self</span>.server
             .serve_with_shutdown::&lt;<span class="kw">_</span>, <span class="kw">_</span>, future::Ready&lt;()&gt;, <span class="kw">_</span>, <span class="kw">_</span>, ResBody&gt;(
-                <span class="self">self</span>.routes,
+                <span class="self">self</span>.routes.prepare(),
                 incoming,
                 <span class="prelude-val">None</span>,
             )
@@ -1582,19 +1456,17 @@
         signal: F,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw">super</span>::Error&gt;
     <span class="kw">where
-        </span>L: Layer&lt;Routes&lt;A, B, Request&lt;Body&gt;&gt;&gt;,
+        </span>L: Layer&lt;Routes&gt;,
         L::Service: Service&lt;Request&lt;Body&gt;, Response = Response&lt;ResBody&gt;&gt; + Clone + Send + <span class="lifetime">&#39;static</span>,
-        &lt;&lt;L <span class="kw">as </span>Layer&lt;Routes&lt;A, B, Request&lt;Body&gt;&gt;&gt;&gt;::Service <span class="kw">as </span>Service&lt;Request&lt;Body&gt;&gt;&gt;::Future:
-            Send + <span class="lifetime">&#39;static</span>,
-        &lt;&lt;L <span class="kw">as </span>Layer&lt;Routes&lt;A, B, Request&lt;Body&gt;&gt;&gt;&gt;::Service <span class="kw">as </span>Service&lt;Request&lt;Body&gt;&gt;&gt;::Error:
-            Into&lt;<span class="kw">crate</span>::Error&gt; + Send,
+        &lt;&lt;L <span class="kw">as </span>Layer&lt;Routes&gt;&gt;::Service <span class="kw">as </span>Service&lt;Request&lt;Body&gt;&gt;&gt;::Future: Send + <span class="lifetime">&#39;static</span>,
+        &lt;&lt;L <span class="kw">as </span>Layer&lt;Routes&gt;&gt;::Service <span class="kw">as </span>Service&lt;Request&lt;Body&gt;&gt;&gt;::Error: Into&lt;<span class="kw">crate</span>::Error&gt; + Send,
         ResBody: http_body::Body&lt;Data = Bytes&gt; + Send + <span class="lifetime">&#39;static</span>,
         ResBody::Error: Into&lt;<span class="kw">crate</span>::Error&gt;,
     {
         <span class="kw">let </span>incoming = TcpIncoming::new(addr, <span class="self">self</span>.server.tcp_nodelay, <span class="self">self</span>.server.tcp_keepalive)
             .map_err(<span class="kw">super</span>::Error::from_source)<span class="question-mark">?</span>;
         <span class="self">self</span>.server
-            .serve_with_shutdown(<span class="self">self</span>.routes, incoming, <span class="prelude-val">Some</span>(signal))
+            .serve_with_shutdown(<span class="self">self</span>.routes.prepare(), incoming, <span class="prelude-val">Some</span>(signal))
             .<span class="kw">await
     </span>}
 
@@ -1611,18 +1483,16 @@
         IO: AsyncRead + AsyncWrite + Connected + Unpin + Send + <span class="lifetime">&#39;static</span>,
         IO::ConnectInfo: Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
         IE: Into&lt;<span class="kw">crate</span>::Error&gt;,
-        L: Layer&lt;Routes&lt;A, B, Request&lt;Body&gt;&gt;&gt;,
+        L: Layer&lt;Routes&gt;,
         L::Service: Service&lt;Request&lt;Body&gt;, Response = Response&lt;ResBody&gt;&gt; + Clone + Send + <span class="lifetime">&#39;static</span>,
-        &lt;&lt;L <span class="kw">as </span>Layer&lt;Routes&lt;A, B, Request&lt;Body&gt;&gt;&gt;&gt;::Service <span class="kw">as </span>Service&lt;Request&lt;Body&gt;&gt;&gt;::Future:
-            Send + <span class="lifetime">&#39;static</span>,
-        &lt;&lt;L <span class="kw">as </span>Layer&lt;Routes&lt;A, B, Request&lt;Body&gt;&gt;&gt;&gt;::Service <span class="kw">as </span>Service&lt;Request&lt;Body&gt;&gt;&gt;::Error:
-            Into&lt;<span class="kw">crate</span>::Error&gt; + Send,
+        &lt;&lt;L <span class="kw">as </span>Layer&lt;Routes&gt;&gt;::Service <span class="kw">as </span>Service&lt;Request&lt;Body&gt;&gt;&gt;::Future: Send + <span class="lifetime">&#39;static</span>,
+        &lt;&lt;L <span class="kw">as </span>Layer&lt;Routes&gt;&gt;::Service <span class="kw">as </span>Service&lt;Request&lt;Body&gt;&gt;&gt;::Error: Into&lt;<span class="kw">crate</span>::Error&gt; + Send,
         ResBody: http_body::Body&lt;Data = Bytes&gt; + Send + <span class="lifetime">&#39;static</span>,
         ResBody::Error: Into&lt;<span class="kw">crate</span>::Error&gt;,
     {
         <span class="self">self</span>.server
             .serve_with_shutdown::&lt;<span class="kw">_</span>, <span class="kw">_</span>, future::Ready&lt;()&gt;, <span class="kw">_</span>, <span class="kw">_</span>, ResBody&gt;(
-                <span class="self">self</span>.routes,
+                <span class="self">self</span>.routes.prepare(),
                 incoming,
                 <span class="prelude-val">None</span>,
             )
@@ -1646,34 +1516,29 @@
         IO::ConnectInfo: Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
         IE: Into&lt;<span class="kw">crate</span>::Error&gt;,
         F: Future&lt;Output = ()&gt;,
-        L: Layer&lt;Routes&lt;A, B, Request&lt;Body&gt;&gt;&gt;,
+        L: Layer&lt;Routes&gt;,
         L::Service: Service&lt;Request&lt;Body&gt;, Response = Response&lt;ResBody&gt;&gt; + Clone + Send + <span class="lifetime">&#39;static</span>,
-        &lt;&lt;L <span class="kw">as </span>Layer&lt;Routes&lt;A, B, Request&lt;Body&gt;&gt;&gt;&gt;::Service <span class="kw">as </span>Service&lt;Request&lt;Body&gt;&gt;&gt;::Future:
-            Send + <span class="lifetime">&#39;static</span>,
-        &lt;&lt;L <span class="kw">as </span>Layer&lt;Routes&lt;A, B, Request&lt;Body&gt;&gt;&gt;&gt;::Service <span class="kw">as </span>Service&lt;Request&lt;Body&gt;&gt;&gt;::Error:
-            Into&lt;<span class="kw">crate</span>::Error&gt; + Send,
+        &lt;&lt;L <span class="kw">as </span>Layer&lt;Routes&gt;&gt;::Service <span class="kw">as </span>Service&lt;Request&lt;Body&gt;&gt;&gt;::Future: Send + <span class="lifetime">&#39;static</span>,
+        &lt;&lt;L <span class="kw">as </span>Layer&lt;Routes&gt;&gt;::Service <span class="kw">as </span>Service&lt;Request&lt;Body&gt;&gt;&gt;::Error: Into&lt;<span class="kw">crate</span>::Error&gt; + Send,
         ResBody: http_body::Body&lt;Data = Bytes&gt; + Send + <span class="lifetime">&#39;static</span>,
         ResBody::Error: Into&lt;<span class="kw">crate</span>::Error&gt;,
     {
         <span class="self">self</span>.server
-            .serve_with_shutdown(<span class="self">self</span>.routes, incoming, <span class="prelude-val">Some</span>(signal))
+            .serve_with_shutdown(<span class="self">self</span>.routes.prepare(), incoming, <span class="prelude-val">Some</span>(signal))
             .<span class="kw">await
     </span>}
 
     <span class="doccomment">/// Create a tower service out of a router.
-    </span><span class="kw">pub fn </span>into_service&lt;ResBody&gt;(<span class="self">self</span>) -&gt; RouterService&lt;L::Service&gt;
+    </span><span class="kw">pub fn </span>into_service&lt;ResBody&gt;(<span class="self">self</span>) -&gt; L::Service
     <span class="kw">where
-        </span>L: Layer&lt;Routes&lt;A, B, Request&lt;Body&gt;&gt;&gt;,
+        </span>L: Layer&lt;Routes&gt;,
         L::Service: Service&lt;Request&lt;Body&gt;, Response = Response&lt;ResBody&gt;&gt; + Clone + Send + <span class="lifetime">&#39;static</span>,
-        &lt;&lt;L <span class="kw">as </span>Layer&lt;Routes&lt;A, B, Request&lt;Body&gt;&gt;&gt;&gt;::Service <span class="kw">as </span>Service&lt;Request&lt;Body&gt;&gt;&gt;::Future:
-            Send + <span class="lifetime">&#39;static</span>,
-        &lt;&lt;L <span class="kw">as </span>Layer&lt;Routes&lt;A, B, Request&lt;Body&gt;&gt;&gt;&gt;::Service <span class="kw">as </span>Service&lt;Request&lt;Body&gt;&gt;&gt;::Error:
-            Into&lt;<span class="kw">crate</span>::Error&gt; + Send,
+        &lt;&lt;L <span class="kw">as </span>Layer&lt;Routes&gt;&gt;::Service <span class="kw">as </span>Service&lt;Request&lt;Body&gt;&gt;&gt;::Future: Send + <span class="lifetime">&#39;static</span>,
+        &lt;&lt;L <span class="kw">as </span>Layer&lt;Routes&gt;&gt;::Service <span class="kw">as </span>Service&lt;Request&lt;Body&gt;&gt;&gt;::Error: Into&lt;<span class="kw">crate</span>::Error&gt; + Send,
         ResBody: http_body::Body&lt;Data = Bytes&gt; + Send + <span class="lifetime">&#39;static</span>,
         ResBody::Error: Into&lt;<span class="kw">crate</span>::Error&gt;,
     {
-        <span class="kw">let </span>inner = <span class="self">self</span>.server.layer.layer(<span class="self">self</span>.routes);
-        RouterService { inner }
+        <span class="self">self</span>.server.service_builder.service(<span class="self">self</span>.routes.prepare())
     }
 }
 
@@ -1827,33 +1692,6 @@
             });
 
         future::ready(<span class="prelude-val">Ok</span>(svc))
-    }
-}
-
-<span class="attr">#[derive(Default, Clone, Debug)]
-#[doc(hidden)]
-</span><span class="kw">pub struct </span>Unimplemented {
-    _p: (),
-}
-
-<span class="kw">impl </span>Service&lt;Request&lt;Body&gt;&gt; <span class="kw">for </span>Unimplemented {
-    <span class="kw">type </span>Response = Response&lt;BoxBody&gt;;
-    <span class="kw">type </span>Error = <span class="kw">crate</span>::Error;
-    <span class="kw">type </span>Future = future::Ready&lt;<span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Response, <span class="self">Self</span>::Error&gt;&gt;;
-
-    <span class="kw">fn </span>poll_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
-        <span class="prelude-val">Ok</span>(()).into()
-    }
-
-    <span class="kw">fn </span>call(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _req: Request&lt;Body&gt;) -&gt; <span class="self">Self</span>::Future {
-        future::ok(
-            http::Response::builder()
-                .status(<span class="number">200</span>)
-                .header(<span class="string">&quot;grpc-status&quot;</span>, <span class="string">&quot;12&quot;</span>)
-                .header(<span class="string">&quot;content-type&quot;</span>, <span class="string">&quot;application/grpc&quot;</span>)
-                .body(<span class="kw">crate</span>::body::empty_body())
-                .unwrap(),
-        )
     }
 }
 </code></pre></div></section></main></body></html>
