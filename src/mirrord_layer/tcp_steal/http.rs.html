@@ -188,6 +188,13 @@
 <a href="#188" id="188">188</a>
 <a href="#189" id="189">189</a>
 <a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
 </pre><pre class="rust"><code><span class="doccomment">//! # [`HttpV`]
 //!
 //! # [`ConnectionTask`]
@@ -203,6 +210,7 @@
     net::TcpStream,
     sync::mpsc::{Receiver, Sender},
 };
+<span class="kw">use </span>tracing::trace;
 
 <span class="kw">use </span><span class="kw">super</span>::handle_response;
 <span class="kw">use crate</span>::{detour::DetourGuard, tcp_steal::HttpForwarderError};
@@ -274,6 +282,7 @@
 
     <span class="doccomment">/// Sends the [`HttpRequest`] through `Self::sender`, converting the response into a
     /// [`HttpResponse`].
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">async fn </span>send_http_request_to_application(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         request: HttpRequest,
@@ -291,6 +300,8 @@
 
         <span class="comment">// Retry once if the connection was closed.
         </span><span class="kw">if let </span><span class="prelude-val">Err</span>(HttpForwarderError::ConnectionClosedTooSoon(request)) = response {
+            <span class="macro">trace!</span>(<span class="string">&quot;Request {request:#?} connection was closed too soon, retrying once!&quot;</span>);
+
             <span class="comment">// Create a new `HttpVersion` handler for this second attempt.
             </span><span class="kw">let </span>http_version = ConnectionTask::&lt;<span class="self">Self</span>&gt;::connect_to_application(destination).<span class="kw">await</span><span class="question-mark">?</span>;
 
@@ -316,6 +327,7 @@
     ///
     /// Has a side-effect of connecting to the application with the (aptly named)
     /// `connect_to_application`.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(request_receiver, response_sender))]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">async fn </span>new(
         connect_to: SocketAddr,
         request_receiver: Receiver&lt;HttpRequest&gt;,
@@ -337,6 +349,7 @@
 
     <span class="doccomment">/// Starts the communication handling of `matched request -&gt; user application -&gt; response` by
     /// &quot;listening&quot; on the `request_receiver`.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">async fn </span>start(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), HttpForwarderError&gt; {
         <span class="kw">let </span><span class="self">Self </span>{
             <span class="kw-2">mut </span>request_receiver,
@@ -362,6 +375,7 @@
     ///
     /// Requests that match the user specified filter will be sent through this connection to the
     /// user.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
     </span><span class="kw">async fn </span>connect_to_application(connect_to: SocketAddr) -&gt; <span class="prelude-ty">Result</span>&lt;V, HttpForwarderError&gt; {
         <span class="kw">let </span>target_stream = {
             <span class="kw">let _ </span>= DetourGuard::new();
