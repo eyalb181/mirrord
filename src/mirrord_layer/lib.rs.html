@@ -972,6 +972,7 @@
 <a href="#972" id="972">972</a>
 <a href="#973" id="973">973</a>
 <a href="#974" id="974">974</a>
+<a href="#975" id="975">975</a>
 </pre><pre class="rust"><code><span class="attr">#![feature(c_variadic)]
 #![feature(once_cell)]
 #![feature(result_option_inspect)]
@@ -990,6 +991,7 @@
 #![feature(async_fn_in_trait)]
 #![allow(rustdoc::private_intra_doc_links)]
 #![allow(incomplete_features)]
+#![warn(clippy::indexing_slicing)]
 
 </span><span class="doccomment">//! Loaded dynamically with your local process.
 //!
@@ -1050,6 +1052,7 @@
     collections::{HashSet, VecDeque},
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
     panic,
+    str::FromStr,
     sync::{LazyLock, OnceLock},
 };
 
@@ -1244,16 +1247,15 @@
         <span class="kw">let </span>ignored_ip =
             ip == IpAddr::V4(Ipv4Addr::LOCALHOST) || ip == IpAddr::V6(Ipv6Addr::LOCALHOST);
         <span class="comment">// port range can be specified as &quot;45000-65000&quot; or just &quot;45893&quot;
-        </span><span class="kw">let </span>ports: Vec&lt;u16&gt; = ports
+        </span><span class="kw">let </span>ports = ports
             .split(<span class="string">&#39;-&#39;</span>)
-            .map(|p| {
-                p.parse()
-                    .expect(<span class="string">&quot;Failed to parse the given port - not a number!&quot;</span>)
-            })
-            .collect();
-        <span class="kw">match </span>ports.len() {
-            <span class="number">2 </span>=&gt; ignored_ip &amp;&amp; (port &gt;= ports[<span class="number">0</span>] &amp;&amp; port &lt;= ports[<span class="number">1</span>]),
-            <span class="number">1 </span>=&gt; ignored_ip &amp;&amp; port == ports[<span class="number">0</span>],
+            .map(u16::from_str)
+            .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, <span class="kw">_</span>&gt;&gt;()
+            .expect(<span class="string">&quot;failed to parse the given port&quot;</span>);
+
+        <span class="kw">match </span>ports[..] {
+            [p1, p2] =&gt; ignored_ip &amp;&amp; (port &gt;= p1 &amp;&amp; port &lt;= p2),
+            [p] =&gt; ignored_ip &amp;&amp; port == p,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     } <span class="kw">else </span>{

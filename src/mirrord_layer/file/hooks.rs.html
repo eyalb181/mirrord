@@ -858,6 +858,13 @@
 <a href="#858" id="858">858</a>
 <a href="#859" id="859">859</a>
 <a href="#860" id="860">860</a>
+<a href="#861" id="861">861</a>
+<a href="#862" id="862">862</a>
+<a href="#863" id="863">863</a>
+<a href="#864" id="864">864</a>
+<a href="#865" id="865">865</a>
+<a href="#866" id="866">866</a>
+<a href="#867" id="867">867</a>
 </pre><pre class="rust"><code><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
 </span><span class="kw">use </span>core::ffi::{c_size_t, c_ssize_t};
 <span class="doccomment">/// FFI functions that override the `libc` calls (see `file` module documentation on how to
@@ -970,7 +977,10 @@
 
     <span class="kw">let </span>dir_name = CString::new(in_entry.name)<span class="question-mark">?</span>;
     <span class="kw">let </span>dir_name_bytes = dir_name.as_bytes_with_nul();
-    (<span class="kw-2">*</span>out_entry).d_name[..dir_name_bytes.len()]
+    (<span class="kw-2">*</span>out_entry)
+        .d_name
+        .get_mut(..dir_name_bytes.len())
+        .expect(<span class="string">&quot;directory name length exceeds limit&quot;</span>)
         .copy_from_slice(bytemuck::cast_slice(dir_name_bytes));
 
     <span class="attr">#[cfg(target_os = <span class="string">&quot;macos&quot;</span>)]
@@ -1182,7 +1192,9 @@
             //
             // Callers can check for EOF by using `ferror`.
             </span><span class="kw">if </span>read_amount &gt; <span class="number">0 </span>{
-                <span class="kw">let </span>bytes_slice = <span class="kw-2">&amp;</span>bytes[<span class="number">0</span>..fixed_read <span class="kw">as </span>usize];
+                <span class="kw">let </span>bytes_slice = bytes
+                    .get(..fixed_read <span class="kw">as </span>usize)
+                    .expect(<span class="string">&quot;read_amount exceeds bytes length in ReadFileResponse&quot;</span>);
 
                 ptr::copy(bytes_slice.as_ptr().cast(), out_buffer, bytes_slice.len());
             }
@@ -1208,7 +1220,9 @@
             //
             // Callers can check for EOF by using `ferror`.
             </span><span class="kw">if </span>read_amount &gt; <span class="number">0 </span>{
-                <span class="kw">let </span>bytes_slice = <span class="kw-2">&amp;</span>bytes[<span class="number">0</span>..fixed_read <span class="kw">as </span>usize];
+                <span class="kw">let </span>bytes_slice = bytes
+                    .get(..fixed_read <span class="kw">as </span>usize)
+                    .expect(<span class="string">&quot;read_amount exceeds bytes length in ReadFileResponse&quot;</span>);
 
                 ptr::copy(bytes_slice.as_ptr().cast(), out_buffer, bytes_slice.len());
             }

@@ -404,6 +404,12 @@
 <a href="#404" id="404">404</a>
 <a href="#405" id="405">405</a>
 <a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     collections::HashMap,
     env::temp_dir,
@@ -591,7 +597,13 @@
                         <span class="prelude-val">Ok</span>(read_amount) =&gt; {
                             <span class="comment">// Sends the message that the user wrote to our interceptor socket to
                             // be handled on the `agent`, where it&#39;ll be forwarded to the remote.
-                            </span><span class="kw">let </span>write = LayerWrite { connection_id, bytes: buffer[..read_amount].to_vec() };
+                            </span><span class="kw">let </span>write = LayerWrite {
+                                connection_id,
+                                bytes: buffer
+                                    .get(..read_amount)
+                                    .expect(<span class="string">&quot;read returned more bytes than the buffer can hold&quot;</span>)
+                                    .to_vec(),
+                            };
                             <span class="kw">let </span>outgoing_write = LayerTcpOutgoing::Write(write);
 
                             <span class="kw">if let </span><span class="prelude-val">Err</span>(fail) = layer_tx.send(outgoing_write).<span class="kw">await </span>{

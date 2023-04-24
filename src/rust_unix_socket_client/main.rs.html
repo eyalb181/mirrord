@@ -17,7 +17,11 @@
 <a href="#17" id="17">17</a>
 <a href="#18" id="18">18</a>
 <a href="#19" id="19">19</a>
-</pre><pre class="rust"><code><span class="kw">use </span>std::env;
+<a href="#20" id="20">20</a>
+<a href="#21" id="21">21</a>
+</pre><pre class="rust"><code><span class="attr">#![warn(clippy::indexing_slicing)]
+
+</span><span class="kw">use </span>std::env;
 
 <span class="kw">use </span>tokio::{
     io::{AsyncReadExt, AsyncWriteExt},

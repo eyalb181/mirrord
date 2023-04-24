@@ -601,7 +601,9 @@
 <a href="#601" id="601">601</a>
 <a href="#602" id="602">602</a>
 <a href="#603" id="603">603</a>
-</pre><pre class="rust"><code><span class="attr">#![cfg(target_os = <span class="string">&quot;macos&quot;</span>)]
+</pre><pre class="rust"><code><span class="attr">#![warn(clippy::indexing_slicing)]
+#![cfg(target_os = <span class="string">&quot;macos&quot;</span>)]
+
 </span><span class="kw">mod </span>codesign;
 <span class="kw">mod </span>error;
 <span class="kw">mod </span>whitespace;
@@ -781,7 +783,9 @@
 
         <span class="comment">// Just the thin binary - if the file was a thin binary of a supported architecture to
         // begin with then it&#39;s the whole file, if its a fat binary then it&#39;s just a part of it.
-        </span><span class="kw">let </span>binary = <span class="kw-2">&amp;</span>data[binary_info.offset..binary_info.offset + binary_info.size];
+        </span><span class="kw">let </span>binary = data
+            .get(binary_info.offset..binary_info.offset + binary_info.size)
+            .expect(<span class="string">&quot;invalid SIP binary&quot;</span>);
         std::fs::write(output.as_ref(), binary)<span class="question-mark">?</span>;
         <span class="comment">// Give the new file the same permissions as the old file.
         </span>std::fs::set_permissions(
@@ -801,7 +805,9 @@
         read_shebang_from_file(original_path.as_ref())<span class="question-mark">?
             </span>.map(|original_shebang| -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
                 <span class="kw">let </span>data = std::fs::read(original_path.as_ref())<span class="question-mark">?</span>;
-                <span class="kw">let </span>contents = <span class="kw-2">&amp;</span>data[original_shebang.len()..];
+                <span class="kw">let </span>contents = data
+                    .get(original_shebang.len()..)
+                    .expect(<span class="string">&quot;original shebang size exceeds file size&quot;</span>);
                 <span class="kw">let </span><span class="kw-2">mut </span>new_contents = String::from(<span class="string">&quot;#!&quot;</span>) + new_shebang;
                 new_contents.push_str(std::str::from_utf8(contents).map_err(|_utf| {
                     UnlikelyError(<span class="string">&quot;Can&#39;t read script contents as utf8&quot;</span>.to_string())
@@ -827,27 +833,20 @@
     /// &quot;#!/usr/bin/env bash\n...&quot; -&gt; Some(&quot;#!/usr/bin/env&quot;)
     </span><span class="kw">fn </span>get_shebang_from_string(file_contents: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
         <span class="kw">const </span>BOM: <span class="kw-2">&amp;</span>str = <span class="string">&quot;\u{feff}&quot;</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>content: <span class="kw-2">&amp;</span>str = file_contents;
-        <span class="kw">if </span>content.starts_with(BOM) {
-            content = <span class="kw-2">&amp;</span>content[BOM.len()..];
-        }
+        <span class="kw">let </span>content = file_contents.strip_prefix(BOM).unwrap_or(file_contents);
+        <span class="kw">let </span>rest = content.strip_prefix(<span class="string">&quot;#!&quot;</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>shebang = <span class="prelude-val">None</span>;
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(rest) = content.strip_prefix(<span class="string">&quot;#!&quot;</span>) {
-            <span class="kw">let </span>rest = whitespace::skip(rest);
-            <span class="kw">if </span>!rest.starts_with(<span class="string">&#39;[&#39;</span>) {
-                <span class="kw">let </span>full_shebang = <span class="kw">if let </span><span class="prelude-val">Some</span>(idx) = content.find(<span class="string">&#39;\n&#39;</span>) {
-                    <span class="kw-2">&amp;</span>content[..idx]
-                } <span class="kw">else </span>{
-                    content
-                };
-                shebang = full_shebang
-                    .split_whitespace()
-                    .next()
-                    .map(|s| s.to_string());
-            }
+        <span class="kw">if </span>whitespace::skip(rest).starts_with(<span class="string">&#39;[&#39;</span>) {
+            <span class="prelude-val">None
+        </span>} <span class="kw">else </span>{
+            content
+                .split_once(<span class="string">&#39;\n&#39;</span>)
+                .map(|(line, <span class="kw">_</span>)| line)
+                .unwrap_or(content)
+                .split_whitespace()
+                .next()
+                .map(ToString::to_string)
         }
-        shebang
     }
 
     <span class="doccomment">/// Including &#39;#!&#39;, just until whitespace, no arguments.
@@ -908,7 +907,8 @@
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(shebang) = read_shebang_from_file(<span class="kw-2">&amp;</span>complete_path)<span class="question-mark">? </span>{
             <span class="comment">// Start from index 2 of shebang to get only the path.
-            </span><span class="kw">return match </span>get_sip_status_rec(<span class="kw-2">&amp;</span>shebang[<span class="number">2</span>..], seen_paths, patch_binaries)<span class="question-mark">? </span>{
+            </span><span class="kw">let </span>path = shebang.strip_prefix(<span class="string">&quot;#!&quot;</span>).unwrap_or(<span class="kw-2">&amp;</span>shebang);
+            <span class="kw">return match </span>get_sip_status_rec(path, seen_paths, patch_binaries)<span class="question-mark">? </span>{
                 <span class="comment">// The file at the end of the shebang chain is not protected.
                 </span>SipStatus::NoSIP =&gt; <span class="prelude-val">Ok</span>(SipStatus::NoSIP),
                 some_sip =&gt; <span class="prelude-val">Ok</span>(SipStatus::SomeSIP(complete_path, <span class="prelude-val">Some</span>(Box::new(some_sip)))),

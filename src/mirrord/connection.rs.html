@@ -93,6 +93,12 @@
 <a href="#93" id="93">93</a>
 <a href="#94" id="94">94</a>
 <a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::time::Duration;
 
 <span class="kw">use </span>miette::IntoDiagnostic;
@@ -166,6 +172,12 @@
             AgentConnection { sender, receiver },
         ))
     } <span class="kw">else </span>{
+        <span class="kw">if </span><span class="macro">matches!</span>(config.target.path, <span class="prelude-val">Some</span>(mirrord_config::target::Target::Deployment{..})) {
+            <span class="comment">// progress.subtask(&quot;text&quot;).done_with(&quot;text&quot;);
+            </span><span class="macro">eprintln!</span>(<span class="string">&quot;When targeting multi-pod deployments, mirrord impersonates the first pod in the deployment.\n \
+                      Support for multi-pod impersonation requires the mirrord operator, which is part of mirrord for Teams.\n \
+                      To try it out, join the waitlist with `mirrord waitlist &lt;email address&gt;`, or at this link: https://metalbear.co/#waitlist-form&quot;</span>);
+        }
         <span class="kw">let </span>k8s_api = KubernetesAPI::create(config)
             .<span class="kw">await
             </span>.map_err(CliError::KubernetesApiFailed)<span class="question-mark">?</span>;

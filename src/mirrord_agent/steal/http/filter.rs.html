@@ -225,7 +225,7 @@
 <span class="doccomment">/// Default start of an HTTP/2 request.
 ///
 /// Used by [`HttpVersion`] to check if the connection should be treated as HTTP/2.
-</span><span class="kw">const </span>H2_PREFACE: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;PRI * HTTP/2.0&quot;</span>;
+</span><span class="kw">const </span>H2_PREFACE: <span class="kw-2">&amp;</span>[u8; <span class="number">14</span>] = <span class="string">b&quot;PRI * HTTP/2.0&quot;</span>;
 
 <span class="doccomment">/// Timeout value for how long we wait for a stream to contain enough bytes to assert which HTTP
 /// version we&#39;re dealing with.

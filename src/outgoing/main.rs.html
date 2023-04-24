@@ -94,7 +94,12 @@
 <a href="#94" id="94">94</a>
 <a href="#95" id="95">95</a>
 <a href="#96" id="96">96</a>
-</pre><pre class="rust"><code><span class="kw">use </span>std::{
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+</pre><pre class="rust"><code><span class="attr">#![warn(clippy::indexing_slicing)]
+
+</span><span class="kw">use </span>std::{
     env,
     io::{Read, Write},
     net::{SocketAddr, TcpStream, UdpSocket},
@@ -103,11 +108,7 @@
 <span class="kw">const </span>MESSAGE: <span class="kw-2">&amp;</span>[u8] = <span class="string">&quot;FOO BAR HAM&quot;</span>.as_bytes();
 
 <span class="kw">fn </span>parse_args() -&gt; <span class="prelude-ty">Option</span>&lt;(bool, SocketAddr, Vec&lt;SocketAddr&gt;)&gt; {
-    <span class="kw">let </span>args = env::args().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
-
-    <span class="kw">if </span>args.len() != <span class="number">4 </span>{
-        <span class="prelude-val">None</span><span class="question-mark">?
-    </span>}
+    <span class="kw">let </span>args: [String; <span class="number">4</span>] = env::args().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;().try_into().ok()<span class="question-mark">?</span>;
 
     <span class="kw">let </span>tcp = <span class="kw">match </span>args[<span class="number">1</span>].as_str() {
         <span class="string">&quot;--tcp&quot; </span>=&gt; <span class="bool-val">true</span>,
@@ -170,7 +171,12 @@
     <span class="kw">let </span><span class="kw-2">mut </span>response = [<span class="number">0</span>; MESSAGE.len()];
     <span class="kw">let </span>(res_len, remote) = udp_socket.recv_from(<span class="kw-2">&amp;mut </span>response).unwrap();
     <span class="kw">if </span>res_len != MESSAGE.len() || response != MESSAGE {
-        <span class="macro">panic!</span>(<span class="string">&quot;Invalid response received: {:?}.&quot;</span>, <span class="kw-2">&amp;</span>response[..res_len]);
+        <span class="macro">panic!</span>(
+            <span class="string">&quot;Invalid response received: {:?}.&quot;</span>,
+            response
+                .get(..res_len)
+                .expect(<span class="string">&quot;returned response length out of bounds&quot;</span>)
+        );
     }
     <span class="kw">if </span>remote != peer {
         <span class="macro">panic!</span>(<span class="string">&quot;Invalid peer address from recv: {remote}.&quot;</span>);

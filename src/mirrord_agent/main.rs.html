@@ -730,6 +730,8 @@
 <a href="#730" id="730">730</a>
 <a href="#731" id="731">731</a>
 <a href="#732" id="732">732</a>
+<a href="#733" id="733">733</a>
+<a href="#734" id="734">734</a>
 </pre><pre class="rust"><code><span class="attr">#![feature(result_option_inspect)]
 #![feature(hash_drain_filter)]
 #![feature(once_cell)]
@@ -739,6 +741,7 @@
 #![feature(tcp_quickack)]
 #![feature(async_fn_in_trait)]
 #![allow(incomplete_features)]
+#![warn(clippy::indexing_slicing)]
 
 </span><span class="kw">use </span>std::{
     collections::{HashMap, HashSet},
@@ -1392,10 +1395,11 @@
 
 <span class="kw">fn </span>spawn_child_agent() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">let </span>command_args = std::env::args().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+    <span class="kw">let </span>(command, args) = command_args
+        .split_first()
+        .expect(<span class="string">&quot;cannot spawn child agent: command missing from program arguments&quot;</span>);
 
-    <span class="kw">let </span><span class="kw-2">mut </span>child_agent = std::process::Command::new(<span class="kw-2">&amp;</span>command_args[<span class="number">0</span>])
-        .args(<span class="kw-2">&amp;</span>command_args[<span class="number">1</span>..])
-        .spawn()<span class="question-mark">?</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>child_agent = std::process::Command::new(command).args(args).spawn()<span class="question-mark">?</span>;
 
     <span class="kw">let _ </span>= child_agent.wait();
 

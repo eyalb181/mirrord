@@ -148,7 +148,6 @@
 <a href="#148" id="148">148</a>
 <a href="#149" id="149">149</a>
 <a href="#150" id="150">150</a>
-<a href="#151" id="151">151</a>
 </pre><pre class="rust"><code><span class="kw">use </span>pin_project::pin_project;
 <span class="kw">use </span>tokio::{
     io::{AsyncRead, AsyncReadExt, AsyncWrite},
@@ -264,11 +263,10 @@
         <span class="kw">if </span>this.num_forwarded &lt; this.header_len {
             <span class="kw">let </span>leftover = <span class="kw-2">&amp;</span>this.header[<span class="kw-2">*</span>this.num_forwarded..<span class="kw-2">*</span>this.header_len];
 
-            <span class="kw">let </span>num_forward_now = leftover.len().min(buf.remaining());
-            <span class="kw">let </span>forward = <span class="kw-2">&amp;</span>leftover[..num_forward_now];
+            <span class="kw">let </span>forward = leftover.get(..buf.remaining()).unwrap_or(leftover);
             buf.put_slice(forward);
 
-            <span class="kw-2">*</span>this.num_forwarded += num_forward_now;
+            <span class="kw-2">*</span>this.num_forwarded += forward.len();
 
             std::task::Poll::Ready(<span class="prelude-val">Ok</span>(()))
         } <span class="kw">else </span>{

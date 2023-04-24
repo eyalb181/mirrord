@@ -90,9 +90,6 @@
 <a href="#90" id="90">90</a>
 <a href="#91" id="91">91</a>
 <a href="#92" id="92">92</a>
-<a href="#93" id="93">93</a>
-<a href="#94" id="94">94</a>
-<a href="#95" id="95">95</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     fs,
     path::{Path, PathBuf},
@@ -174,16 +171,13 @@ NOTE: Please redact sensitive information from the logs.
 
     <span class="kw">if let </span><span class="prelude-val">Ok</span>(logs) = fs::read(log_file) {
         <span class="kw">let </span>encoded_logs = urlencoding::encode_binary(<span class="kw-2">&amp;</span>logs);
+        <span class="kw">let </span>last_logs = encoded_logs
+            .len()
+            .checked_sub(<span class="number">6000</span>)
+            .and_then(|offset| encoded_logs.get(offset..))
+            .unwrap_or(<span class="kw-2">&amp;</span>encoded_logs);
 
-        <span class="kw">if </span>encoded_logs.len() &gt; <span class="number">6000 </span>{
-            <span class="macro">format!</span>(
-                <span class="string">&quot;{}&amp;logs={}&quot;</span>,
-                base_url,
-                <span class="kw-2">&amp;</span>encoded_logs[(encoded_logs.len() - <span class="number">6000</span>)..]
-            )
-        } <span class="kw">else </span>{
-            <span class="macro">format!</span>(<span class="string">&quot;{base_url}&amp;logs={encoded_logs}&quot;</span>)
-        }
+        <span class="macro">format!</span>(<span class="string">&quot;{base_url}&amp;logs={last_logs}&quot;</span>)
     } <span class="kw">else </span>{
         base_url
     }

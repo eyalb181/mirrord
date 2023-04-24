@@ -181,7 +181,13 @@
 <a href="#181" id="181">181</a>
 <a href="#182" id="182">182</a>
 <a href="#183" id="183">183</a>
-</pre><pre class="rust"><code><span class="kw">use </span>proc_macro2::Span;
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+</pre><pre class="rust"><code><span class="attr">#![warn(clippy::indexing_slicing)]
+
+</span><span class="kw">use </span>proc_macro2::Span;
 <span class="kw">use </span>quote::quote;
 <span class="kw">use </span>syn::{parse::Parser, punctuated::Punctuated, token::Comma, Block, Ident, ItemFn};
 
@@ -217,7 +223,8 @@
 
         <span class="kw">let </span>ident_string = signature.ident.to_string();
         <span class="kw">let </span>type_name = ident_string.split(<span class="string">&quot;_detour&quot;</span>).next().map(|fn_name| {
-            <span class="kw">let </span>name = <span class="macro">format!</span>(<span class="string">&quot;Fn{}&quot;</span>, fn_name[<span class="number">0</span>..<span class="number">1</span>].to_uppercase() + <span class="kw-2">&amp;</span>fn_name[<span class="number">1</span>..]);
+            <span class="kw">let </span>(uppercase, lowercase) = fn_name.split_at(<span class="number">1</span>);
+            <span class="kw">let </span>name = <span class="macro">format!</span>(<span class="string">&quot;Fn{}{}&quot;</span>, uppercase.to_uppercase(), lowercase);
             Ident::new(<span class="kw-2">&amp;</span>name, Span::call_site())
         });
 
@@ -287,7 +294,8 @@
 
         <span class="kw">let </span>ident_string = signature.ident.to_string();
         <span class="kw">let </span>type_name = ident_string.split(<span class="string">&quot;_detour&quot;</span>).next().map(|fn_name| {
-            <span class="kw">let </span>name = <span class="macro">format!</span>(<span class="string">&quot;Fn{}&quot;</span>, fn_name[<span class="number">0</span>..<span class="number">1</span>].to_uppercase() + <span class="kw-2">&amp;</span>fn_name[<span class="number">1</span>..]);
+            <span class="kw">let </span>(uppercase, lowercase) = fn_name.split_at(<span class="number">1</span>);
+            <span class="kw">let </span>name = <span class="macro">format!</span>(<span class="string">&quot;Fn{}{}&quot;</span>, uppercase.to_uppercase(), lowercase);
             Ident::new(<span class="kw-2">&amp;</span>name, Span::call_site())
         });
 
