@@ -220,8 +220,6 @@
 <a href="#220" id="220">220</a>
 <a href="#221" id="221">221</a>
 <a href="#222" id="222">222</a>
-<a href="#223" id="223">223</a>
-<a href="#224" id="224">224</a>
 </pre><pre class="rust"><code><span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>file_ops {
 
@@ -276,7 +274,6 @@
         <span class="attr">#[future]
         #[notrace]
         </span>service: KubeService,
-        <span class="attr">#[values(Agent::Job)] </span>agent: Agent,
     ) {
         <span class="kw">let </span>service = service.<span class="kw">await</span>;
         <span class="kw">let _ </span>= std::fs::create_dir(std::path::Path::new(<span class="string">&quot;/tmp/fs&quot;</span>));
@@ -443,7 +440,6 @@
         .<span class="kw">await</span>;
         <span class="kw">let </span>res = process.child.wait().<span class="kw">await</span>.unwrap();
         <span class="macro">assert!</span>(res.success());
-        ops.assert(process);
     }
 }
 </code></pre></div></section></main></body></html>

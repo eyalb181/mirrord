@@ -967,12 +967,6 @@
 <a href="#967" id="967">967</a>
 <a href="#968" id="968">968</a>
 <a href="#969" id="969">969</a>
-<a href="#970" id="970">970</a>
-<a href="#971" id="971">971</a>
-<a href="#972" id="972">972</a>
-<a href="#973" id="973">973</a>
-<a href="#974" id="974">974</a>
-<a href="#975" id="975">975</a>
 </pre><pre class="rust"><code><span class="attr">#![feature(c_variadic)]
 #![feature(once_cell)]
 #![feature(result_option_inspect)]
@@ -1050,9 +1044,8 @@
 
 <span class="kw">use </span>std::{
     collections::{HashSet, VecDeque},
-    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
+    net::SocketAddr,
     panic,
-    str::FromStr,
     sync::{LazyLock, OnceLock},
 };
 
@@ -1095,6 +1088,7 @@
 
 <span class="kw">use crate</span>::{
     common::HookMessage,
+    debugger_ports::DebuggerPorts,
     file::{filter::FILE_FILTER, FileHandler},
     load::LoadType,
     socket::CONNECTION_QUEUE,
@@ -1102,6 +1096,7 @@
 
 <span class="kw">mod </span>common;
 <span class="kw">mod </span>connection;
+<span class="kw">mod </span>debugger_ports;
 <span class="kw">mod </span>detour;
 <span class="kw">mod </span>dns;
 <span class="kw">mod </span>error;
@@ -1210,6 +1205,9 @@
 <span class="doccomment">/// Ports to ignore on listening for mirroring/stealing.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>INCOMING_IGNORE_PORTS: OnceLock&lt;HashSet&lt;u16&gt;&gt; = OnceLock::new();
 
+<span class="doccomment">/// Ports to ignore because they are used by the IDE debugger
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>DEBUGGER_IGNORED_PORTS: OnceLock&lt;DebuggerPorts&gt; = OnceLock::new();
+
 <span class="doccomment">/// Check if we&#39;re running in NixOS or Devbox.
 ///
 /// - If so, add `sh` to the skip list because of
@@ -1240,27 +1238,12 @@
     </span>}
 }
 
-<span class="doccomment">/// Prevent mirrord from connecting to ports used by the intelliJ debugger
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>port_debug_patch(addr: <span class="kw-2">&amp;</span>SocketAddr) -&gt; bool {
-    <span class="kw">if let </span><span class="prelude-val">Ok</span>(ports) = std::env::var(<span class="string">&quot;DEBUGGER_IGNORE_PORTS_PATCH&quot;</span>) {
-        <span class="kw">let </span>(ip, port) = (addr.ip(), addr.port());
-        <span class="kw">let </span>ignored_ip =
-            ip == IpAddr::V4(Ipv4Addr::LOCALHOST) || ip == IpAddr::V6(Ipv6Addr::LOCALHOST);
-        <span class="comment">// port range can be specified as &quot;45000-65000&quot; or just &quot;45893&quot;
-        </span><span class="kw">let </span>ports = ports
-            .split(<span class="string">&#39;-&#39;</span>)
-            .map(u16::from_str)
-            .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, <span class="kw">_</span>&gt;&gt;()
-            .expect(<span class="string">&quot;failed to parse the given port&quot;</span>);
-
-        <span class="kw">match </span>ports[..] {
-            [p1, p2] =&gt; ignored_ip &amp;&amp; (port &gt;= p1 &amp;&amp; port &lt;= p2),
-            [p] =&gt; ignored_ip &amp;&amp; port == p,
-            <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
-        }
-    } <span class="kw">else </span>{
-        <span class="bool-val">false
-    </span>}
+<span class="doccomment">/// Prevent mirrord from connecting to ports used by the IDE debugger
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_debugger_port(addr: <span class="kw-2">&amp;</span>SocketAddr) -&gt; bool {
+    DEBUGGER_IGNORED_PORTS
+        .get()
+        .expect(<span class="string">&quot;DEBUGGER_IGNORED_PORTS not initialized&quot;</span>)
+        .contains(addr)
 }
 
 <span class="doccomment">/// Loads mirrord configuration and applies [`nix_devbox_patch`] patches.
@@ -1416,7 +1399,12 @@
     INCOMING_IGNORE_PORTS
         .set(config.feature.network.incoming.ignore_ports.clone())
         .expect(<span class="string">&quot;Setting INCOMING_IGNORE_PORTS failed&quot;</span>);
+
     FILE_FILTER.get_or_init(|| FileFilter::new(config.feature.fs.clone()));
+
+    DEBUGGER_IGNORED_PORTS
+        .set(DebuggerPorts::from_env())
+        .expect(<span class="string">&quot;Setting DEBUGGER_IGNORED_PORTS failed&quot;</span>);
 
     enable_hooks(
         file_mode.is_active(),

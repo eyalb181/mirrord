@@ -765,8 +765,8 @@
     dns::GetAddrInfo,
     error::HookError,
     file::{<span class="self">self</span>, OPEN_FILES},
+    is_debugger_port,
     outgoing::{tcp::TcpOutgoing, udp::UdpOutgoing, Connect, RemoteConnection},
-    port_debug_patch,
     tcp::{Listen, TcpIncoming},
     ENABLED_TCP_OUTGOING, ENABLED_UDP_OUTGOING, INCOMING_IGNORE_LOCALHOST,
     OUTGOING_IGNORE_LOCALHOST, REMOTE_UNIX_STREAMS,
@@ -882,7 +882,7 @@
     }
 
     <span class="kw">if </span>is_ignored_port(<span class="kw-2">&amp;</span>requested_address)
-        || port_debug_patch(<span class="kw-2">&amp;</span>requested_address)
+        || is_debugger_port(<span class="kw-2">&amp;</span>requested_address)
         || INCOMING_IGNORE_PORTS
             .get()
             .expect(<span class="string">&quot;`INCOMING_IGNORE_PORTS` not set. Please report a bug&quot;</span>)
@@ -1128,7 +1128,7 @@
             }
         }
 
-        <span class="kw">if </span>is_ignored_port(ip_address) || port_debug_patch(ip_address) {
+        <span class="kw">if </span>is_ignored_port(ip_address) || is_debugger_port(ip_address) {
             <span class="kw">return </span>Detour::Bypass(Bypass::Port(ip_address.port()));
         }
     } <span class="kw">else if </span>remote_address.is_unix() {
