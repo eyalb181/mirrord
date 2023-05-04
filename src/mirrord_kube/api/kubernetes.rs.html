@@ -165,9 +165,14 @@
 <a href="#165" id="165">165</a>
 <a href="#166" id="166">166</a>
 <a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::path::Path;
 <span class="attr">#[cfg(feature = <span class="string">&quot;incluster&quot;</span>)]
-</span><span class="kw">use </span>std::time::Duration;
+</span><span class="kw">use </span>std::{net::SocketAddr, time::Duration};
 
 <span class="kw">use </span>k8s_openapi::api::core::v1::Pod;
 <span class="kw">use </span>kube::{
@@ -234,23 +239,28 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(mpsc::Sender&lt;ClientMessage&gt;, mpsc::Receiver&lt;DaemonMessage&gt;)&gt; {
         <span class="kw">let </span>pod_api: Api&lt;Pod&gt; = get_k8s_resource_api(<span class="kw-2">&amp;</span><span class="self">self</span>.client, <span class="self">self</span>.agent.namespace.as_deref());
 
-        <span class="kw">let </span>pod_addr = pod_api
-            .get(<span class="kw-2">&amp;</span>pod_agent_name)
-            .<span class="kw">await</span><span class="question-mark">?
-            </span>.status
-            .and_then(|status| status.pod_ip)
-            .unwrap_or(pod_agent_name);
+        <span class="kw">let </span>pod = pod_api.get(<span class="kw-2">&amp;</span>pod_agent_name).<span class="kw">await</span><span class="question-mark">?</span>;
 
-        <span class="kw">let </span>agent_addr = <span class="macro">format!</span>(<span class="string">&quot;{}:{}&quot;</span>, pod_addr, agent_port);
+        <span class="kw">let </span>conn = <span class="kw">if let </span><span class="prelude-val">Some</span>(pod_ip) = pod.status.and_then(|status| status.pod_ip) {
+            <span class="macro">trace!</span>(<span class="string">&quot;connecting to pod_ip {pod_ip}:{agent_port}&quot;</span>);
 
-        <span class="macro">trace!</span>(<span class="string">&quot;connecting to pod {}&quot;</span>, <span class="kw-2">&amp;</span>agent_addr);
+            <span class="comment">// When pod_ip is available we directly create it as SocketAddr to prevent tokio from
+            // performing a DNS lookup
+            </span>tokio::time::timeout(
+                Duration::from_secs(<span class="self">self</span>.agent.startup_timeout),
+                TcpStream::connect(SocketAddr::new(pod_ip.parse()<span class="question-mark">?</span>, agent_port)),
+            )
+            .<span class="kw">await
+        </span>} <span class="kw">else </span>{
+            <span class="macro">trace!</span>(<span class="string">&quot;connecting to pod {pod_agent_name}:{agent_port}&quot;</span>);
 
-        <span class="kw">let </span>conn = tokio::time::timeout(
-            Duration::from_secs(<span class="self">self</span>.agent.startup_timeout),
-            TcpStream::connect(<span class="kw-2">&amp;</span>agent_addr),
-        )
-        .<span class="kw">await
-        </span>.map_err(|<span class="kw">_</span>| KubeApiError::AgentReadyTimeout)<span class="question-mark">??</span>;
+            tokio::time::timeout(
+                Duration::from_secs(<span class="self">self</span>.agent.startup_timeout),
+                TcpStream::connect(<span class="macro">format!</span>(<span class="string">&quot;{}:{}&quot;</span>, pod_agent_name, agent_port)),
+            )
+            .<span class="kw">await
+        </span>}
+        .map_err(|<span class="kw">_</span>| KubeApiError::AgentReadyTimeout)<span class="question-mark">??</span>;
 
         <span class="prelude-val">Ok</span>(wrap_raw_connection(conn))
     }

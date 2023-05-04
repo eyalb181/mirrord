@@ -133,7 +133,7 @@
 {
     <span class="kw">let </span>sub_progress = progress.subtask(<span class="string">&quot;Checking Operator&quot;</span>);
 
-    <span class="kw">match </span>OperatorApi::discover(config)
+    <span class="kw">match </span>OperatorApi::discover(config, progress)
         .<span class="kw">await
         </span>.map_err(CliError::OperatorConnectionFailed)
         .into_diagnostic()

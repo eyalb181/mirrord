@@ -204,6 +204,7 @@
 <a href="#204" id="204">204</a>
 <a href="#205" id="205">205</a>
 <a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Internal proxy is accepting connection from local layers and forward it to agent
 //! while having 1:1 relationship - each layer connection is another agent connection.
 //!
@@ -226,6 +227,7 @@
 <span class="kw">use </span>mirrord_config::LayerConfig;
 <span class="kw">use </span>mirrord_kube::api::{kubernetes::KubernetesAPI, wrap_raw_connection, AgentManagment};
 <span class="kw">use </span>mirrord_operator::client::OperatorApi;
+<span class="kw">use </span>mirrord_progress::NoProgress;
 <span class="kw">use </span>mirrord_protocol::{ClientMessage, DaemonCodec, DaemonMessage};
 <span class="kw">use </span>tokio::{
     net::{TcpListener, TcpStream},
@@ -406,7 +408,7 @@
             .<span class="kw">await</span><span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(connection)
     } <span class="kw">else </span>{
-        <span class="kw">let </span>connection = OperatorApi::discover(config).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let </span>connection = OperatorApi::discover(config, <span class="kw-2">&amp;</span>NoProgress).<span class="kw">await</span><span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(connection.ok_or(InternalProxyError::OperatorConnectionError)<span class="question-mark">?</span>)
     }
 }

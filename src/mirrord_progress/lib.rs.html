@@ -313,6 +313,40 @@
 <a href="#313" id="313">313</a>
 <a href="#314" id="314">314</a>
 <a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
 </pre><pre class="rust"><code><span class="attr">#![feature(once_cell)]
 #![warn(clippy::indexing_slicing)]
 
@@ -345,6 +379,13 @@
     </span>Json,
     <span class="doccomment">/// Do not output progress.
     </span>Off,
+}
+
+<span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>MessageKind {
+    Success,
+    Failure,
+    Warning,
 }
 
 <span class="doccomment">/// Initialize progress reporting based on the [`MIRRORD_PROGRESS_ENV`]
@@ -418,10 +459,18 @@
     </span>message: <span class="prelude-ty">Option</span>&lt;String&gt;,
 }
 
+<span class="doccomment">/// Message sent when a task is finished.
+</span><span class="attr">#[derive(Serialize, Debug, Clone, Default)]
+</span><span class="kw">struct </span>WarningMessage {
+    <span class="doccomment">/// Warning message
+    </span>message: String,
+}
+
 <span class="attr">#[derive(Serialize, Debug, Clone)]
 #[serde(tag = <span class="string">&quot;type&quot;</span>)]
 </span><span class="kw">enum </span>ProgressMessage {
     NewTask(NewTaskMessage),
+    Warning(WarningMessage),
     FinishedTask(FinishedTaskMessage),
 }
 
@@ -455,6 +504,7 @@
     }
 
     <span class="kw">fn </span>set_done(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;, failure: bool);
+    <span class="kw">fn </span>print_message(<span class="kw-2">&amp;</span><span class="self">self</span>, kind: MessageKind, msg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;);
 }
 
 <span class="kw">pub struct </span>NoProgress;
@@ -465,6 +515,7 @@
     }
 
     <span class="kw">fn </span>set_done(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;, <span class="kw">_</span>: bool) {}
+    <span class="kw">fn </span>print_message(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: MessageKind, <span class="kw">_</span>: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;) {}
 }
 
 <span class="doccomment">/// Progress report for a single task.
@@ -576,7 +627,14 @@
 
     <span class="kw">fn </span>set_done(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;, failure: bool) {
         <span class="self">self</span>.done = <span class="bool-val">true</span>;
-
+        <span class="kw">let </span>kind = <span class="kw">if </span>failure {
+            MessageKind::Failure
+        } <span class="kw">else </span>{
+            MessageKind::Success
+        };
+        <span class="self">self</span>.print_message(kind, msg);
+    }
+    <span class="kw">fn </span>print_message(<span class="kw-2">&amp;</span><span class="self">self</span>, kind: MessageKind, msg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;) {
         <span class="kw">let </span>report = get_report();
 
         <span class="kw">match </span>report.mode {
@@ -585,7 +643,11 @@
 
                 line.set_spinner_visible(<span class="bool-val">false</span>);
 
-                <span class="kw">let </span>marker = <span class="kw">if </span>failure { <span class="string">&#39;x&#39; </span>} <span class="kw">else </span>{ <span class="string">&#39;✓&#39; </span>};
+                <span class="kw">let </span>marker = <span class="kw">match </span>kind {
+                    MessageKind::Success =&gt; <span class="string">&#39;✓&#39;</span>,
+                    MessageKind::Failure =&gt; <span class="string">&#39;x&#39;</span>,
+                    MessageKind::Warning =&gt; <span class="string">&#39;!&#39;</span>,
+                };
 
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(msg) = msg {
                     line.set_text(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{marker} {msg}&quot;</span>));
@@ -600,11 +662,17 @@
                 }
             }
             ProgressMode::Json =&gt; {
-                <span class="kw">let </span>message = ProgressMessage::FinishedTask(FinishedTaskMessage {
-                    name: <span class="self">self</span>.name.clone(),
-                    success: !failure,
-                    message: msg.map(|s| s.to_string()),
-                });
+                <span class="kw">let </span>message = <span class="kw">if </span>kind == MessageKind::Warning {
+                    ProgressMessage::Warning(WarningMessage {
+                        message: msg.unwrap().to_string(),
+                    })
+                } <span class="kw">else </span>{
+                    ProgressMessage::FinishedTask(FinishedTaskMessage {
+                        name: <span class="self">self</span>.name.clone(),
+                        success: kind == MessageKind::Success,
+                        message: msg.map(|s| s.to_string()),
+                    })
+                };
                 message.print();
             }
             ProgressMode::Off =&gt; {}

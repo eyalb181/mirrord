@@ -155,6 +155,7 @@
 <a href="#155" id="155">155</a>
 <a href="#156" id="156">156</a>
 <a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{fs::File, path::PathBuf, time::Duration};
 
 <span class="kw">use </span>kube::Api;
@@ -283,11 +284,12 @@ Operator License
 
     <span class="kw">let </span><span class="kw-2">mut </span>sessions = Table::new();
 
-    sessions.add_row(<span class="macro">row!</span>[<span class="string">&quot;Target&quot;</span>, <span class="string">&quot;User&quot;</span>, <span class="string">&quot;Session Duration&quot;</span>]);
+    sessions.add_row(<span class="macro">row!</span>[<span class="string">&quot;Session ID&quot;</span>, <span class="string">&quot;Target&quot;</span>, <span class="string">&quot;User&quot;</span>, <span class="string">&quot;Session Duration&quot;</span>]);
 
     <span class="kw">if let </span><span class="prelude-val">Some</span>(status) = mirrord_status.status {
         <span class="kw">for </span>session <span class="kw">in </span><span class="kw-2">&amp;</span>status.sessions {
             sessions.add_row(<span class="macro">row!</span>[
+                session.id.as_deref().unwrap_or(<span class="string">&quot;&quot;</span>),
                 <span class="kw-2">&amp;</span>session.target,
                 <span class="kw-2">&amp;</span>session.user,
                 humantime::format_duration(Duration::from_secs(session.duration_secs)),
