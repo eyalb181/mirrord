@@ -376,6 +376,22 @@
 <a href="#376" id="376">376</a>
 <a href="#377" id="377">377</a>
 <a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
 </pre><pre class="rust"><code><span class="kw">mod </span>steal;
 
 <span class="attr">#[cfg(test)]
@@ -752,6 +768,22 @@
         <span class="comment">// The test application panics if it does not successfully connect to the socket, send data,
         // and get the same data back. So if it exits with success everything worked.
         </span><span class="macro">assert!</span>(res.success());
+    }
+
+    <span class="doccomment">/// Test the dns query is sent and data is received properly.
+    /// node, with c-ares dependency expects the address to be the same as the one data was sent to
+    </span><span class="attr">#[rstest]
+    #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
+    #[timeout(Duration::from_secs(<span class="number">50</span>))]
+    </span><span class="kw">pub async fn </span>outgoing_udp_with_original_address(<span class="attr">#[future] </span>service: KubeService) {
+        <span class="kw">let </span>service = service.<span class="kw">await</span>;
+        <span class="kw">let </span>node_command = <span class="macro">vec!</span>[
+            <span class="string">&quot;node&quot;</span>,
+            <span class="string">&quot;node-e2e/outgoing/test_outgoing_traffic_original_address.mjs&quot;</span>,
+        ];
+        <span class="kw">let </span><span class="kw-2">mut </span>process = run_exec(node_command, <span class="kw-2">&amp;</span>service.target, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>).<span class="kw">await</span>;
+        <span class="kw">let </span>res = process.child.wait().<span class="kw">await</span>.unwrap();
+        <span class="macro">assert!</span>(res.success());
     }
 }
 </code></pre></div></section></main></body></html>

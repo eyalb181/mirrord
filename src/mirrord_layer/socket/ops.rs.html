@@ -738,6 +738,17 @@
 <a href="#738" id="738">738</a>
 <a href="#739" id="739">739</a>
 <a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
+<a href="#745" id="745">745</a>
+<a href="#746" id="746">746</a>
+<a href="#747" id="747">747</a>
+<a href="#748" id="748">748</a>
+<a href="#749" id="749">749</a>
+<a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
 </pre><pre class="rust"><code><span class="kw">use </span>alloc::ffi::CString;
 <span class="kw">use </span>core::{ffi::CStr, mem};
 <span class="kw">use </span>std::{
@@ -1477,5 +1488,16 @@
 </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>gethostname() -&gt; Detour&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>CString&gt; {
     HOSTNAME.get_or_detour_init(remote_hostname_string)
+}
+
+<span class="doccomment">/// libraries like `c-ares` expect messages to be from the address they were sent to.
+/// currently this function just fills in the address expected by the caller.
+</span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>recv_from(sockfd: i32, sockaddr: <span class="kw-2">*mut </span>sockaddr, addrlen: <span class="kw-2">*mut </span>u32) -&gt; Detour&lt;()&gt; {
+    <span class="kw">let </span>socket_state = SOCKETS.get(<span class="kw-2">&amp;</span>sockfd)<span class="question-mark">?</span>.clone();
+    <span class="kw">if let </span>SocketState::Connected(Connected { remote_address, .. }) = <span class="kw-2">&amp;</span>socket_state.state {
+        fill_address(sockaddr, addrlen, (remote_address.clone()).try_into()<span class="question-mark">?</span>)<span class="question-mark">?</span>;
+    }
+    Detour::Success(())
 }
 </code></pre></div></section></main></body></html>
