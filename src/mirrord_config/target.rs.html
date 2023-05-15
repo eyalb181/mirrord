@@ -385,7 +385,7 @@ mirrord-layer failed to parse the provided target!
             }
             <span class="prelude-val">Some</span>(<span class="string">&quot;pod&quot;</span>) =&gt; PodTarget::from_split(<span class="kw-2">&amp;mut </span>split).map(Target::Pod),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(ConfigError::InvalidTarget(<span class="macro">format!</span>(
-                <span class="string">&quot;Provided target: {target:?} is neither a pod or a deployment. Did you mean pod/{target:?} or deployment/{target:?}\n{FAIL_PARSE_DEPLOYMENT_OR_POD}&quot;</span>,
+                <span class="string">&quot;Provided target: {target} is neither a pod or a deployment. Did you mean pod/{target} or deployment/{target}\n{FAIL_PARSE_DEPLOYMENT_OR_POD}&quot;</span>,
             ))),
         }
     }

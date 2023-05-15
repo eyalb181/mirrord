@@ -378,6 +378,7 @@
 <a href="#378" id="378">378</a>
 <a href="#379" id="379">379</a>
 <a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
 </pre><pre class="rust"><code><span class="doccomment">/// Controls which files are ignored (open local) by mirrord file operations.
 ///
 /// There are 3 ways of setting this up:
@@ -438,9 +439,10 @@
         <span class="string">r&quot;^/dev/.*$&quot;</span>,
         <span class="string">r&quot;^/opt/.*$&quot;</span>,
         <span class="string">r&quot;^/home/.*$&quot;</span>,
-        <span class="string">r&quot;^/tmp/.*$&quot;</span>,
-        <span class="comment">// macOS&#39; temp
-        </span><span class="string">r&quot;^/private/var/folders/.*$&quot;</span>,
+        <span class="comment">// don&#39;t use `/.*$` so lstat on the directory will also be local
+        </span><span class="string">r&quot;^/private(/|$)&quot;</span>,
+        <span class="string">r&quot;^/var/folders(/|$)&quot;</span>,
+        <span class="string">r&quot;^/tmp(/|$)&quot;</span>,
         <span class="string">r&quot;^/snap/.*$&quot;</span>,
         <span class="comment">// support for nixOS.
         </span><span class="string">r&quot;^/nix/.*$&quot;</span>,

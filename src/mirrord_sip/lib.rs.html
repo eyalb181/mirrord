@@ -601,6 +601,11 @@
 <a href="#601" id="601">601</a>
 <a href="#602" id="602">602</a>
 <a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
+<a href="#605" id="605">605</a>
+<a href="#606" id="606">606</a>
+<a href="#607" id="607">607</a>
+<a href="#608" id="608">608</a>
 </pre><pre class="rust"><code><span class="attr">#![warn(clippy::indexing_slicing)]
 #![cfg(target_os = <span class="string">&quot;macos&quot;</span>)]
 
@@ -898,6 +903,11 @@
         <span class="comment">// Patch binary if it is in the list of binaries to patch.
         // See `ends_with` docs for understanding better when it returns true.
         </span><span class="kw">if </span>patch_binaries.iter().any(|x| complete_path.ends_with(x)) {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(SipStatus::SomeSIP(complete_path, <span class="prelude-val">None</span>));
+        }
+
+        <span class="comment">// Temporary patch until https://github.com/metalbear-co/mirrord/pull/1400 is merged
+        </span><span class="kw">if </span>complete_path.ends_with(<span class="string">&quot;go&quot;</span>) {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(SipStatus::SomeSIP(complete_path, <span class="prelude-val">None</span>));
         }
 
