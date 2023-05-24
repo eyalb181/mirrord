@@ -601,6 +601,56 @@
 <a href="#601" id="601">601</a>
 <a href="#602" id="602">602</a>
 <a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
+<a href="#605" id="605">605</a>
+<a href="#606" id="606">606</a>
+<a href="#607" id="607">607</a>
+<a href="#608" id="608">608</a>
+<a href="#609" id="609">609</a>
+<a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a>
+<a href="#613" id="613">613</a>
+<a href="#614" id="614">614</a>
+<a href="#615" id="615">615</a>
+<a href="#616" id="616">616</a>
+<a href="#617" id="617">617</a>
+<a href="#618" id="618">618</a>
+<a href="#619" id="619">619</a>
+<a href="#620" id="620">620</a>
+<a href="#621" id="621">621</a>
+<a href="#622" id="622">622</a>
+<a href="#623" id="623">623</a>
+<a href="#624" id="624">624</a>
+<a href="#625" id="625">625</a>
+<a href="#626" id="626">626</a>
+<a href="#627" id="627">627</a>
+<a href="#628" id="628">628</a>
+<a href="#629" id="629">629</a>
+<a href="#630" id="630">630</a>
+<a href="#631" id="631">631</a>
+<a href="#632" id="632">632</a>
+<a href="#633" id="633">633</a>
+<a href="#634" id="634">634</a>
+<a href="#635" id="635">635</a>
+<a href="#636" id="636">636</a>
+<a href="#637" id="637">637</a>
+<a href="#638" id="638">638</a>
+<a href="#639" id="639">639</a>
+<a href="#640" id="640">640</a>
+<a href="#641" id="641">641</a>
+<a href="#642" id="642">642</a>
+<a href="#643" id="643">643</a>
+<a href="#644" id="644">644</a>
+<a href="#645" id="645">645</a>
+<a href="#646" id="646">646</a>
+<a href="#647" id="647">647</a>
+<a href="#648" id="648">648</a>
+<a href="#649" id="649">649</a>
+<a href="#650" id="650">650</a>
+<a href="#651" id="651">651</a>
+<a href="#652" id="652">652</a>
+<a href="#653" id="653">653</a>
 </pre><pre class="rust"><code><span class="attr">#![warn(clippy::indexing_slicing)]
 #![cfg(target_os = <span class="string">&quot;macos&quot;</span>)]
 
@@ -617,11 +667,13 @@
         path::{Path, PathBuf},
     };
 
+    <span class="kw">use </span>apple_codesign::{CodeSignatureFlags, MachFile};
     <span class="kw">use </span>object::{
         macho::{<span class="self">self</span>, FatHeader, MachHeader64},
         read::macho::{FatArch, MachHeader},
         Architecture, Endianness, FileKind,
     };
+    <span class="kw">use </span>once_cell::sync::Lazy;
     <span class="kw">use </span>tracing::trace;
     <span class="kw">use </span>which::which;
 
@@ -634,6 +686,25 @@
 
     <span class="doccomment">/// Where patched files are stored, relative to the temp dir (`/tmp/mirrord-bin/...`).
     </span><span class="kw">pub const </span>MIRRORD_PATCH_DIR: <span class="kw-2">&amp;</span>str = <span class="string">&quot;mirrord-bin&quot;</span>;
+
+    <span class="doccomment">/// The path of mirrord&#39;s internal temp binary dir, where we put SIP-patched binaries and
+    /// scripts.
+    </span><span class="kw">pub static </span>MIRRORD_TEMP_BIN_DIR: Lazy&lt;String&gt; = Lazy::new(|| {
+        std::env::temp_dir()
+            .join(MIRRORD_PATCH_DIR)
+            <span class="comment">// lossy: we assume our temp dir path does not contain non-unicode chars.
+            </span>.to_string_lossy()
+            .to_string()
+            .trim_end_matches(<span class="string">&#39;/&#39;</span>)
+            .to_string()
+    });
+
+    <span class="doccomment">/// Path of current executable, None if fetching failed.
+    </span><span class="kw">pub static </span>CURRENT_EXE: Lazy&lt;<span class="prelude-ty">Option</span>&lt;String&gt;&gt; = Lazy::new(|| {
+        std::env::current_exe()
+            .ok()
+            .map(|path_buf| path_buf.to_string_lossy().to_string())
+    });
 
     <span class="doccomment">/// Check if a cpu subtype (already parsed with the correct endianness) is arm64e, given its
     /// main cpu type is arm64. We only consider the lowest byte in the check.
@@ -872,6 +943,31 @@
         </span>NoSIP,
     }
 
+    <span class="doccomment">/// Checks if binary is signed with either `RUNTIME` or `RESTRICTED` flags.
+    /// The code ignores error to allow smoother fallbacks.
+    </span><span class="kw">fn </span>is_code_signed(path: <span class="kw-2">&amp;</span>PathBuf) -&gt; bool {
+        <span class="kw">let </span>data = <span class="kw">match </span>std::fs::read(path) {
+            <span class="prelude-val">Ok</span>(data) =&gt; data,
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="bool-val">false</span>,
+        };
+
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(mach) = MachFile::parse(data.as_ref()) {
+            <span class="kw">for </span>macho <span class="kw">in </span>mach.into_iter() {
+                <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(signature)) = macho.code_signature() {
+                    <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(blob)) = signature.code_directory() {
+                        <span class="kw">if </span>blob
+                            .flags
+                            .intersects(CodeSignatureFlags::RESTRICT | CodeSignatureFlags::RUNTIME)
+                        {
+                            <span class="kw">return </span><span class="bool-val">true</span>;
+                        }
+                    }
+                }
+            }
+        }
+        <span class="bool-val">false
+    </span>}
+
     <span class="doccomment">/// Determine status recursively, keep seen_paths, and return an error if there is a cyclical
     /// reference.
     </span><span class="kw">fn </span>get_sip_status_rec(
@@ -898,6 +994,10 @@
         <span class="comment">// Patch binary if it is in the list of binaries to patch.
         // See `ends_with` docs for understanding better when it returns true.
         </span><span class="kw">if </span>patch_binaries.iter().any(|x| complete_path.ends_with(x)) {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(SipStatus::SomeSIP(complete_path, <span class="prelude-val">None</span>));
+        }
+
+        <span class="kw">if </span>is_code_signed(<span class="kw-2">&amp;</span>complete_path) {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(SipStatus::SomeSIP(complete_path, <span class="prelude-val">None</span>));
         }
 

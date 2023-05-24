@@ -749,6 +749,32 @@
 <a href="#749" id="749">749</a>
 <a href="#750" id="750">750</a>
 <a href="#751" id="751">751</a>
+<a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
+<a href="#758" id="758">758</a>
+<a href="#759" id="759">759</a>
+<a href="#760" id="760">760</a>
+<a href="#761" id="761">761</a>
+<a href="#762" id="762">762</a>
+<a href="#763" id="763">763</a>
+<a href="#764" id="764">764</a>
+<a href="#765" id="765">765</a>
+<a href="#766" id="766">766</a>
+<a href="#767" id="767">767</a>
+<a href="#768" id="768">768</a>
+<a href="#769" id="769">769</a>
+<a href="#770" id="770">770</a>
+<a href="#771" id="771">771</a>
+<a href="#772" id="772">772</a>
+<a href="#773" id="773">773</a>
+<a href="#774" id="774">774</a>
+<a href="#775" id="775">775</a>
+<a href="#776" id="776">776</a>
+<a href="#777" id="777">777</a>
 </pre><pre class="rust"><code><span class="kw">use </span>alloc::ffi::CString;
 <span class="kw">use </span>core::{ffi::CStr, mem};
 <span class="kw">use </span>std::{
@@ -780,7 +806,7 @@
     outgoing::{tcp::TcpOutgoing, udp::UdpOutgoing, Connect, RemoteConnection},
     tcp::{Listen, TcpIncoming},
     ENABLED_TCP_OUTGOING, ENABLED_UDP_OUTGOING, INCOMING_IGNORE_LOCALHOST,
-    OUTGOING_IGNORE_LOCALHOST, REMOTE_UNIX_STREAMS,
+    OUTGOING_IGNORE_LOCALHOST, REMOTE_UNIX_STREAMS, TARGETLESS,
 };
 
 <span class="doccomment">/// Hostname initialized from the agent with [`gethostname`].
@@ -902,6 +928,20 @@
         <span class="prelude-val">Err</span>(Bypass::Port(requested_address.port()))<span class="question-mark">?</span>;
     }
 
+    <span class="kw">if </span>TARGETLESS
+        .get()
+        .copied()
+        .expect(<span class="string">&quot;Should be set during initialization!&quot;</span>)
+    {
+        <span class="macro">warn!</span>(
+            <span class="string">&quot;Binding a port ({}) while running targetless. A targetless agent is not exposed by \
+            any service. Therefore, letting this port bind happen locally instead of on the \
+            cluster.&quot;</span>,
+            requested_address.port()
+        );
+        <span class="kw">return </span>Detour::Bypass(Bypass::BindWhenTargetless);
+    }
+
     <span class="kw">let </span>unbound_address = <span class="kw">match </span>socket.domain {
         libc::AF_INET =&gt; <span class="prelude-val">Ok</span>(SockAddr::from(SocketAddr::new(
             IpAddr::V4(Ipv4Addr::LOCALHOST),
@@ -915,6 +955,18 @@
     }<span class="question-mark">?</span>;
 
     <span class="macro">trace!</span>(<span class="string">&quot;bind -&gt; unbound_address {:#?}&quot;</span>, unbound_address);
+
+    <span class="comment">// Check if the user&#39;s requested address isn&#39;t already in use, even though it&#39;s not actually
+    // bound, as we bind to a different address, but if we don&#39;t check for this then we&#39;re
+    // changing normal socket behavior (see issue #1123).
+    </span><span class="kw">if </span>SOCKETS.iter().any(|socket| <span class="kw">match </span><span class="kw-2">&amp;</span>socket.state {
+        SocketState::Initialized | SocketState::Connected(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+        SocketState::Bound(bound) | SocketState::Listening(bound) =&gt; {
+            bound.requested_address == requested_address
+        }
+    }) {
+        <span class="prelude-val">Err</span>(HookError::AddressAlreadyBound(requested_address))<span class="question-mark">?</span>;
+    }
 
     <span class="kw">let </span>bind_result = <span class="kw">unsafe </span>{ FN_BIND(sockfd, unbound_address.as_ptr(), unbound_address.len()) };
     <span class="kw">if </span>bind_result != <span class="number">0 </span>{

@@ -732,6 +732,9 @@
 <a href="#732" id="732">732</a>
 <a href="#733" id="733">733</a>
 <a href="#734" id="734">734</a>
+<a href="#735" id="735">735</a>
+<a href="#736" id="736">736</a>
+<a href="#737" id="737">737</a>
 </pre><pre class="rust"><code><span class="attr">#![feature(result_option_inspect)]
 #![feature(hash_drain_filter)]
 #![feature(once_cell)]
@@ -1442,7 +1445,10 @@
         .with(tracing_subscriber::EnvFilter::from_default_env())
         .init();
 
-    <span class="macro">debug!</span>(<span class="string">&quot;main -&gt; Initializing mirrord-agent.&quot;</span>);
+    <span class="macro">debug!</span>(
+        <span class="string">&quot;main -&gt; Initializing mirrord-agent, version {}.&quot;</span>,
+        <span class="macro">env!</span>(<span class="string">&quot;CARGO_PKG_VERSION&quot;</span>)
+    );
 
     <span class="kw">let </span>agent_result = <span class="kw">if </span>std::env::var(IPTABLE_PREROUTING_ENV).is_ok()
         &amp;&amp; std::env::var(IPTABLE_MESH_ENV).is_ok()
