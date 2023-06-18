@@ -699,6 +699,7 @@
 <a href="#699" id="699">699</a>
 <a href="#700" id="700">700</a>
 <a href="#701" id="701">701</a>
+<a href="#702" id="702">702</a>
 </pre><pre class="rust"><code><span class="attr">#![feature(slice_concat_trait)]
 #![feature(once_cell)]
 #![feature(result_option_inspect)]
@@ -1286,14 +1287,15 @@
                 network: <span class="prelude-val">Some</span>(ToggleableConfig::Config(NetworkFileConfig {
                     dns: <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
                     incoming: <span class="prelude-val">Some</span>(ToggleableConfig::Config(IncomingFileConfig::Advanced(
-                        IncomingAdvancedFileConfig {
+                        Box::new(IncomingAdvancedFileConfig {
                             mode: <span class="prelude-val">Some</span>(IncomingMode::Mirror),
                             http_header_filter: <span class="prelude-val">None</span>,
                             http_filter: <span class="prelude-val">None</span>,
                             port_mapping: <span class="prelude-val">None</span>,
                             ignore_localhost: <span class="prelude-val">None</span>,
                             ignore_ports: <span class="prelude-val">None</span>,
-                        },
+                            listen_ports: <span class="prelude-val">None</span>,
+                        }),
                     ))),
                     outgoing: <span class="prelude-val">Some</span>(ToggleableConfig::Config(OutgoingFileConfig {
                         tcp: <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),

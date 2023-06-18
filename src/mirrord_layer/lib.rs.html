@@ -990,6 +990,14 @@
 <a href="#990" id="990">990</a>
 <a href="#991" id="991">991</a>
 <a href="#992" id="992">992</a>
+<a href="#993" id="993">993</a>
+<a href="#994" id="994">994</a>
+<a href="#995" id="995">995</a>
+<a href="#996" id="996">996</a>
+<a href="#997" id="997">997</a>
+<a href="#998" id="998">998</a>
+<a href="#999" id="999">999</a>
+<a href="#1000" id="1000">1000</a>
 </pre><pre class="rust"><code><span class="attr">#![feature(c_variadic)]
 #![feature(once_cell)]
 #![feature(result_option_inspect)]
@@ -1072,6 +1080,7 @@
     sync::{LazyLock, OnceLock},
 };
 
+<span class="kw">use </span>bimap::BiMap;
 <span class="kw">use </span>common::ResponseChannel;
 <span class="kw">use </span>ctor::ctor;
 <span class="kw">use </span>dns::GetAddrInfo;
@@ -1234,6 +1243,9 @@
 
 <span class="doccomment">/// Ports to ignore because they are used by the IDE debugger
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>DEBUGGER_IGNORED_PORTS: OnceLock&lt;DebuggerPorts&gt; = OnceLock::new();
+
+<span class="doccomment">/// Mapping of ports to use for binding local sockets created by us for intercepting.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>LISTEN_PORTS: OnceLock&lt;BiMap&lt;u16, u16&gt;&gt; = OnceLock::new();
 
 <span class="doccomment">/// Check if we&#39;re running in NixOS or Devbox.
 ///
@@ -1458,6 +1470,10 @@
     DEBUGGER_IGNORED_PORTS
         .set(DebuggerPorts::from_env())
         .expect(<span class="string">&quot;Setting DEBUGGER_IGNORED_PORTS failed&quot;</span>);
+
+    LISTEN_PORTS
+        .set(config.feature.network.incoming.listen_ports.clone())
+        .expect(<span class="string">&quot;Setting LISTEN_PORTS failed&quot;</span>);
 
     enable_hooks(
         file_mode.is_active(),

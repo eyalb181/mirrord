@@ -775,6 +775,30 @@
 <a href="#775" id="775">775</a>
 <a href="#776" id="776">776</a>
 <a href="#777" id="777">777</a>
+<a href="#778" id="778">778</a>
+<a href="#779" id="779">779</a>
+<a href="#780" id="780">780</a>
+<a href="#781" id="781">781</a>
+<a href="#782" id="782">782</a>
+<a href="#783" id="783">783</a>
+<a href="#784" id="784">784</a>
+<a href="#785" id="785">785</a>
+<a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a>
+<a href="#789" id="789">789</a>
+<a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
+<a href="#796" id="796">796</a>
+<a href="#797" id="797">797</a>
+<a href="#798" id="798">798</a>
+<a href="#799" id="799">799</a>
+<a href="#800" id="800">800</a>
+<a href="#801" id="801">801</a>
 </pre><pre class="rust"><code><span class="kw">use </span>alloc::ffi::CString;
 <span class="kw">use </span>core::{ffi::CStr, mem};
 <span class="kw">use </span>std::{
@@ -805,7 +829,7 @@
     is_debugger_port,
     outgoing::{tcp::TcpOutgoing, udp::UdpOutgoing, Connect, RemoteConnection},
     tcp::{Listen, TcpIncoming},
-    ENABLED_TCP_OUTGOING, ENABLED_UDP_OUTGOING, INCOMING_IGNORE_LOCALHOST,
+    ENABLED_TCP_OUTGOING, ENABLED_UDP_OUTGOING, INCOMING_IGNORE_LOCALHOST, LISTEN_PORTS,
     OUTGOING_IGNORE_LOCALHOST, REMOTE_UNIX_STREAMS, TARGETLESS,
 };
 
@@ -885,6 +909,30 @@
     Detour::Success(socket_fd)
 }
 
+<span class="attr">#[tracing::instrument(level = <span class="string">&quot;warn&quot;</span>, ret)]
+</span><span class="kw">fn </span>bind_port(sockfd: c_int, domain: c_int, port: u16) -&gt; Detour&lt;()&gt; {
+    <span class="kw">let </span>address = <span class="kw">match </span>domain {
+        libc::AF_INET =&gt; <span class="prelude-val">Ok</span>(SockAddr::from(SocketAddr::new(
+            IpAddr::V4(Ipv4Addr::LOCALHOST),
+            port,
+        ))),
+        libc::AF_INET6 =&gt; <span class="prelude-val">Ok</span>(SockAddr::from(SocketAddr::new(
+            IpAddr::V6(Ipv6Addr::UNSPECIFIED),
+            port,
+        ))),
+        invalid =&gt; <span class="prelude-val">Err</span>(Bypass::Domain(invalid)),
+    }<span class="question-mark">?</span>;
+
+    <span class="macro">trace!</span>(<span class="string">&quot;bind -&gt; {address:#?}&quot;</span>);
+
+    <span class="kw">let </span>bind_result = <span class="kw">unsafe </span>{ FN_BIND(sockfd, address.as_ptr(), address.len()) };
+    <span class="kw">if </span>bind_result != <span class="number">0 </span>{
+        Detour::Error(io::Error::last_os_error().into())
+    } <span class="kw">else </span>{
+        Detour::Success(())
+    }
+}
+
 <span class="doccomment">/// Check if the socket is managed by us, if it&#39;s managed by us and it&#39;s not an ignored port,
 /// update the socket state.
 </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(raw_address))]
@@ -942,20 +990,6 @@
         <span class="kw">return </span>Detour::Bypass(Bypass::BindWhenTargetless);
     }
 
-    <span class="kw">let </span>unbound_address = <span class="kw">match </span>socket.domain {
-        libc::AF_INET =&gt; <span class="prelude-val">Ok</span>(SockAddr::from(SocketAddr::new(
-            IpAddr::V4(Ipv4Addr::LOCALHOST),
-            <span class="number">0</span>,
-        ))),
-        libc::AF_INET6 =&gt; <span class="prelude-val">Ok</span>(SockAddr::from(SocketAddr::new(
-            IpAddr::V6(Ipv6Addr::UNSPECIFIED),
-            <span class="number">0</span>,
-        ))),
-        invalid =&gt; <span class="prelude-val">Err</span>(Bypass::Domain(invalid)),
-    }<span class="question-mark">?</span>;
-
-    <span class="macro">trace!</span>(<span class="string">&quot;bind -&gt; unbound_address {:#?}&quot;</span>, unbound_address);
-
     <span class="comment">// Check if the user&#39;s requested address isn&#39;t already in use, even though it&#39;s not actually
     // bound, as we bind to a different address, but if we don&#39;t check for this then we&#39;re
     // changing normal socket behavior (see issue #1123).
@@ -968,16 +1002,27 @@
         <span class="prelude-val">Err</span>(HookError::AddressAlreadyBound(requested_address))<span class="question-mark">?</span>;
     }
 
-    <span class="kw">let </span>bind_result = <span class="kw">unsafe </span>{ FN_BIND(sockfd, unbound_address.as_ptr(), unbound_address.len()) };
-    <span class="kw">if </span>bind_result != <span class="number">0 </span>{
-        <span class="macro">error!</span>(
-            <span class="string">&quot;listen -&gt; Failed `bind` sockfd {:#?} to address {:#?} with errno {:#?}!&quot;</span>,
-            sockfd,
-            unbound_address,
-            errno::errno()
-        );
-        <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::last_os_error())<span class="question-mark">?</span>;
-    }
+    <span class="comment">// Try to bind a port from listen ports, if no configuration
+    // try to bind the requested port, if not available get a random port
+    // if there&#39;s configuration and binding fails with the requested port
+    // we return address not available and not fallback to a random port.
+    </span><span class="kw">let </span>listen_port = LISTEN_PORTS
+        .get()
+        .expect(<span class="string">&quot;`LISTEN_PORTS` not set. Please report a bug&quot;</span>)
+        .get_by_left(<span class="kw-2">&amp;</span>requested_address.port())
+        .cloned();
+
+    <span class="comment">// Listen port was specified
+    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(port) = listen_port {
+        bind_port(sockfd, socket.domain, port)
+    } <span class="kw">else </span>{
+        bind_port(sockfd, socket.domain, requested_address.port())
+            .or_else(|e| {
+                <span class="macro">warn!</span>(<span class="string">&quot;bind -&gt; first `bind` failed on port {listen_port:?} with {e:?}, trying to bind to a random port&quot;</span>);
+                bind_port(sockfd, socket.domain, <span class="number">0</span>)
+            }
+        )
+    }<span class="question-mark">?</span>;
 
     <span class="comment">// We need to find out what&#39;s the port we bound to, that&#39;ll be used by `poll_agent` to
     // connect to.
@@ -1003,7 +1048,10 @@
 
     SOCKETS.insert(sockfd, socket);
 
-    Detour::Success(bind_result)
+    <span class="comment">// node reads errno to check if bind was successful and doesn&#39;t care about the return value
+    // (???)
+    </span>errno::set_errno(errno::Errno(<span class="number">0</span>));
+    Detour::Success(<span class="number">0</span>)
 }
 
 <span class="doccomment">/// Subscribe to the agent on the real port. Messages received from the agent on the real port will
