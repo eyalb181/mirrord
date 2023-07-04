@@ -310,6 +310,10 @@
 <a href="#310" id="310">310</a>
 <a href="#311" id="311">311</a>
 <a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
 </pre></div><pre class="rust"><code><span class="attr">#![deny(missing_docs)]
 
 </span><span class="kw">use </span>std::path::PathBuf;
@@ -481,9 +485,13 @@ Join our Discord server at https://discord.gg/metalbear, create a GitHub issue a
     </span><span class="attr">#[arg(long)]
     </span><span class="kw">pub </span>no_udp_outgoing: bool,
 
-    <span class="doccomment">/// Disable telemetry - this also disables version check. See https://github.com/metalbear-co/mirrord/blob/main/TELEMETRY.md
+    <span class="doccomment">/// Disable telemetry. See https://github.com/metalbear-co/mirrord/blob/main/TELEMETRY.md
     </span><span class="attr">#[arg(long)]
     </span><span class="kw">pub </span>no_telemetry: bool,
+
+    <span class="attr">#[arg(long)]
+    </span><span class="doccomment">/// Disable version check on startup.
+    </span><span class="kw">pub </span>disable_version_check: bool,
 
     <span class="doccomment">/// Load config from config file
     </span><span class="attr">#[arg(short = <span class="string">&#39;f&#39;</span>, long)]
