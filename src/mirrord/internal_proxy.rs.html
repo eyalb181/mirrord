@@ -373,7 +373,7 @@
                 }
             },
             <span class="kw">_ </span>= active_connections.join_next(), <span class="kw">if </span>!active_connections.is_empty() =&gt; {},
-            <span class="kw">_ </span>= tokio::time::sleep(Duration::from_secs(<span class="number">1</span>)) =&gt; {
+            <span class="kw">_ </span>= tokio::time::sleep(Duration::from_secs(<span class="number">5</span>)) =&gt; {
                 <span class="kw">if </span>active_connections.is_empty() {
                     <span class="kw">break</span>;
                 }
