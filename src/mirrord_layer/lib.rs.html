@@ -1060,8 +1060,6 @@
 <a href="#1060" id="1060">1060</a>
 <a href="#1061" id="1061">1061</a>
 <a href="#1062" id="1062">1062</a>
-<a href="#1063" id="1063">1063</a>
-<a href="#1064" id="1064">1064</a>
 </pre></div><pre class="rust"><code><span class="attr">#![feature(c_variadic)]
 #![feature(result_option_inspect)]
 #![feature(const_trait_impl)]
@@ -1486,22 +1484,15 @@
         .set(config.feature.network.incoming.ignore_localhost)
         .expect(<span class="string">&quot;Setting INCOMING_IGNORE_LOCALHOST singleton&quot;</span>);
 
-    <span class="kw">let </span>targetless = config.target.path.is_none();
     TARGETLESS
-        .set(targetless)
+        .set(config.target.path.is_none())
         .expect(<span class="string">&quot;Setting TARGETLESS singleton&quot;</span>);
 
     INCOMING_IGNORE_PORTS
         .set(config.feature.network.incoming.ignore_ports.clone())
         .expect(<span class="string">&quot;Setting INCOMING_IGNORE_PORTS failed&quot;</span>);
 
-    FILE_FILTER.get_or_init(|| {
-        <span class="kw">let </span><span class="kw-2">mut </span>fs_config = config.feature.fs.clone();
-        <span class="kw">if </span>targetless {
-            fs_config.mode = FsModeConfig::LocalWithOverrides;
-        }
-        FileFilter::new(fs_config)
-    });
+    FILE_FILTER.get_or_init(|| FileFilter::new(config.feature.fs.clone()));
 
     DEBUGGER_IGNORED_PORTS
         .set(DebuggerPorts::from_env())
@@ -1529,7 +1520,12 @@
 /// 4. Replaces the [`libc`] calls with our hooks with [`enable_hooks`];
 ///
 /// 5. Starts the main mirrord-layer thread.
-</span><span class="kw">fn </span>layer_start(config: LayerConfig) {
+</span><span class="kw">fn </span>layer_start(<span class="kw-2">mut </span>config: LayerConfig) {
+    <span class="kw">if </span>config.target.path.is_none() {
+        <span class="comment">// Use localwithoverrides on targetless regardless of user config.
+        </span>config.feature.fs.mode = FsModeConfig::LocalWithOverrides;
+    }
+
     <span class="comment">// does not need to be atomic because on the first call there are never other threads.
     // Will be false when manually called from fork hook.
     </span><span class="kw">if </span>LAYER_INITIALIZED.get().is_none() {
