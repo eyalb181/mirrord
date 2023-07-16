@@ -1060,6 +1060,37 @@
 <a href="#1060" id="1060">1060</a>
 <a href="#1061" id="1061">1061</a>
 <a href="#1062" id="1062">1062</a>
+<a href="#1063" id="1063">1063</a>
+<a href="#1064" id="1064">1064</a>
+<a href="#1065" id="1065">1065</a>
+<a href="#1066" id="1066">1066</a>
+<a href="#1067" id="1067">1067</a>
+<a href="#1068" id="1068">1068</a>
+<a href="#1069" id="1069">1069</a>
+<a href="#1070" id="1070">1070</a>
+<a href="#1071" id="1071">1071</a>
+<a href="#1072" id="1072">1072</a>
+<a href="#1073" id="1073">1073</a>
+<a href="#1074" id="1074">1074</a>
+<a href="#1075" id="1075">1075</a>
+<a href="#1076" id="1076">1076</a>
+<a href="#1077" id="1077">1077</a>
+<a href="#1078" id="1078">1078</a>
+<a href="#1079" id="1079">1079</a>
+<a href="#1080" id="1080">1080</a>
+<a href="#1081" id="1081">1081</a>
+<a href="#1082" id="1082">1082</a>
+<a href="#1083" id="1083">1083</a>
+<a href="#1084" id="1084">1084</a>
+<a href="#1085" id="1085">1085</a>
+<a href="#1086" id="1086">1086</a>
+<a href="#1087" id="1087">1087</a>
+<a href="#1088" id="1088">1088</a>
+<a href="#1089" id="1089">1089</a>
+<a href="#1090" id="1090">1090</a>
+<a href="#1091" id="1091">1091</a>
+<a href="#1092" id="1092">1092</a>
+<a href="#1093" id="1093">1093</a>
 </pre></div><pre class="rust"><code><span class="attr">#![feature(c_variadic)]
 #![feature(result_option_inspect)]
 #![feature(const_trait_impl)]
@@ -1167,7 +1198,7 @@
 };
 <span class="kw">use </span>outgoing::{tcp::TcpOutgoingHandler, udp::UdpOutgoingHandler};
 <span class="kw">use </span>regex::RegexSet;
-<span class="kw">use </span>socket::SOCKETS;
+<span class="kw">use </span>socket::{OutgoingSelector, SOCKETS};
 <span class="kw">use </span>tcp::TcpHandler;
 <span class="kw">use </span>tcp_mirror::TcpMirrorHandler;
 <span class="kw">use </span>tcp_steal::TcpStealHandler;
@@ -1316,6 +1347,18 @@
 <span class="doccomment">/// Ports to ignore on listening for mirroring/stealing.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>INCOMING_IGNORE_PORTS: OnceLock&lt;HashSet&lt;u16&gt;&gt; = OnceLock::new();
 
+<span class="comment">// TODO(alex): To support DNS on the selector, change it to `LazyLock&lt;Arc&lt;Mutex&gt;&gt;`, so we can modify
+// the global on `OutgoingSelector::connect_remote`, converting `AddressFilter:Name` to however
+// many addresses we resolve into `AddressFilter::Socket`.
+//
+// Also, we need a global for `REMOTE_DNS`, so we can check it in
+// `OutgoingSelector::connect_remote`, and only resolve DNS through remote if it&#39;s `true`.
+
+</span><span class="doccomment">/// Selector for how outgoing connection will behave, either sending traffic via the remote or from
+/// local app, according to how the user set up the `remote`, and `local` filter, in
+/// `feature.network.outgoing`.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>OUTGOING_SELECTOR: OnceLock&lt;OutgoingSelector&gt; = OnceLock::new();
+
 <span class="doccomment">/// Ports to ignore because they are used by the IDE debugger
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>DEBUGGER_IGNORED_PORTS: OnceLock&lt;DebuggerPorts&gt; = OnceLock::new();
 
@@ -1455,12 +1498,31 @@
     FILE_MODE
         .set(config.feature.fs.clone())
         .expect(<span class="string">&quot;Setting FILE_MODE failed.&quot;</span>);
-    ENABLED_TCP_OUTGOING
+
+    <span class="comment">// These must come before `OutgoingSelector::new`.
+    </span>ENABLED_TCP_OUTGOING
         .set(config.feature.network.outgoing.tcp)
         .expect(<span class="string">&quot;Setting ENABLED_TCP_OUTGOING singleton&quot;</span>);
     ENABLED_UDP_OUTGOING
         .set(config.feature.network.outgoing.udp)
         .expect(<span class="string">&quot;Setting ENABLED_UDP_OUTGOING singleton&quot;</span>);
+
+    {
+        <span class="kw">let </span>outgoing_selector = config
+            .feature
+            .network
+            .outgoing
+            .filter
+            .clone()
+            .try_into()
+            .expect(<span class="string">&quot;Failed setting up outgoing traffic filter!&quot;</span>);
+
+        <span class="comment">// This will crash the app if it comes before `ENABLED_(TCP|UDP)_OUTGOING`!
+        </span>OUTGOING_SELECTOR
+            .set(outgoing_selector)
+            .expect(<span class="string">&quot;Setting OUTGOING_SELECTOR singleton&quot;</span>);
+    }
+
     REMOTE_UNIX_STREAMS
         .set(
             config
