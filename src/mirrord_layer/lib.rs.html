@@ -1091,6 +1091,12 @@
 <a href="#1091" id="1091">1091</a>
 <a href="#1092" id="1092">1092</a>
 <a href="#1093" id="1093">1093</a>
+<a href="#1094" id="1094">1094</a>
+<a href="#1095" id="1095">1095</a>
+<a href="#1096" id="1096">1096</a>
+<a href="#1097" id="1097">1097</a>
+<a href="#1098" id="1098">1098</a>
+<a href="#1099" id="1099">1099</a>
 </pre></div><pre class="rust"><code><span class="attr">#![feature(c_variadic)]
 #![feature(result_option_inspect)]
 #![feature(const_trait_impl)]
@@ -1206,7 +1212,7 @@
     runtime::Runtime,
     select,
     sync::mpsc::{channel, Receiver, Sender},
-    time::{sleep, Duration},
+    time::{Duration, Interval},
 };
 <span class="kw">use </span>tracing::{debug, error, info, trace, warn};
 <span class="kw">use </span>tracing_subscriber::{fmt::format::FmtSpan, prelude::<span class="kw-2">*</span>};
@@ -1695,6 +1701,8 @@
     /// [`DaemonMessage::Pong`], setting it to `false` and completing the hearbeat detection.
     </span>ping: bool,
 
+    ping_interval: Interval,
+
     <span class="doccomment">/// Handler to the TCP mirror operations, see [`TcpMirrorHandler`].
     </span>tcp_mirror_handler: TcpMirrorHandler,
 
@@ -1757,6 +1765,7 @@
             tx,
             rx,
             ping: <span class="bool-val">false</span>,
+            ping_interval: tokio::time::interval(Duration::from_secs(<span class="number">30</span>)),
             tcp_mirror_handler: TcpMirrorHandler::new(port_mapping.clone()),
             tcp_outgoing_handler: TcpOutgoingHandler::default(),
             udp_outgoing_handler: Default::default(),
@@ -1774,7 +1783,8 @@
 
     <span class="doccomment">/// Sends a [`ClientMessage`] through `Layer::tx` to the [`Receiver`] in
     /// [`wrap_raw_connection`](mirrord_kube::api::wrap_raw_connection).
-    </span><span class="kw">async fn </span>send(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: ClientMessage) -&gt; <span class="prelude-ty">Result</span>&lt;(), ClientMessage&gt; {
+    </span><span class="kw">async fn </span>send(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: ClientMessage) -&gt; <span class="prelude-ty">Result</span>&lt;(), ClientMessage&gt; {
+        <span class="self">self</span>.ping_interval.reset();
         <span class="self">self</span>.tx.send(msg).<span class="kw">await</span>.map_err(|err| err.<span class="number">0</span>)
     }
 
@@ -1922,7 +1932,7 @@
 ///   [`ClientMessage`]s, sending them with `Layer::send`;
 ///
 /// - Handle the heartbeat mechanism (Ping/Pong feature), sending a [`ClientMessage::Ping`] if all
-///   the other channels received nothing for a while (60 seconds);
+///   the other channels received nothing for a while (30 seconds);
 </span><span class="kw">async fn </span>thread_loop(
     <span class="kw-2">mut </span>receiver: Receiver&lt;HookMessage&gt;,
     tx: Sender&lt;ClientMessage&gt;,
@@ -1938,6 +1948,8 @@
         ..
     } = config;
     <span class="kw">let </span><span class="kw-2">mut </span>layer = Layer::new(tx, rx, incoming);
+    layer.ping_interval.tick().<span class="kw">await</span>;
+
     <span class="kw">loop </span>{
         <span class="macro">select! </span>{
             hook_message = receiver.recv() =&gt; {
@@ -1987,7 +1999,7 @@
             <span class="prelude-val">Some</span>(response) = layer.http_response_receiver.recv() =&gt; {
                 layer.send(ClientMessage::TcpSteal(LayerTcpSteal::HttpResponse(response))).<span class="kw">await</span>.unwrap();
             }
-            <span class="kw">_ </span>= sleep(Duration::from_secs(<span class="number">30</span>)) =&gt; {
+            <span class="kw">_ </span>= layer.ping_interval.tick() =&gt; {
                 <span class="kw">if </span>!layer.ping {
                     layer.send(ClientMessage::Ping).<span class="kw">await</span>.unwrap();
                     <span class="macro">trace!</span>(<span class="string">&quot;sent ping to daemon&quot;</span>);
