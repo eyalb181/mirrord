@@ -180,6 +180,7 @@
 <a href="#180" id="180">180</a>
 <a href="#181" id="181">181</a>
 <a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::path::Path;
 <span class="attr">#[cfg(feature = <span class="string">&quot;incluster&quot;</span>)]
 </span><span class="kw">use </span>std::{net::SocketAddr, time::Duration};
@@ -342,6 +343,7 @@
             .<span class="kw">await</span><span class="question-mark">?
         </span>};
 
+        <span class="macro">info!</span>(<span class="string">&quot;Created agent pod {pod_agent_name:?}&quot;</span>);
         <span class="prelude-val">Ok</span>((pod_agent_name, agent_port))
     }
 }
