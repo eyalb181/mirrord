@@ -137,6 +137,7 @@
 <a href="#137" id="137">137</a>
 <a href="#138" id="138">138</a>
 <a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{collections::HashSet, sync::LazyLock};
 
 <span class="kw">use </span>mirrord_config::{util::VecOrSingle, LayerConfig};
@@ -164,6 +165,7 @@
         <span class="string">&quot;collect2&quot;</span>,
         <span class="string">&quot;cargo-watch&quot;</span>,
         <span class="string">&quot;debugserver&quot;</span>,
+        <span class="string">&quot;jspawnhelper&quot;</span>,
     ])
 });
 
@@ -179,7 +181,7 @@
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="kw">static </span>SIP_ONLY_PROCESSES: LazyLock&lt;HashSet&lt;<span class="kw-2">&amp;</span>str&gt;&gt; =
-        LazyLock::new(|| HashSet::from([<span class="string">&quot;sh&quot;</span>, <span class="string">&quot;bash&quot;</span>]));
+        LazyLock::new(|| HashSet::from([<span class="string">&quot;sh&quot;</span>, <span class="string">&quot;bash&quot;</span>, <span class="string">&quot;env&quot;</span>]));
 
     <span class="kw">pub fn </span>is_sip_only(given_process: <span class="kw-2">&amp;</span>str) -&gt; bool {
         is_build_tool(given_process) || SIP_ONLY_PROCESSES.contains(given_process)

@@ -375,6 +375,7 @@ var sourcesIndex = JSON.parse('{\
 "sha2":["",[["sha256",[],["soft.rs","x86.rs"]],["sha512",[],["soft.rs","x86.rs"]]],["consts.rs","core_api.rs","lib.rs","sha256.rs","sha512.rs"]],\
 "sharded_slab":["",[["page",[],["mod.rs","slot.rs","stack.rs"]]],["cfg.rs","clear.rs","implementation.rs","iter.rs","lib.rs","macros.rs","pool.rs","shard.rs","sync.rs","tid.rs"]],\
 "shell_words":["",[],["lib.rs"]],\
+"shellexpand":["",[],["funcs.rs","lib.rs","strings.rs","wtraits.rs"]],\
 "signal_hook_registry":["",[],["half_lock.rs","lib.rs"]],\
 "signature":["",[],["encoding.rs","error.rs","hazmat.rs","keypair.rs","lib.rs","signer.rs","verifier.rs"]],\
 "simd_abstraction":["",[["arch",[],["x86.rs"]]],["ascii.rs","hex.rs","lib.rs","tools.rs","traits.rs"]],\
