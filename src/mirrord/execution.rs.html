@@ -224,6 +224,7 @@
 <a href="#224" id="224">224</a>
 <a href="#225" id="225">225</a>
 <a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     collections::{HashMap, HashSet},
     time::Duration,
@@ -342,6 +343,7 @@
         </span>proxy_command
             .arg(<span class="string">&quot;intproxy&quot;</span>)
             .stdout(std::process::Stdio::piped())
+            .stderr(std::process::Stdio::null())
             .stdin(std::process::Stdio::null());
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(timeout) = timeout {
