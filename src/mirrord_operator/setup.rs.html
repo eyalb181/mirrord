@@ -683,6 +683,13 @@
 <a href="#683" id="683">683</a>
 <a href="#684" id="684">684</a>
 <a href="#685" id="685">685</a>
+<a href="#686" id="686">686</a>
+<a href="#687" id="687">687</a>
+<a href="#688" id="688">688</a>
+<a href="#689" id="689">689</a>
+<a href="#690" id="690">690</a>
+<a href="#691" id="691">691</a>
+<a href="#692" id="692">692</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{collections::BTreeMap, convert::Infallible, io::Write, str::FromStr, sync::LazyLock};
 
 <span class="kw">use </span>k8s_openapi::{
@@ -1097,12 +1104,18 @@
             },
             rules: <span class="prelude-val">Some</span>(<span class="macro">vec!</span>[
                 PolicyRule {
-                    api_groups: <span class="prelude-val">Some</span>(<span class="macro">vec!</span>[<span class="string">&quot;&quot;</span>.to_owned(), <span class="string">&quot;apps&quot;</span>.to_owned(), <span class="string">&quot;batch&quot;</span>.to_owned()]),
+                    api_groups: <span class="prelude-val">Some</span>(<span class="macro">vec!</span>[
+                        <span class="string">&quot;&quot;</span>.to_owned(),
+                        <span class="string">&quot;apps&quot;</span>.to_owned(),
+                        <span class="string">&quot;batch&quot;</span>.to_owned(),
+                        <span class="string">&quot;argoproj.io&quot;</span>.to_owned(),
+                    ]),
                     resources: <span class="prelude-val">Some</span>(<span class="macro">vec!</span>[
                         <span class="string">&quot;pods&quot;</span>.to_owned(),
                         <span class="string">&quot;pods/ephemeralcontainers&quot;</span>.to_owned(),
                         <span class="string">&quot;deployments&quot;</span>.to_owned(),
                         <span class="string">&quot;jobs&quot;</span>.to_owned(),
+                        <span class="string">&quot;rollouts&quot;</span>.to_owned(),
                     ]),
                     verbs: <span class="macro">vec!</span>[<span class="string">&quot;get&quot;</span>.to_owned(), <span class="string">&quot;list&quot;</span>.to_owned(), <span class="string">&quot;watch&quot;</span>.to_owned()],
                     ..Default::default()
@@ -1130,6 +1143,7 @@
                         <span class="string">&quot;userextras/sessionname&quot;</span>.to_owned(),
                         <span class="string">&quot;userextras/iam.gke.io/user-assertion&quot;</span>.to_owned(),
                         <span class="string">&quot;userextras/user-assertion.cloud.google.com&quot;</span>.to_owned(),
+                        <span class="string">&quot;userextras/principalid&quot;</span>.to_owned(),
                     ]),
                     verbs: <span class="macro">vec!</span>[<span class="string">&quot;impersonate&quot;</span>.to_owned()],
                     ..Default::default()
