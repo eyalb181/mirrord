@@ -359,7 +359,7 @@ var sourcesIndex = JSON.parse('{\
 "sct":["",[],["lib.rs"]],\
 "sec1":["",[],["error.rs","lib.rs","parameters.rs","point.rs","private_key.rs","traits.rs"]],\
 "secrecy":["",[],["boxed.rs","lib.rs","string.rs","vec.rs"]],\
-"semver":["",[],["backport.rs","display.rs","error.rs","eval.rs","identifier.rs","impls.rs","lib.rs","parse.rs"]],\
+"semver":["",[],["backport.rs","display.rs","error.rs","eval.rs","identifier.rs","impls.rs","lib.rs","parse.rs","serde.rs"]],\
 "serde":["",[["de",[],["format.rs","ignored_any.rs","impls.rs","mod.rs","seed.rs","size_hint.rs","utf8.rs","value.rs"]],["private",[],["de.rs","doc.rs","mod.rs","ser.rs"]],["ser",[],["fmt.rs","impls.rs","impossible.rs","mod.rs"]]],["integer128.rs","lib.rs","macros.rs"]],\
 "serde_derive":["",[],["buffer.rs","bytecode.rs","lib.rs","lib_precompiled.rs"]],\
 "serde_derive_internals":["",[["src",[],["ast.rs","attr.rs","case.rs","check.rs","ctxt.rs","mod.rs","receiver.rs","respan.rs","symbol.rs"]]],["lib.rs"]],\

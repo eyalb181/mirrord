@@ -339,7 +339,7 @@
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="kw">static </span>SIP_ONLY_PROCESSES: LazyLock&lt;HashSet&lt;<span class="kw-2">&amp;</span>str&gt;&gt; =
-        LazyLock::new(|| HashSet::from([<span class="string">&quot;sh&quot;</span>, <span class="string">&quot;bash&quot;</span>, <span class="string">&quot;env&quot;</span>]));
+        LazyLock::new(|| HashSet::from([<span class="string">&quot;sh&quot;</span>, <span class="string">&quot;bash&quot;</span>, <span class="string">&quot;env&quot;</span>, <span class="string">&quot;go&quot;</span>, <span class="string">&quot;dlv&quot;</span>]));
 
     <span class="kw">pub fn </span>is_sip_only(given_process: <span class="kw-2">&amp;</span>ExecutableName) -&gt; bool {
         given_process.is_build_tool()
