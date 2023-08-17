@@ -1095,12 +1095,6 @@
 <a href="#1095" id="1095">1095</a>
 <a href="#1096" id="1096">1096</a>
 <a href="#1097" id="1097">1097</a>
-<a href="#1098" id="1098">1098</a>
-<a href="#1099" id="1099">1099</a>
-<a href="#1100" id="1100">1100</a>
-<a href="#1101" id="1101">1101</a>
-<a href="#1102" id="1102">1102</a>
-<a href="#1103" id="1103">1103</a>
 </pre></div><pre class="rust"><code><span class="attr">#![feature(c_variadic)]
 #![feature(result_option_inspect)]
 #![feature(const_trait_impl)]
@@ -1176,13 +1170,7 @@
 </span><span class="kw">extern crate </span>alloc;
 <span class="kw">extern crate </span>core;
 
-<span class="kw">use </span>std::{
-    collections::VecDeque,
-    ffi::OsString,
-    net::SocketAddr,
-    panic,
-    sync::{OnceLock, RwLock},
-};
+<span class="kw">use </span>std::{collections::VecDeque, ffi::OsString, net::SocketAddr, panic, sync::OnceLock};
 
 <span class="kw">use </span>bimap::BiMap;
 <span class="kw">use </span>common::ResponseChannel;
@@ -1291,7 +1279,7 @@
 ///
 /// You probably don&#39;t want to use this directly, instead prefer calling
 /// [`blocking_send_hook_message`](common::blocking_send_hook_message) to send internal messages.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>HOOK_SENDER: OnceLock&lt;RwLock&lt;Sender&lt;HookMessage&gt;&gt;&gt; = OnceLock::new();
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span><span class="kw-2">mut </span>HOOK_SENDER: OnceLock&lt;Sender&lt;HookMessage&gt;&gt; = OnceLock::new();
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>LAYER_INITIALIZED: OnceLock&lt;()&gt; = OnceLock::new();
 
@@ -1622,21 +1610,21 @@
     <span class="kw">let </span>(tx, rx) = runtime.block_on(connection::connect_to_proxy(address));
     <span class="kw">let </span>(sender, receiver) = channel::&lt;HookMessage&gt;(<span class="number">1000</span>);
 
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(lock) = HOOK_SENDER.get() {
-        <span class="comment">// HOOK_SENDER is already set, we&#39;re currently on a fork detour.
+    <span class="comment">// SAFETY: mutation of `HOOK_SENDER` happens only in the ctor, or in the fork hook, and in all
+    // of those cases there&#39;s only one thread so we can do this safely.
+    </span><span class="kw">unsafe </span>{
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(old_sender) = HOOK_SENDER.take() {
+            <span class="comment">// HOOK_SENDER is already set, we&#39;re currently on a fork detour.
 
-        // `expect`: `lock` returns error if another thread panicked while holding the lock, but
-        // when this code runs there are still no other threads in the process, because it&#39;s called
-        // either from the ctor, or from the child in a `fork` hook, before execution is returned to
-        // the user application.
-        </span><span class="kw-2">*</span>(lock.write().expect(<span class="string">&quot;Could not reset HOOK_SENDER&quot;</span>)) = sender;
-    } <span class="kw">else </span>{
-        <span class="comment">// First call to this func, we&#39;re in the ctor.
-
-        </span>HOOK_SENDER
-            .set(RwLock::new(sender))
+            // we can&#39;t call drop since it might trigger the traceback that can be seen here
+            // https://github.com/metalbear-co/mirrord/issues/1792
+            // so we leak it.
+            </span>std::mem::forget(old_sender);
+        }
+        HOOK_SENDER
+            .set(sender)
             .expect(<span class="string">&quot;Setting HOOK_SENDER singleton&quot;</span>);
-    }
+    };
 
     start_layer_thread(tx, rx, receiver, config, runtime);
 }
