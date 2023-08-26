@@ -215,6 +215,11 @@
 <a href="#215" id="215">215</a>
 <a href="#216" id="216">216</a>
 <a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::path::PathBuf;
 
 <span class="kw">use </span>miette::Diagnostic;
@@ -431,5 +436,10 @@
     <span class="attr">#[error(<span class="string">&quot;Waitlist registration failed.&quot;</span>)]
     #[diagnostic(help(<span class="string">&quot;Please check the email provided and internet connection.{GENERAL_HELP}&quot;</span>))]
     </span>WaitlistError(reqwest::Error),
+    <span class="attr">#[error(<span class="string">&quot;Connection info deserialization failed: please report it. value: `{0}` err: `{1}`&quot;</span>)]
+    #[diagnostic(help(
+        <span class="string">r#&quot;This is a bug. Please report it in our Discord or GitHub repository. {GENERAL_HELP}&quot;#
+    </span>))]
+    </span>ConnectInfoLoadFailed(String, serde_json::Error),
 }
 </code></pre></div></section></main></body></html>
