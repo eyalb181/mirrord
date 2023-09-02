@@ -150,8 +150,12 @@
 <a href="#150" id="150">150</a>
 <a href="#151" id="151">151</a>
 <a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::time::Duration;
 
+<span class="kw">use </span>mirrord_analytics::AnalyticsReporter;
 <span class="kw">use </span>mirrord_config::{feature::network::outgoing::OutgoingFilterConfig, LayerConfig};
 <span class="kw">use </span>mirrord_kube::api::{
     kubernetes::{AgentKubernetesConnectInfo, KubernetesAPI},
@@ -199,6 +203,7 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>create_operator_session&lt;P&gt;(
     config: <span class="kw-2">&amp;</span>LayerConfig,
     progress: <span class="kw-2">&amp;</span>P,
+    analytics: <span class="kw-2">&amp;mut </span>AnalyticsReporter,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;
     <span class="prelude-ty">Option</span>&lt;(
         mpsc::Sender&lt;ClientMessage&gt;,
@@ -212,7 +217,7 @@
 {
     <span class="kw">let </span><span class="kw-2">mut </span>sub_progress = progress.subtask(<span class="string">&quot;checking operator&quot;</span>);
 
-    <span class="kw">match </span>OperatorApi::create_session(config, progress).<span class="kw">await </span>{
+    <span class="kw">match </span>OperatorApi::create_session(config, progress, analytics).<span class="kw">await </span>{
         <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(connection)) =&gt; {
             sub_progress.success(<span class="prelude-val">Some</span>(<span class="string">&quot;connected to operator&quot;</span>));
             <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(connection))
@@ -245,7 +250,8 @@
 <span class="doccomment">/// Creates an agent if needed then connects to it.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>create_and_connect&lt;P&gt;(
     config: <span class="kw-2">&amp;</span>LayerConfig,
-    progress: <span class="kw-2">&amp;</span>P,
+    progress: <span class="kw-2">&amp;mut </span>P,
+    analytics: <span class="kw-2">&amp;mut </span>AnalyticsReporter,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(AgentConnectInfo, AgentConnection)&gt;
 <span class="kw">where
     </span>P: Progress + Send + Sync,
@@ -262,7 +268,7 @@
         }
     }
 
-    <span class="kw">if </span>config.operator &amp;&amp; <span class="kw">let </span><span class="prelude-val">Some</span>((sender, receiver, operator_information)) = create_operator_session(config, progress).<span class="kw">await</span><span class="question-mark">? </span>{
+    <span class="kw">if </span>config.operator &amp;&amp; <span class="kw">let </span><span class="prelude-val">Some</span>((sender, receiver, operator_information)) = create_operator_session(config, progress, analytics).<span class="kw">await</span><span class="question-mark">? </span>{
         <span class="prelude-val">Ok</span>((
             AgentConnectInfo::Operator(operator_information),
             AgentConnection { sender, receiver },
@@ -285,7 +291,7 @@
 
         <span class="kw">let </span>agent_connect_info = tokio::time::timeout(
             Duration::from_secs(config.agent.startup_timeout),
-            k8s_api.create_agent(progress),
+            k8s_api.create_agent(progress, <span class="prelude-val">Some</span>(config)),
         )
         .<span class="kw">await
         </span>.map_err(|<span class="kw">_</span>| CliError::AgentReadyTimeout)<span class="question-mark">?

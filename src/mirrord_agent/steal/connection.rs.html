@@ -732,7 +732,6 @@
 
 <span class="kw">use </span>bytes::Bytes;
 <span class="kw">use </span>fancy_regex::Regex;
-<span class="kw">use </span>iptables::IPTables;
 <span class="kw">use </span>mirrord_protocol::{
     tcp::{HttpResponseFallback, NewTcpConnection, TcpClose, HTTP_FRAMED_VERSION},
     RemoteError::{BadHttpFilterExRegex, BadHttpFilterRegex},
@@ -753,7 +752,8 @@
     error::Result,
     steal::{
         connection::StealSubscription::{HttpFiltered, Unfiltered},
-        http::{HttpFilter, HttpFilterManager, Response},
+        http::{HttpFilter, HttpFilterManager},
+        ip_tables::IPTablesWrapper,
     },
     AgentError::{AgentInvariantViolated, HttpRequestReceiverClosed},
 };
@@ -794,7 +794,7 @@
     <span class="doccomment">/// Set of rules the agent uses to steal traffic from through the
     /// [`TcpConnectionStealer::stealer`] listener.
     /// None when there are no subscribers.
-    </span>iptables: <span class="prelude-ty">Option</span>&lt;SafeIpTables&lt;IPTables&gt;&gt;,
+    </span>iptables: <span class="prelude-ty">Option</span>&lt;SafeIpTables&lt;IPTablesWrapper&gt;&gt;,
 
     <span class="doccomment">/// Used to send data back to the original remote connection.
     </span>write_streams: HashMap&lt;ConnectionId, WriteHalf&lt;TcpStream&gt;&gt;,
@@ -868,7 +868,7 @@
 
     <span class="doccomment">/// Get a result with a reference to the iptables.
     /// Should only be called while there are subscribers (otherwise self.iptables is None).
-    </span><span class="kw">fn </span>iptables(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>SafeIpTables&lt;IPTables&gt;&gt; {
+    </span><span class="kw">fn </span>iptables(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>SafeIpTables&lt;IPTablesWrapper&gt;&gt; {
         <span class="macro">debug_assert!</span>(<span class="self">self</span>.iptables.is_some()); <span class="comment">// is_some as long as there are subs
         </span><span class="self">self</span>.iptables.as_ref().ok_or(AgentInvariantViolated)
     }
@@ -1142,7 +1142,7 @@
             .unwrap_or_default();
         <span class="kw">let </span>iptables = iptables::new(<span class="bool-val">false</span>).unwrap();
 
-        <span class="self">self</span>.iptables = <span class="prelude-val">Some</span>(SafeIpTables::create(iptables, flush_connections).<span class="kw">await</span><span class="question-mark">?</span>);
+        <span class="self">self</span>.iptables = <span class="prelude-val">Some</span>(SafeIpTables::create(iptables.into(), flush_connections).<span class="kw">await</span><span class="question-mark">?</span>);
         <span class="prelude-val">Ok</span>(())
     }
 

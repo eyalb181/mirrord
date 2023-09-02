@@ -410,22 +410,6 @@
 <a href="#410" id="410">410</a>
 <a href="#411" id="411">411</a>
 <a href="#412" id="412">412</a>
-<a href="#413" id="413">413</a>
-<a href="#414" id="414">414</a>
-<a href="#415" id="415">415</a>
-<a href="#416" id="416">416</a>
-<a href="#417" id="417">417</a>
-<a href="#418" id="418">418</a>
-<a href="#419" id="419">419</a>
-<a href="#420" id="420">420</a>
-<a href="#421" id="421">421</a>
-<a href="#422" id="422">422</a>
-<a href="#423" id="423">423</a>
-<a href="#424" id="424">424</a>
-<a href="#425" id="425">425</a>
-<a href="#426" id="426">426</a>
-<a href="#427" id="427">427</a>
-<a href="#428" id="428">428</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Internal proxy is accepting connection from local layers and forward it to agent
 //! while having 1:1 relationship - each layer connection is another agent connection.
 //!
@@ -445,9 +429,7 @@
 };
 
 <span class="kw">use </span>futures::{stream::StreamExt, SinkExt};
-<span class="kw">use </span>mirrord_analytics::{
-    send_analytics, Analytics, AnalyticsHash, AnalyticsOperatorProperties, CollectAnalytics,
-};
+<span class="kw">use </span>mirrord_analytics::{AnalyticsError, AnalyticsReporter, CollectAnalytics};
 <span class="kw">use </span>mirrord_config::LayerConfig;
 <span class="kw">use </span>mirrord_kube::api::{kubernetes::KubernetesAPI, wrap_raw_connection, AgentManagment};
 <span class="kw">use </span>mirrord_operator::client::{OperatorApi, OperatorSessionInformation};
@@ -510,13 +492,12 @@
 /// breakpoint hit and someone is holding it) It will keep the agent alive and send pings on its
 /// behalf.
 </span><span class="kw">async fn </span>connection_task(config: LayerConfig, stream: TcpStream) {
-    <span class="kw">let </span>agent_connection = <span class="kw">match </span>connect_and_ping(<span class="kw-2">&amp;</span>config).<span class="kw">await </span>{
-        <span class="prelude-val">Ok</span>((agent_connection, <span class="kw">_</span>)) =&gt; agent_connection,
-        <span class="prelude-val">Err</span>(err) =&gt; {
-            <span class="macro">error!</span>(<span class="string">&quot;connection to agent failed {err:#?}&quot;</span>);
-            <span class="kw">return</span>;
-        }
-    };
+    <span class="kw">let </span><span class="kw-2">mut </span>inactive_analytics = AnalyticsReporter::new(<span class="bool-val">false</span>);
+
+    <span class="kw">let </span><span class="prelude-val">Ok</span>(agent_connection) = connect_and_ping(<span class="kw-2">&amp;</span>config, <span class="kw-2">&amp;mut </span>inactive_analytics)
+        .<span class="kw">await
+        </span>.inspect_err(|err| <span class="macro">error!</span>(<span class="string">&quot;connection to agent failed {err:#?}&quot;</span>)) <span class="kw">else </span>{ <span class="kw">return</span>; };
+
     <span class="kw">let </span><span class="kw-2">mut </span>layer_connection = actix_codec::Framed::new(stream, DaemonCodec::new());
     <span class="kw">let </span>(agent_sender, <span class="kw-2">mut </span>agent_receiver) = agent_connection;
     <span class="kw">let </span><span class="kw-2">mut </span>ping = <span class="bool-val">false</span>;
@@ -645,15 +626,21 @@
 <span class="doccomment">/// Main entry point for the internal proxy.
 /// It listens for inbound layer connect and forwards to agent.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>proxy() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>started = std::time::Instant::now();
+    <span class="kw">let </span>config = LayerConfig::from_env()<span class="question-mark">?</span>;
+
+    <span class="kw">let </span><span class="kw-2">mut </span>analytics = AnalyticsReporter::new(config.telemetry);
+    (<span class="kw-2">&amp;</span>config).collect_analytics(analytics.get_mut());
+
     <span class="comment">// Let it assign port for us then print it for the user.
     </span><span class="kw">let </span>listener = create_listen_socket()<span class="question-mark">?</span>;
 
-    <span class="kw">let </span>config = LayerConfig::from_env()<span class="question-mark">?</span>;
     <span class="comment">// Create a main connection, that will be held until proxy is closed.
     // This will guarantee agent staying alive and will enable us to
     // make the agent close on last connection close immediately (will help in tests)
-    </span><span class="kw">let </span>(<span class="kw-2">mut </span>main_connection, operator) = connect_and_ping(<span class="kw-2">&amp;</span>config).<span class="kw">await</span><span class="question-mark">?</span>;
+    </span><span class="kw">let </span><span class="kw-2">mut </span>main_connection = connect_and_ping(<span class="kw-2">&amp;</span>config, <span class="kw-2">&amp;mut </span>analytics)
+        .<span class="kw">await
+        </span>.inspect_err(|<span class="kw">_</span>| analytics.set_error(AnalyticsError::AgentConnection))<span class="question-mark">?</span>;
+
     <span class="kw">if </span>config.pause {
         tokio::time::timeout(
             Duration::from_secs(config.agent.communication_timeout.unwrap_or(<span class="number">30</span>).into()),
@@ -677,7 +664,11 @@
         listener.accept(),
     )
     .<span class="kw">await
-    </span>.map_err(|<span class="kw">_</span>| InternalProxyError::FirstConnectionTimeout)<span class="question-mark">?
+    </span>.map_err(|<span class="kw">_</span>| {
+        analytics.set_error(AnalyticsError::IntProxyFirstConnection);
+
+        InternalProxyError::FirstConnectionTimeout
+    })<span class="question-mark">?
     </span>.map_err(InternalProxyError::AcceptError)<span class="question-mark">?</span>;
 
     <span class="kw">let </span><span class="kw-2">mut </span>active_connections = JoinSet::new();
@@ -718,28 +709,6 @@
     }
     main_connection_cancellation_token.cancel();
 
-    <span class="kw">if </span>config.telemetry {
-        <span class="kw">let </span><span class="kw-2">mut </span>analytics = Analytics::default();
-        (<span class="kw-2">&amp;</span>config).collect_analytics(<span class="kw-2">&amp;mut </span>analytics);
-
-        send_analytics(
-            analytics,
-            started.elapsed(),
-            operator.map(|operator| AnalyticsOperatorProperties {
-                client_hash: operator
-                    .client_certificate
-                    .as_ref()
-                    .and_then(|certificate| certificate.sha256_fingerprint().ok())
-                    .map(|fingerprint| AnalyticsHash::from_bytes(fingerprint.as_ref())),
-                license_hash: operator
-                    .fingerprint
-                    .as_deref()
-                    .map(AnalyticsHash::from_base64),
-            }),
-        )
-        .<span class="kw">await</span>;
-    }
-
     <span class="macro">trace!</span>(<span class="string">&quot;intproxy joining main connection task&quot;</span>);
     <span class="kw">match </span>main_connection_task_join.<span class="kw">await </span>{
         <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(err)) =&gt; <span class="prelude-val">Err</span>(err.into()),
@@ -757,13 +726,11 @@
 /// sending the first message
 </span><span class="kw">async fn </span>connect_and_ping(
     config: <span class="kw-2">&amp;</span>LayerConfig,
-) -&gt; <span class="prelude-ty">Result</span>&lt;(
-    (mpsc::Sender&lt;ClientMessage&gt;, mpsc::Receiver&lt;DaemonMessage&gt;),
-    <span class="prelude-ty">Option</span>&lt;OperatorSessionInformation&gt;,
-)&gt; {
-    <span class="kw">let </span>((<span class="kw-2">mut </span>sender, <span class="kw-2">mut </span>receiver), operator) = connect(config).<span class="kw">await</span><span class="question-mark">?</span>;
+    analytics: <span class="kw-2">&amp;mut </span>AnalyticsReporter,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(mpsc::Sender&lt;ClientMessage&gt;, mpsc::Receiver&lt;DaemonMessage&gt;)&gt; {
+    <span class="kw">let </span>((<span class="kw-2">mut </span>sender, <span class="kw-2">mut </span>receiver), <span class="kw">_</span>) = connect(config, analytics).<span class="kw">await</span><span class="question-mark">?</span>;
     ping(<span class="kw-2">&amp;mut </span>sender, <span class="kw-2">&amp;mut </span>receiver).<span class="kw">await</span><span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>(((sender, receiver), operator))
+    <span class="prelude-val">Ok</span>((sender, receiver))
 }
 
 <span class="doccomment">/// Sends a ping the connection and expects a pong.
@@ -827,6 +794,7 @@
 /// Returns the tx/rx and whether the operator is used.
 </span><span class="kw">async fn </span>connect(
     config: <span class="kw-2">&amp;</span>LayerConfig,
+    analytics: <span class="kw-2">&amp;mut </span>AnalyticsReporter,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(
     (mpsc::Sender&lt;ClientMessage&gt;, mpsc::Receiver&lt;DaemonMessage&gt;),
     <span class="prelude-ty">Option</span>&lt;OperatorSessionInformation&gt;,
@@ -834,7 +802,7 @@
     <span class="kw">let </span>agent_connect_info = AgentConnectInfo::from_env()<span class="question-mark">?</span>;
     <span class="kw">match </span>agent_connect_info {
         <span class="prelude-val">Some</span>(AgentConnectInfo::Operator(operator_session_information)) =&gt; <span class="prelude-val">Ok</span>((
-            OperatorApi::connect(config, <span class="kw-2">&amp;</span>operator_session_information).<span class="kw">await</span><span class="question-mark">?</span>,
+            OperatorApi::connect(config, <span class="kw-2">&amp;</span>operator_session_information, analytics).<span class="kw">await</span><span class="question-mark">?</span>,
             <span class="prelude-val">Some</span>(operator_session_information),
         )),
         <span class="prelude-val">Some</span>(AgentConnectInfo::DirectKubernetes(connect_info)) =&gt; {
