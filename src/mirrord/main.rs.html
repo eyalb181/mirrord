@@ -483,6 +483,20 @@
 <a href="#483" id="483">483</a>
 <a href="#484" id="484">484</a>
 <a href="#485" id="485">485</a>
+<a href="#486" id="486">486</a>
+<a href="#487" id="487">487</a>
+<a href="#488" id="488">488</a>
+<a href="#489" id="489">489</a>
+<a href="#490" id="490">490</a>
+<a href="#491" id="491">491</a>
+<a href="#492" id="492">492</a>
+<a href="#493" id="493">493</a>
+<a href="#494" id="494">494</a>
+<a href="#495" id="495">495</a>
+<a href="#496" id="496">496</a>
+<a href="#497" id="497">497</a>
+<a href="#498" id="498">498</a>
+<a href="#499" id="499">499</a>
 </pre></div><pre class="rust"><code><span class="attr">#![feature(let_chains)]
 #![feature(lazy_cell)]
 #![feature(result_option_inspect)]
@@ -511,8 +525,7 @@
 <span class="kw">use </span>mirrord_kube::{
     api::{
         container::SKIP_NAMES,
-        get_k8s_resource_api,
-        kubernetes::{create_kube_api, rollout::Rollout},
+        kubernetes::{create_kube_api, get_k8s_resource_api, rollout::Rollout},
     },
     error::KubeApiError,
 };
@@ -906,7 +919,12 @@
     }
 
     <span class="kw">match </span>cli.commands {
-        Commands::Exec(args) =&gt; exec(<span class="kw-2">&amp;</span>args).<span class="kw">await</span><span class="question-mark">?</span>,
+        Commands::Exec(args) =&gt; {
+            <span class="kw">let </span>res = exec(<span class="kw-2">&amp;</span>args).<span class="kw">await</span>;
+            <span class="comment">// let the drop implementation have some time to send.
+            </span>tokio::time::sleep(Duration::from_secs(<span class="number">1</span>)).<span class="kw">await</span>;
+            res<span class="question-mark">?
+        </span>}
         Commands::Extract { path } =&gt; {
             extract_library(
                 <span class="prelude-val">Some</span>(path),
@@ -916,8 +934,18 @@
         }
         Commands::ListTargets(args) =&gt; print_pod_targets(<span class="kw-2">&amp;</span>args).<span class="kw">await</span><span class="question-mark">?</span>,
         Commands::Operator(args) =&gt; operator_command(<span class="kw-2">*</span>args).<span class="kw">await</span><span class="question-mark">?</span>,
-        Commands::ExtensionExec(args) =&gt; extension_exec(<span class="kw-2">*</span>args).<span class="kw">await</span><span class="question-mark">?</span>,
-        Commands::InternalProxy =&gt; internal_proxy::proxy().<span class="kw">await</span><span class="question-mark">?</span>,
+        Commands::ExtensionExec(args) =&gt; {
+            <span class="kw">let </span>res = extension_exec(<span class="kw-2">*</span>args).<span class="kw">await</span>;
+            <span class="comment">// let the drop implementation have some time to send.
+            </span>tokio::time::sleep(Duration::from_secs(<span class="number">1</span>)).<span class="kw">await</span>;
+            res<span class="question-mark">?
+        </span>}
+        Commands::InternalProxy =&gt; {
+            <span class="kw">let </span>res = internal_proxy::proxy().<span class="kw">await</span>;
+            <span class="comment">// let the drop implementation have some time to send.
+            </span>tokio::time::sleep(Duration::from_secs(<span class="number">1</span>)).<span class="kw">await</span>;
+            res<span class="question-mark">?
+        </span>}
         Commands::Waitlist(args) =&gt; register_to_waitlist(args.email).<span class="kw">await</span><span class="question-mark">?</span>,
     }
 

@@ -67,30 +67,17 @@
 <a href="#67" id="67">67</a>
 <a href="#68" id="68">68</a>
 <a href="#69" id="69">69</a>
-<a href="#70" id="70">70</a>
-<a href="#71" id="71">71</a>
-<a href="#72" id="72">72</a>
-<a href="#73" id="73">73</a>
-<a href="#74" id="74">74</a>
-<a href="#75" id="75">75</a>
-<a href="#76" id="76">76</a>
 </pre></div><pre class="rust"><code><span class="attr">#![deny(missing_docs)]
 
-</span><span class="kw">use </span>clap::{
-    error::{Error, ErrorKind},
-    Parser,
-};
+</span><span class="kw">use </span>clap::{Parser, Subcommand};
+
+<span class="kw">const </span>DEFAULT_RUNTIME: <span class="kw-2">&amp;</span>str = <span class="string">&quot;containerd&quot;</span>;
 
 <span class="attr">#[derive(Parser, Debug)]
 #[command(author, version, about, long_about = <span class="prelude-val">None</span>)]
 </span><span class="kw">pub struct </span>Args {
-    <span class="doccomment">/// Container id to get traffic from
-    </span><span class="attr">#[arg(short, long)]
-    </span><span class="kw">pub </span>container_id: <span class="prelude-ty">Option</span>&lt;String&gt;,
-
-    <span class="doccomment">/// Container runtime to use
-    </span><span class="attr">#[arg(short = <span class="string">&#39;r&#39;</span>, long)]
-    </span><span class="kw">pub </span>container_runtime: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="attr">#[clap(subcommand)]
+    </span><span class="kw">pub </span>mode: Mode,
 
     <span class="doccomment">/// Port to use for communication
     </span><span class="attr">#[arg(short = <span class="string">&#39;l&#39;</span>, long, default_value_t = <span class="number">61337</span>)]
@@ -103,10 +90,6 @@
     <span class="doccomment">/// Interface to use
     </span><span class="attr">#[arg(short = <span class="string">&#39;i&#39;</span>, long)]
     </span><span class="kw">pub </span>network_interface: <span class="prelude-ty">Option</span>&lt;String&gt;,
-
-    <span class="doccomment">/// Inform the agent to use `proc/1/root` as the root directory.
-    </span><span class="attr">#[arg(short = <span class="string">&#39;e&#39;</span>, long, default_value_t = <span class="bool-val">false</span>)]
-    </span><span class="kw">pub </span>ephemeral_container: bool,
 
     <span class="doccomment">/// Pause the target container while clients are connected.
     </span><span class="attr">#[arg(short = <span class="string">&#39;p&#39;</span>, long, default_value_t = <span class="bool-val">false</span>)]
@@ -125,29 +108,32 @@
     </span><span class="kw">pub </span>base_protocol_version: semver::Version,
 }
 
-<span class="kw">const </span>DEFAULT_RUNTIME: <span class="kw-2">&amp;</span>str = <span class="string">&quot;containerd&quot;</span>;
+<span class="attr">#[derive(Clone, Debug, Default, Subcommand)]
+</span><span class="kw">pub enum </span>Mode {
+    Targeted {
+        <span class="doccomment">/// Container id to get traffic from
+        </span><span class="attr">#[arg(short, long)]
+        </span>container_id: String,
+
+        <span class="doccomment">/// Container runtime to use
+        </span><span class="attr">#[arg(short = <span class="string">&#39;r&#39;</span>, long, default_value = DEFAULT_RUNTIME)]
+        </span>container_runtime: String,
+    },
+    <span class="doccomment">/// Inform the agent to use `proc/1/root` as the root directory.
+    </span>Ephemeral,
+    <span class="attr">#[default]
+    </span>Targetless,
+    <span class="attr">#[clap(hide = <span class="bool-val">true</span>)]
+    </span>BlackboxTest,
+}
+
+<span class="kw">impl </span>Mode {
+    <span class="kw">pub fn </span>is_targetless(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, Mode::Targetless)
+    }
+}
 
 <span class="kw">pub fn </span>parse_args() -&gt; Args {
-    <span class="kw">let </span>args = Args::try_parse()
-        .and_then(|args| {
-            <span class="kw">if </span>args.container_runtime.is_some() &amp;&amp; args.container_id.is_none() {
-                <span class="prelude-val">Err</span>(Error::raw(
-                    ErrorKind::InvalidValue,
-                    <span class="string">&quot;container_id is required when container_runtime is specified&quot;</span>,
-                ))
-            } <span class="kw">else </span>{
-                <span class="prelude-val">Ok</span>(args)
-            }
-        })
-        .map(|<span class="kw-2">mut </span>args| {
-            <span class="kw">if </span>args.container_runtime.is_none() {
-                args.container_runtime = <span class="prelude-val">Some</span>(DEFAULT_RUNTIME.to_string());
-            }
-            args
-        });
-    <span class="kw">match </span>args {
-        <span class="prelude-val">Ok</span>(args) =&gt; args,
-        <span class="prelude-val">Err</span>(e) =&gt; e.exit(),
-    }
+    Args::try_parse().unwrap_or_else(|err| err.exit())
 }
 </code></pre></div></section></main></body></html>

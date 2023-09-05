@@ -1064,6 +1064,10 @@
 <a href="#1064" id="1064">1064</a>
 <a href="#1065" id="1065">1065</a>
 <a href="#1066" id="1066">1066</a>
+<a href="#1067" id="1067">1067</a>
+<a href="#1068" id="1068">1068</a>
+<a href="#1069" id="1069">1069</a>
+<a href="#1070" id="1070">1070</a>
 </pre></div><pre class="rust"><code><span class="attr">#![feature(c_variadic)]
 #![feature(result_option_inspect)]
 #![feature(const_trait_impl)]
@@ -1954,7 +1958,11 @@
 ) {
     std::thread::spawn(<span class="kw">move </span>|| {
         <span class="kw">let </span>_guard = DetourGuard::new();
-        runtime.block_on(thread_loop(receiver, tx, rx, config))
+        runtime.block_on(thread_loop(receiver, tx, rx, config));
+        runtime.block_on(<span class="kw">async move </span>{
+            <span class="comment">// wait for background tasks to finish
+            </span>tokio::time::sleep(std::time::Duration::from_secs(<span class="number">1</span>)).<span class="kw">await</span>;
+        });
     });
 }
 

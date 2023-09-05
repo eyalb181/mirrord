@@ -352,6 +352,9 @@
 <a href="#352" id="352">352</a>
 <a href="#353" id="353">353</a>
 <a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     collections::BTreeMap,
     convert::Infallible,
@@ -370,7 +373,10 @@
 <span class="kw">use </span>mirrord_config::target::{DeploymentTarget, PodTarget, RolloutTarget, Target};
 
 <span class="kw">use crate</span>::{
-    api::{container::choose_container, get_k8s_resource_api, kubernetes::rollout::Rollout},
+    api::{
+        container::choose_container,
+        kubernetes::{get_k8s_resource_api, rollout::Rollout},
+    },
     error::{KubeApiError, <span class="prelude-ty">Result</span>},
 };
 

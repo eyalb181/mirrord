@@ -250,7 +250,7 @@ var sourcesIndex = JSON.parse('{\
 "mirrord_config":["",[["config",[],["deprecated.rs","from_env.rs","source.rs","unstable.rs"]],["feature",[["fs",[],["advanced.rs","mode.rs"]],["network",[["incoming",[],["http_filter.rs"]]],["incoming.rs","outgoing.rs"]]],["env.rs","fs.rs","network.rs"]]],["agent.rs","config.rs","feature.rs","internal_proxy.rs","lib.rs","target.rs","util.rs"]],\
 "mirrord_config_derive":["",[["config",[],["field.rs","flag.rs"]]],["config.rs","lib.rs"]],\
 "mirrord_console":["",[],["error.rs","lib.rs","logger.rs","protocol.rs"]],\
-"mirrord_kube":["",[["api",[["kubernetes",[],["rollout.rs"]]],["container.rs","kubernetes.rs","runtime.rs"]]],["api.rs","error.rs","lib.rs"]],\
+"mirrord_kube":["",[["api",[["container",[],["ephemeral.rs","job.rs","targeted.rs","targetless.rs","util.rs"]],["kubernetes",[],["rollout.rs"]]],["container.rs","kubernetes.rs","runtime.rs"]]],["api.rs","error.rs","lib.rs"]],\
 "mirrord_layer":["",[["file",[],["filter.rs","hooks.rs","ops.rs"]],["go",[],["linux_x64.rs","mod.rs"]],["outgoing",[],["tcp.rs","udp.rs"]],["socket",[],["hooks.rs","id.rs","ops.rs"]],["tcp_steal",[["http",[],["v1.rs","v2.rs"]]],["http.rs","http_forwarding.rs"]]],["common.rs","connection.rs","debugger_ports.rs","detour.rs","dns.rs","error.rs","file.rs","hooks.rs","lib.rs","load.rs","macros.rs","outgoing.rs","socket.rs","tcp.rs","tcp_mirror.rs","tcp_steal.rs"]],\
 "mirrord_layer_macro":["",[],["lib.rs"]],\
 "mirrord_macros":["",[],["lib.rs"]],\

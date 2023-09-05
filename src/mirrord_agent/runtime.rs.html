@@ -288,14 +288,6 @@
 <a href="#288" id="288">288</a>
 <a href="#289" id="289">289</a>
 <a href="#290" id="290">290</a>
-<a href="#291" id="291">291</a>
-<a href="#292" id="292">292</a>
-<a href="#293" id="293">293</a>
-<a href="#294" id="294">294</a>
-<a href="#295" id="295">295</a>
-<a href="#296" id="296">296</a>
-<a href="#297" id="297">297</a>
-<a href="#298" id="298">298</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     collections::HashMap,
     fs::File,
@@ -368,7 +360,7 @@
 }
 
 <span class="attr">#[enum_dispatch(ContainerRuntime)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>Container {
     Docker(DockerContainer),
     Containerd(ContainerdContainer),
@@ -377,30 +369,22 @@
 
 <span class="doccomment">/// get a container object according to args.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>get_container(
-    container_id_opt: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>String&gt;,
-    container_runtime_opt: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>String&gt;,
-) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Container&gt;&gt; {
-    <span class="kw">if let </span>(<span class="prelude-val">Some</span>(container_id), <span class="prelude-val">Some</span>(container_runtime)) = (container_id_opt, container_runtime_opt)
-    {
-        <span class="kw">let </span>container_id = container_id.to_string();
-        <span class="kw">match </span>container_runtime.as_str() {
-            <span class="string">&quot;docker&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Container::Docker(
-                DockerContainer::from_id(container_id).<span class="kw">await</span><span class="question-mark">?</span>,
-            ))),
-            <span class="string">&quot;containerd&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Container::Containerd(ContainerdContainer {
-                container_id,
-            }))),
-            <span class="string">&quot;cri-o&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Container::CriO(CriOContainer::from_id(container_id)))),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(AgentError::NotFound(<span class="macro">format!</span>(
-                <span class="string">&quot;Unknown runtime {container_runtime:?}&quot;
-            </span>))),
-        }
-    } <span class="kw">else </span>{
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
+    container_id: String,
+    container_runtime: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;Container&gt; {
+    <span class="kw">match </span>container_runtime {
+        <span class="prelude-val">Some</span>(<span class="string">&quot;docker&quot;</span>) =&gt; <span class="prelude-val">Ok</span>(Container::Docker(
+            DockerContainer::from_id(container_id).<span class="kw">await</span><span class="question-mark">?</span>,
+        )),
+        <span class="prelude-val">Some</span>(<span class="string">&quot;containerd&quot;</span>) =&gt; <span class="prelude-val">Ok</span>(Container::Containerd(ContainerdContainer { container_id })),
+        <span class="prelude-val">Some</span>(<span class="string">&quot;cri-o&quot;</span>) =&gt; <span class="prelude-val">Ok</span>(Container::CriO(CriOContainer::from_id(container_id))),
+        <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(AgentError::NotFound(<span class="macro">format!</span>(
+            <span class="string">&quot;Unknown runtime {container_runtime:?}&quot;
+        </span>))),
     }
 }
 
-<span class="attr">#[derive(Debug)]
+<span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>DockerContainer {
     container_id: String,
     client: Docker,
@@ -466,7 +450,7 @@
     }
 }
 
-<span class="attr">#[derive(Debug)]
+<span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ContainerdContainer {
     container_id: String,
 }
