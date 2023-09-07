@@ -99,18 +99,6 @@
 <a href="#99" id="99">99</a>
 <a href="#100" id="100">100</a>
 <a href="#101" id="101">101</a>
-<a href="#102" id="102">102</a>
-<a href="#103" id="103">103</a>
-<a href="#104" id="104">104</a>
-<a href="#105" id="105">105</a>
-<a href="#106" id="106">106</a>
-<a href="#107" id="107">107</a>
-<a href="#108" id="108">108</a>
-<a href="#109" id="109">109</a>
-<a href="#110" id="110">110</a>
-<a href="#111" id="111">111</a>
-<a href="#112" id="112">112</a>
-<a href="#113" id="113">113</a>
 </pre></div><pre class="rust"><code><span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>http {
 
@@ -121,7 +109,7 @@
     <span class="kw">use </span>tokio::time::timeout;
 
     <span class="kw">use </span><span class="kw">crate</span>::utils::{
-        get_service_url, kube_client, send_requests, service, Agent, Application, KubeService,
+        get_service_url, kube_client, send_requests, service, Application, KubeService,
     };
 
     <span class="doccomment">/// ## Warning
@@ -149,18 +137,12 @@
             Application::PythonFastApiHTTP
         )]
         </span>application: Application,
-        <span class="attr">#[values(Agent::Ephemeral, Agent::Job)] </span>agent: Agent,
     ) {
         <span class="kw">let </span>service = service.<span class="kw">await</span>;
         <span class="kw">let </span>kube_client = kube_client.<span class="kw">await</span>;
         <span class="kw">let </span>url = get_service_url(kube_client.clone(), <span class="kw-2">&amp;</span>service).<span class="kw">await</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>process = application
-            .run(
-                <span class="kw-2">&amp;</span>service.target,
-                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>service.namespace),
-                agent.flag(),
-                <span class="prelude-val">None</span>,
-            )
+            .run(<span class="kw-2">&amp;</span>service.target, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>service.namespace), <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)
             .<span class="kw">await</span>;
         process
             .wait_for_line(Duration::from_secs(<span class="number">120</span>), <span class="string">&quot;daemon subscribed&quot;</span>)
@@ -194,18 +176,12 @@
         </span>kube_client: Client,
         <span class="attr">#[values(Application::PythonFlaskHTTP, Application::PythonFastApiHTTP)]
         </span>application: Application,
-        <span class="attr">#[values(Agent::Job)] </span>agent: Agent,
     ) {
         <span class="kw">let </span>service = service.<span class="kw">await</span>;
         <span class="kw">let </span>kube_client = kube_client.<span class="kw">await</span>;
         <span class="kw">let </span>url = get_service_url(kube_client.clone(), <span class="kw-2">&amp;</span>service).<span class="kw">await</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>process = application
-            .run(
-                <span class="kw-2">&amp;</span>service.target,
-                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>service.namespace),
-                agent.flag(),
-                <span class="prelude-val">None</span>,
-            )
+            .run(<span class="kw-2">&amp;</span>service.target, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>service.namespace), <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)
             .<span class="kw">await</span>;
         process
             .wait_for_line(Duration::from_secs(<span class="number">300</span>), <span class="string">&quot;daemon subscribed&quot;</span>)

@@ -408,8 +408,6 @@
 <a href="#408" id="408">408</a>
 <a href="#409" id="409">409</a>
 <a href="#410" id="410">410</a>
-<a href="#411" id="411">411</a>
-<a href="#412" id="412">412</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Internal proxy is accepting connection from local layers and forward it to agent
 //! while having 1:1 relationship - each layer connection is another agent connection.
 //!
@@ -492,9 +490,7 @@
 /// breakpoint hit and someone is holding it) It will keep the agent alive and send pings on its
 /// behalf.
 </span><span class="kw">async fn </span>connection_task(config: LayerConfig, stream: TcpStream) {
-    <span class="kw">let </span><span class="kw-2">mut </span>inactive_analytics = AnalyticsReporter::new(<span class="bool-val">false</span>);
-
-    <span class="kw">let </span><span class="prelude-val">Ok</span>(agent_connection) = connect_and_ping(<span class="kw-2">&amp;</span>config, <span class="kw-2">&amp;mut </span>inactive_analytics)
+    <span class="kw">let </span><span class="prelude-val">Ok</span>(agent_connection) = connect_and_ping(<span class="kw-2">&amp;</span>config, <span class="prelude-val">None</span>)
         .<span class="kw">await
         </span>.inspect_err(|err| <span class="macro">error!</span>(<span class="string">&quot;connection to agent failed {err:#?}&quot;</span>)) <span class="kw">else </span>{ <span class="kw">return</span>; };
 
@@ -625,10 +621,10 @@
 
 <span class="doccomment">/// Main entry point for the internal proxy.
 /// It listens for inbound layer connect and forwards to agent.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>proxy() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>proxy(watch: drain::Watch) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">let </span>config = LayerConfig::from_env()<span class="question-mark">?</span>;
 
-    <span class="kw">let </span><span class="kw-2">mut </span>analytics = AnalyticsReporter::new(config.telemetry);
+    <span class="kw">let </span><span class="kw-2">mut </span>analytics = AnalyticsReporter::new(config.telemetry, watch);
     (<span class="kw-2">&amp;</span>config).collect_analytics(analytics.get_mut());
 
     <span class="comment">// Let it assign port for us then print it for the user.
@@ -637,7 +633,7 @@
     <span class="comment">// Create a main connection, that will be held until proxy is closed.
     // This will guarantee agent staying alive and will enable us to
     // make the agent close on last connection close immediately (will help in tests)
-    </span><span class="kw">let </span><span class="kw-2">mut </span>main_connection = connect_and_ping(<span class="kw-2">&amp;</span>config, <span class="kw-2">&amp;mut </span>analytics)
+    </span><span class="kw">let </span><span class="kw-2">mut </span>main_connection = connect_and_ping(<span class="kw-2">&amp;</span>config, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span>analytics))
         .<span class="kw">await
         </span>.inspect_err(|<span class="kw">_</span>| analytics.set_error(AnalyticsError::AgentConnection))<span class="question-mark">?</span>;
 
@@ -726,7 +722,7 @@
 /// sending the first message
 </span><span class="kw">async fn </span>connect_and_ping(
     config: <span class="kw-2">&amp;</span>LayerConfig,
-    analytics: <span class="kw-2">&amp;mut </span>AnalyticsReporter,
+    analytics: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>AnalyticsReporter&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(mpsc::Sender&lt;ClientMessage&gt;, mpsc::Receiver&lt;DaemonMessage&gt;)&gt; {
     <span class="kw">let </span>((<span class="kw-2">mut </span>sender, <span class="kw-2">mut </span>receiver), <span class="kw">_</span>) = connect(config, analytics).<span class="kw">await</span><span class="question-mark">?</span>;
     ping(<span class="kw-2">&amp;mut </span>sender, <span class="kw-2">&amp;mut </span>receiver).<span class="kw">await</span><span class="question-mark">?</span>;
@@ -794,7 +790,7 @@
 /// Returns the tx/rx and whether the operator is used.
 </span><span class="kw">async fn </span>connect(
     config: <span class="kw-2">&amp;</span>LayerConfig,
-    analytics: <span class="kw-2">&amp;mut </span>AnalyticsReporter,
+    analytics: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>AnalyticsReporter&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(
     (mpsc::Sender&lt;ClientMessage&gt;, mpsc::Receiver&lt;DaemonMessage&gt;),
     <span class="prelude-ty">Option</span>&lt;OperatorSessionInformation&gt;,

@@ -301,6 +301,15 @@
 <a href="#301" id="301">301</a>
 <a href="#302" id="302">302</a>
 <a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{collections::HashMap, time::Instant};
 
 <span class="kw">use </span>base64::{engine::general_purpose, Engine <span class="kw">as _</span>};
@@ -444,15 +453,15 @@
 </span><span class="kw">pub struct </span>AnalyticsReporter {
     <span class="kw">pub </span>enabled: bool,
     error_only_send: bool,
-
     analytics: Analytics,
     error: <span class="prelude-ty">Option</span>&lt;AnalyticsError&gt;,
     start_instant: Instant,
     operator_properties: <span class="prelude-ty">Option</span>&lt;AnalyticsOperatorProperties&gt;,
+    watch: drain::Watch,
 }
 
 <span class="kw">impl </span>AnalyticsReporter {
-    <span class="kw">pub fn </span>new(enabled: bool) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub fn </span>new(enabled: bool, watch: drain::Watch) -&gt; <span class="self">Self </span>{
         AnalyticsReporter {
             analytics: Analytics::default(),
             error_only_send: <span class="bool-val">false</span>,
@@ -460,10 +469,11 @@
             error: <span class="prelude-val">None</span>,
             operator_properties: <span class="prelude-val">None</span>,
             start_instant: Instant::now(),
+            watch,
         }
     }
 
-    <span class="kw">pub fn </span>only_error(enabled: bool) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub fn </span>only_error(enabled: bool, watch: drain::Watch) -&gt; <span class="self">Self </span>{
         AnalyticsReporter {
             analytics: Analytics::default(),
             error_only_send: <span class="bool-val">true</span>,
@@ -471,6 +481,7 @@
             error: <span class="prelude-val">None</span>,
             operator_properties: <span class="prelude-val">None</span>,
             start_instant: Instant::now(),
+            watch,
         }
     }
 
@@ -516,7 +527,14 @@
 </span><span class="kw">impl </span>Drop <span class="kw">for </span>AnalyticsReporter {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span><span class="self">self</span>.enabled &amp;&amp; (<span class="self">self</span>.error.is_some() || !<span class="self">self</span>.error_only_send) {
-            tokio::spawn(send_analytics(<span class="self">self</span>.as_report()));
+            <span class="kw">let </span>report = <span class="self">self</span>.as_report();
+            <span class="kw">let </span>watch = <span class="self">self</span>.watch.clone();
+            tokio::spawn(<span class="kw">async move </span>{
+                send_analytics(report).<span class="kw">await</span>;
+                <span class="comment">// hold clone of watch to prevent it from being dropped
+                // allowing our task to finish
+                </span>drop(watch);
+            });
         }
     }
 }

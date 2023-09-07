@@ -121,6 +121,8 @@
 <a href="#121" id="121">121</a>
 <a href="#122" id="122">122</a>
 <a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Flush connections - feature that enables the agent to steal connections that are in progress
 //! What do you mean? Imagine there was an ongoing session between Client and Server, then the
 //! agent starts, the layer asks to listen on the same port as the Server, and then the agent
@@ -161,9 +163,11 @@
             IPTableChain::create(ipt.with_table(<span class="string">&quot;filter&quot;</span>).into(), IPTABLE_INPUT.to_string())<span class="question-mark">?</span>;
 
         <span class="comment">// specify tcp protocol, if we don&#39;t we can&#39;t reject with tcp-reset
-        </span>managed.add_rule(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
+        </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = managed.add_rule(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
             <span class="string">&quot;-p tcp -m connmark --mark {MARK} -j REJECT --reject-with tcp-reset&quot;
-        </span>))<span class="question-mark">?</span>;
+        </span>)) {
+            <span class="macro">warn!</span>(<span class="string">&quot;Failed to add rule to reject connections: {e}&quot;</span>);
+        }
 
         <span class="prelude-val">Ok</span>(FlushConnections { managed, inner })
     }

@@ -28,6 +28,7 @@
 <a href="#28" id="28">28</a>
 <a href="#29" id="29">29</a>
 <a href="#30" id="30">30</a>
+<a href="#31" id="31">31</a>
 </pre></div><pre class="rust"><code><span class="attr">#[cfg(test)]
 </span><span class="doccomment">/// Test the targetless execution mode, where an independent agent is spawned - not targeting any
 /// existing pod/container/deployment.
@@ -45,8 +46,9 @@
     /// cluster).
     ///
     /// Running this test on a cluster that does not have any pods, also proves that we don&#39;t use
-    /// any existing pod and the agent pod is completely independent.
-    </span><span class="attr">#[rstest]
+    /// any existing pod and the agent pod is completely independent.    
+    </span><span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;job&quot;</span>), ignore)]
+    #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">30</span>))]
     </span><span class="kw">pub async fn </span>connect_to_kubernetes_api_service_with_targetless_agent() {

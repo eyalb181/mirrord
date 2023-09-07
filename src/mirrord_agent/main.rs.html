@@ -811,6 +811,13 @@
 <a href="#811" id="811">811</a>
 <a href="#812" id="812">812</a>
 <a href="#813" id="813">813</a>
+<a href="#814" id="814">814</a>
+<a href="#815" id="815">815</a>
+<a href="#816" id="816">816</a>
+<a href="#817" id="817">817</a>
+<a href="#818" id="818">818</a>
+<a href="#819" id="819">819</a>
+<a href="#820" id="820">820</a>
 </pre></div><pre class="rust"><code><span class="attr">#![feature(result_option_inspect)]
 #![feature(hash_drain_filter)]
 #![feature(let_chains)]
@@ -900,7 +907,7 @@
 
 <span class="kw">impl </span>State {
     <span class="doccomment">/// Return [`Err`] if container runtime operations failed.
-    </span><span class="kw">pub async fn </span>new(args: <span class="kw-2">&amp;</span>Args) -&gt; <span class="prelude-ty">Result</span>&lt;State&gt; {
+    </span><span class="kw">pub async fn </span>new(args: <span class="kw-2">&amp;</span>Args, watch: drain::Watch) -&gt; <span class="prelude-ty">Result</span>&lt;State&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>env: HashMap&lt;String, String&gt; = HashMap::new();
 
         <span class="kw">let </span>(ephemeral, container, pid) = <span class="kw">match </span><span class="kw-2">&amp;</span>args.mode {
@@ -911,7 +918,7 @@
                 <span class="kw">let </span>container =
                     get_container(container_id.clone(), <span class="prelude-val">Some</span>(container_runtime)).<span class="kw">await</span><span class="question-mark">?</span>;
 
-                <span class="kw">let </span>container_handle = ContainerHandle::new(container).<span class="kw">await</span><span class="question-mark">?</span>;
+                <span class="kw">let </span>container_handle = ContainerHandle::new(container, watch).<span class="kw">await</span><span class="question-mark">?</span>;
                 <span class="kw">let </span>pid = container_handle.pid().to_string();
 
                 env.extend(container_handle.raw_env().clone());
@@ -1351,7 +1358,7 @@
 
 <span class="doccomment">/// Initializes the agent&#39;s [`State`], channels, threads, and runs [`ClientConnectionHandler`]s.
 </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
-</span><span class="kw">async fn </span>start_agent(args: Args) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+</span><span class="kw">async fn </span>start_agent(args: Args, watch: drain::Watch) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="macro">trace!</span>(<span class="string">&quot;Starting agent with args: {args:?}&quot;</span>);
 
     <span class="kw">let </span>listener = TcpListener::bind(SocketAddrV4::new(
@@ -1360,7 +1367,7 @@
     ))
     .<span class="kw">await</span><span class="question-mark">?</span>;
 
-    <span class="kw">let </span><span class="kw-2">mut </span>state = State::new(<span class="kw-2">&amp;</span>args).<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>state = State::new(<span class="kw-2">&amp;</span>args, watch).<span class="kw">await</span><span class="question-mark">?</span>;
 
     <span class="kw">let </span>cancellation_token = CancellationToken::new();
     <span class="comment">// Cancel all other tasks on exit
@@ -1555,10 +1562,10 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">async fn </span>start_iptable_guard(args: Args) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+<span class="kw">async fn </span>start_iptable_guard(args: Args, watch: drain::Watch) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="macro">debug!</span>(<span class="string">&quot;start_iptable_guard -&gt; Initializing iptable-guard.&quot;</span>);
 
-    <span class="kw">let </span>state = State::new(<span class="kw-2">&amp;</span>args).<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="kw">let </span>state = State::new(<span class="kw-2">&amp;</span>args, watch).<span class="kw">await</span><span class="question-mark">?</span>;
     <span class="kw">let </span>pid = state.container_pid();
 
     std::env::set_var(IPTABLE_PREROUTING_ENV, IPTABLE_PREROUTING.as_str());
@@ -1598,17 +1605,24 @@
 
     <span class="kw">let </span>args = cli::parse_args();
 
+    <span class="kw">let </span>(signal, watch) = drain::channel();
+
     <span class="kw">let </span>agent_result = <span class="kw">if </span>args.mode.is_targetless()
         || (std::env::var(IPTABLE_PREROUTING_ENV).is_ok()
             &amp;&amp; std::env::var(IPTABLE_MESH_ENV).is_ok())
     {
-        start_agent(args).<span class="kw">await
+        start_agent(args, watch).<span class="kw">await
     </span>} <span class="kw">else </span>{
-        start_iptable_guard(args).<span class="kw">await
+        start_iptable_guard(args, watch).<span class="kw">await
     </span>};
 
-    <span class="comment">// wait for background tasks to finish
-    </span>tokio::time::sleep(std::time::Duration::from_secs(<span class="number">1</span>)).<span class="kw">await</span>;
+    <span class="comment">// wait for background tasks/drop impl
+    </span>tokio::time::timeout(std::time::Duration::from_secs(<span class="number">10</span>), signal.drain())
+        .<span class="kw">await
+        </span>.is_err()
+        .then(|| {
+            <span class="macro">warn!</span>(<span class="string">&quot;main -&gt; mirrord-agent waiting for drain timed out&quot;</span>);
+        });
 
     <span class="kw">match </span>agent_result {
         <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {

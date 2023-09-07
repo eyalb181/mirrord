@@ -324,6 +324,14 @@
 <a href="#324" id="324">324</a>
 <a href="#325" id="325">325</a>
 <a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::ops::Deref;
 <span class="attr">#[cfg(feature = <span class="string">&quot;incluster&quot;</span>)]
 </span><span class="kw">use </span>std::{net::SocketAddr, time::Duration};
@@ -346,6 +354,11 @@
 <span class="attr">#[cfg(feature = <span class="string">&quot;incluster&quot;</span>)]
 </span><span class="kw">use </span>tokio::net::TcpStream;
 <span class="kw">use </span>tokio::sync::mpsc;
+<span class="attr">#[cfg(not(feature = <span class="string">&quot;incluster&quot;</span>))]
+</span><span class="kw">use </span>tokio_retry::{
+    strategy::{jitter, ExponentialBackoff},
+    Retry,
+};
 <span class="kw">use </span>tracing::{info, trace};
 
 <span class="kw">use crate</span>::{
@@ -497,10 +510,13 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(mpsc::Sender&lt;ClientMessage&gt;, mpsc::Receiver&lt;DaemonMessage&gt;)&gt; {
         <span class="kw">let </span>pod_api: Api&lt;Pod&gt; =
             get_k8s_resource_api(<span class="kw-2">&amp;</span><span class="self">self</span>.client, connect_info.namespace.as_deref());
-        <span class="macro">trace!</span>(<span class="string">&quot;port-forward to pod {:?}&quot;</span>, <span class="kw-2">&amp;</span>connect_info);
-        <span class="kw">let </span><span class="kw-2">mut </span>port_forwarder = pod_api
-            .portforward(<span class="kw-2">&amp;</span>connect_info.pod_name, <span class="kw-2">&amp;</span>[connect_info.agent_port])
-            .<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let </span>retry_strategy = ExponentialBackoff::from_millis(<span class="number">10</span>).map(jitter).take(<span class="number">3</span>);
+        <span class="kw">let </span>ports = <span class="kw-2">&amp;</span>[connect_info.agent_port];
+        <span class="kw">let </span><span class="kw-2">mut </span>port_forwarder = Retry::spawn(retry_strategy, || {
+            <span class="macro">trace!</span>(<span class="string">&quot;port-forward to pod {:?}&quot;</span>, <span class="kw-2">&amp;</span>connect_info);
+            pod_api.portforward(<span class="kw-2">&amp;</span>connect_info.pod_name, ports)
+        })
+        .<span class="kw">await</span><span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(wrap_raw_connection(
             port_forwarder

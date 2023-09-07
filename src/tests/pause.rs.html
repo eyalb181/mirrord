@@ -183,6 +183,8 @@
 <a href="#183" id="183">183</a>
 <a href="#184" id="184">184</a>
 <a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
 </pre></div><pre class="rust"><code><span class="attr">#[cfg(test)]
 
 </span><span class="doccomment">/// The pause tests use predefined resource names (service/deployment), so they can&#39;t be run at the
@@ -228,7 +230,8 @@
     /// To run on mac, first build universal binary: (from repo root) `scripts/build_fat_mac.sh`
     /// then run test with MIRRORD_TESTS_USE_BINARY=../target/universal-apple-darwin/debug/mirrord
     /// Because the test runs a bash script with mirrord and that requires the universal binary.
-    </span><span class="attr">#[rstest]
+    </span><span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;job&quot;</span>), ignore)]
+    #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">240</span>))]
     </span><span class="kw">pub async fn </span>pause_log_requests(
@@ -319,7 +322,8 @@
     /// 2. Wait for the local child process to exit.
     /// 3. Wait for the agent jobs to complete.
     /// 4. Verify the target pod is unpaused.
-    </span><span class="attr">#[rstest]
+    </span><span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;job&quot;</span>), ignore)]
+    #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">60</span>))]
     </span><span class="kw">pub async fn </span>unpause_after_error(

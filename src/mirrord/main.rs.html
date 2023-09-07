@@ -497,6 +497,11 @@
 <a href="#497" id="497">497</a>
 <a href="#498" id="498">498</a>
 <a href="#499" id="499">499</a>
+<a href="#500" id="500">500</a>
+<a href="#501" id="501">501</a>
+<a href="#502" id="502">502</a>
+<a href="#503" id="503">503</a>
+<a href="#504" id="504">504</a>
 </pre></div><pre class="rust"><code><span class="attr">#![feature(let_chains)]
 #![feature(lazy_cell)]
 #![feature(result_option_inspect)]
@@ -604,7 +609,7 @@
     <span class="prelude-val">Err</span>(CliError::BinaryExecuteFailed(binary, binary_args))
 }
 
-<span class="kw">async fn </span>exec(args: <span class="kw-2">&amp;</span>ExecArgs) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+<span class="kw">async fn </span>exec(args: <span class="kw-2">&amp;</span>ExecArgs, watch: drain::Watch) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">let </span>progress = ProgressTracker::from_env(<span class="string">&quot;mirrord exec&quot;</span>);
     <span class="kw">if </span>!args.disable_version_check {
         prompt_outdated_version(<span class="kw-2">&amp;</span>progress).<span class="kw">await</span>;
@@ -717,7 +722,7 @@
 
     <span class="kw">let </span>(config, <span class="kw-2">mut </span>context) = LayerConfig::from_env_with_warnings()<span class="question-mark">?</span>;
 
-    <span class="kw">let </span><span class="kw-2">mut </span>analytics = AnalyticsReporter::only_error(config.telemetry);
+    <span class="kw">let </span><span class="kw-2">mut </span>analytics = AnalyticsReporter::only_error(config.telemetry, watch);
     (<span class="kw-2">&amp;</span>config).collect_analytics(analytics.get_mut());
 
     config.verify(<span class="kw-2">&amp;mut </span>context)<span class="question-mark">?</span>;
@@ -905,8 +910,7 @@
 
 <span class="kw">const </span>CURRENT_VERSION: <span class="kw-2">&amp;</span>str = <span class="macro">env!</span>(<span class="string">&quot;CARGO_PKG_VERSION&quot;</span>);
 
-<span class="attr">#[tokio::main]
-</span><span class="kw">async fn </span>main() -&gt; miette::Result&lt;()&gt; {
+<span class="kw">fn </span>main() -&gt; miette::Result&lt;()&gt; {
     <span class="kw">let </span>cli = Cli::parse();
 
     <span class="kw">if let </span><span class="prelude-val">Ok</span>(console_addr) = std::env::var(<span class="string">&quot;MIRRORD_CONSOLE_ADDR&quot;</span>) {
@@ -918,37 +922,43 @@
             .init();
     }
 
-    <span class="kw">match </span>cli.commands {
-        Commands::Exec(args) =&gt; {
-            <span class="kw">let </span>res = exec(<span class="kw-2">&amp;</span>args).<span class="kw">await</span>;
-            <span class="comment">// let the drop implementation have some time to send.
-            </span>tokio::time::sleep(Duration::from_secs(<span class="number">1</span>)).<span class="kw">await</span>;
-            res<span class="question-mark">?
-        </span>}
-        Commands::Extract { path } =&gt; {
-            extract_library(
-                <span class="prelude-val">Some</span>(path),
-                <span class="kw-2">&amp;</span>ProgressTracker::from_env(<span class="string">&quot;mirrord extract library...&quot;</span>),
-                <span class="bool-val">false</span>,
-            )<span class="question-mark">?</span>;
-        }
-        Commands::ListTargets(args) =&gt; print_pod_targets(<span class="kw-2">&amp;</span>args).<span class="kw">await</span><span class="question-mark">?</span>,
-        Commands::Operator(args) =&gt; operator_command(<span class="kw-2">*</span>args).<span class="kw">await</span><span class="question-mark">?</span>,
-        Commands::ExtensionExec(args) =&gt; {
-            <span class="kw">let </span>res = extension_exec(<span class="kw-2">*</span>args).<span class="kw">await</span>;
-            <span class="comment">// let the drop implementation have some time to send.
-            </span>tokio::time::sleep(Duration::from_secs(<span class="number">1</span>)).<span class="kw">await</span>;
-            res<span class="question-mark">?
-        </span>}
-        Commands::InternalProxy =&gt; {
-            <span class="kw">let </span>res = internal_proxy::proxy().<span class="kw">await</span>;
-            <span class="comment">// let the drop implementation have some time to send.
-            </span>tokio::time::sleep(Duration::from_secs(<span class="number">1</span>)).<span class="kw">await</span>;
-            res<span class="question-mark">?
-        </span>}
-        Commands::Waitlist(args) =&gt; register_to_waitlist(args.email).<span class="kw">await</span><span class="question-mark">?</span>,
-    }
+    <span class="kw">let </span>rt = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .map_err(CliError::RuntimeError)<span class="question-mark">?</span>;
+    <span class="kw">let </span>(signal, watch) = drain::channel();
 
+    <span class="kw">let </span>res: <span class="prelude-ty">Result</span>&lt;(), CliError&gt; = rt.block_on(<span class="kw">async move </span>{
+        <span class="kw">match </span>cli.commands {
+            Commands::Exec(args) =&gt; exec(<span class="kw-2">&amp;</span>args, watch).<span class="kw">await</span><span class="question-mark">?</span>,
+            Commands::Extract { path } =&gt; {
+                extract_library(
+                    <span class="prelude-val">Some</span>(path),
+                    <span class="kw-2">&amp;</span>ProgressTracker::from_env(<span class="string">&quot;mirrord extract library...&quot;</span>),
+                    <span class="bool-val">false</span>,
+                )<span class="question-mark">?</span>;
+            }
+            Commands::ListTargets(args) =&gt; print_pod_targets(<span class="kw-2">&amp;</span>args).<span class="kw">await</span><span class="question-mark">?</span>,
+            Commands::Operator(args) =&gt; operator_command(<span class="kw-2">*</span>args).<span class="kw">await</span><span class="question-mark">?</span>,
+            Commands::ExtensionExec(args) =&gt; {
+                extension_exec(<span class="kw-2">*</span>args, watch).<span class="kw">await</span><span class="question-mark">?</span>;
+            }
+            Commands::InternalProxy =&gt; internal_proxy::proxy(watch).<span class="kw">await</span><span class="question-mark">?</span>,
+            Commands::Waitlist(args) =&gt; register_to_waitlist(args.email).<span class="kw">await</span><span class="question-mark">?</span>,
+        };
+        <span class="prelude-val">Ok</span>(())
+    });
+
+    rt.block_on(<span class="kw">async move </span>{
+        tokio::time::timeout(Duration::from_secs(<span class="number">10</span>), signal.drain())
+            .<span class="kw">await
+            </span>.is_err()
+            .then(|| {
+                <span class="macro">warn!</span>(<span class="string">&quot;Failed to drain in a timely manner, ongoing tasks dropped.&quot;</span>);
+            });
+    });
+
+    res<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
 

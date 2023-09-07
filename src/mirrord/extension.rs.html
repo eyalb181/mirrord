@@ -123,7 +123,7 @@
 }
 
 <span class="doccomment">/// Facilitate the execution of a process using mirrord by an IDE extension
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>extension_exec(args: ExtensionExecArgs) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>extension_exec(args: ExtensionExecArgs, watch: drain::Watch) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">let </span>progress = ProgressTracker::try_from_env(<span class="string">&quot;mirrord preparing to launch&quot;</span>)
         .unwrap_or_else(|| JsonProgress::new(<span class="string">&quot;mirrord preparing to launch&quot;</span>).into());
     <span class="kw">let </span><span class="kw-2">mut </span>env: HashMap&lt;String, String&gt; = HashMap::new();
@@ -145,7 +145,7 @@
     }
     <span class="kw">let </span>(config, <span class="kw-2">mut </span>context) = LayerConfig::from_env_with_warnings()<span class="question-mark">?</span>;
 
-    <span class="kw">let </span><span class="kw-2">mut </span>analytics = AnalyticsReporter::only_error(config.telemetry);
+    <span class="kw">let </span><span class="kw-2">mut </span>analytics = AnalyticsReporter::only_error(config.telemetry, watch);
 
     config.verify(<span class="kw-2">&amp;mut </span>context)<span class="question-mark">?</span>;
     <span class="kw">for </span>warning <span class="kw">in </span>context.get_warnings() {

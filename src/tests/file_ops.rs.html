@@ -223,16 +223,22 @@
 <a href="#223" id="223">223</a>
 <a href="#224" id="224">224</a>
 <a href="#225" id="225">225</a>
-</pre></div><pre class="rust"><code><span class="attr">#[cfg(test)]
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+</pre></div><pre class="rust"><code><span class="attr">#![allow(dead_code, unused)]
+#[cfg(test)]
 </span><span class="kw">mod </span>file_ops {
 
     <span class="kw">use </span>std::time::Duration;
 
     <span class="kw">use </span>rstest::<span class="kw-2">*</span>;
 
-    <span class="kw">use </span><span class="kw">crate</span>::utils::{run_exec_with_target, service, Agent, FileOps, KubeService};
+    <span class="kw">use </span><span class="kw">crate</span>::utils::{run_exec_with_target, service, FileOps, KubeService};
 
-    <span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+    <span class="attr">#[cfg_attr(not(any(feature = <span class="string">&quot;ephemeral&quot;</span>, feature = <span class="string">&quot;job&quot;</span>)), ignore)]
+    #[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
     #[rstest]
     #[trace]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
@@ -241,7 +247,6 @@
         <span class="attr">#[future]
         #[notrace]
         </span>service: KubeService,
-        <span class="attr">#[values(Agent::Ephemeral, Agent::Job)] </span>agent: Agent,
         <span class="attr">#[values(FileOps::Python, FileOps::Rust)] </span>ops: FileOps,
     ) {
         <span class="kw">let </span>service = service.<span class="kw">await</span>;
@@ -250,8 +255,8 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>args = <span class="macro">vec!</span>[<span class="string">&quot;--fs-mode&quot;</span>, <span class="string">&quot;write&quot;</span>];
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(ephemeral_flag) = agent.flag() {
-            args.extend(ephemeral_flag);
+        <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;ephemeral&quot;</span>) {
+            args.extend([<span class="string">&quot;-e&quot;</span>].into_iter());
         }
 
         <span class="kw">let </span>env = <span class="macro">vec!</span>[(<span class="string">&quot;MIRRORD_FILE_READ_WRITE_PATTERN&quot;</span>, <span class="string">&quot;/tmp/**&quot;</span>)];
@@ -268,7 +273,8 @@
         ops.assert(process).<span class="kw">await</span>;
     }
 
-    <span class="attr">#[cfg(target_os = <span class="string">&quot;macos&quot;</span>)]
+    <span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;job&quot;</span>), ignore)]
+    #[cfg(target_os = <span class="string">&quot;macos&quot;</span>)]
     #[rstest]
     #[trace]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
@@ -297,7 +303,8 @@
         process.assert_python_fileops_stderr().<span class="kw">await</span>;
     }
 
-    <span class="attr">#[rstest]
+    <span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;job&quot;</span>), ignore)]
+    #[rstest]
     #[trace]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">240</span>))]
@@ -330,7 +337,8 @@
         process.assert_python_fileops_stderr().<span class="kw">await</span>;
     }
 
-    <span class="attr">#[rstest]
+    <span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;job&quot;</span>), ignore)]
+    #[rstest]
     #[trace]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">240</span>))]
@@ -416,7 +424,8 @@
     <span class="doccomment">/// On Linux: Test our getdents64 Go syscall hook, for `os.ReadDir` on go.
     /// This is an E2E test and not an integration test in order to test the agent side of the
     /// detour.
-    </span><span class="attr">#[rstest]
+    </span><span class="attr">#[cfg_attr(not(any(feature = <span class="string">&quot;ephemeral&quot;</span>, feature = <span class="string">&quot;job&quot;</span>)), ignore)]
+    #[rstest]
     #[trace]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">240</span>))]
@@ -424,7 +433,6 @@
         <span class="attr">#[future]
         #[notrace]
         </span>service: KubeService,
-        <span class="attr">#[values(Agent::Ephemeral, Agent::Job)] </span>agent: Agent,
         <span class="attr">#[values(FileOps::GoDir18, FileOps::GoDir19, FileOps::GoDir20)] </span>ops: FileOps,
     ) {
         <span class="kw">let </span>service = service.<span class="kw">await</span>;
@@ -432,8 +440,8 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>args = <span class="macro">vec!</span>[<span class="string">&quot;--fs-mode&quot;</span>, <span class="string">&quot;read&quot;</span>];
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(ephemeral_flag) = agent.flag() {
-            args.extend(ephemeral_flag);
+        <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;ephemeral&quot;</span>) {
+            args.extend([<span class="string">&quot;-e&quot;</span>].into_iter());
         }
 
         <span class="kw">let </span><span class="kw-2">mut </span>process = run_exec_with_target(

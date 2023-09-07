@@ -508,6 +508,26 @@
 <a href="#508" id="508">508</a>
 <a href="#509" id="509">509</a>
 <a href="#510" id="510">510</a>
+<a href="#511" id="511">511</a>
+<a href="#512" id="512">512</a>
+<a href="#513" id="513">513</a>
+<a href="#514" id="514">514</a>
+<a href="#515" id="515">515</a>
+<a href="#516" id="516">516</a>
+<a href="#517" id="517">517</a>
+<a href="#518" id="518">518</a>
+<a href="#519" id="519">519</a>
+<a href="#520" id="520">520</a>
+<a href="#521" id="521">521</a>
+<a href="#522" id="522">522</a>
+<a href="#523" id="523">523</a>
+<a href="#524" id="524">524</a>
+<a href="#525" id="525">525</a>
+<a href="#526" id="526">526</a>
+<a href="#527" id="527">527</a>
+<a href="#528" id="528">528</a>
+<a href="#529" id="529">529</a>
+<a href="#530" id="530">530</a>
 </pre></div><pre class="rust"><code><span class="kw">mod </span>steal;
 
 <span class="attr">#[cfg(test)]
@@ -526,7 +546,8 @@
         udp_logger_service, KubeService, CONTAINER_NAME,
     };
 
-    <span class="attr">#[rstest]
+    <span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;job&quot;</span>), ignore)]
+    #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">240</span>))]
     </span><span class="kw">pub async fn </span>remote_dns_enabled_works(<span class="attr">#[future] </span>service: KubeService) {
@@ -542,7 +563,8 @@
         <span class="macro">assert!</span>(res.success());
     }
 
-    <span class="attr">#[rstest]
+    <span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;job&quot;</span>), ignore)]
+    #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">240</span>))]
     </span><span class="kw">pub async fn </span>remote_dns_lookup_google(<span class="attr">#[future] </span>service: KubeService) {
@@ -561,7 +583,8 @@
     <span class="comment">// TODO: change outgoing TCP tests to use the same setup as in the outgoing UDP test so that
     //       they actually verify that the traffic is intercepted and forwarded (and isn&#39;t just
     //       directly sent out from the local application).
-    </span><span class="attr">#[rstest]
+    </span><span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;job&quot;</span>), ignore)]
+    #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     </span><span class="kw">pub async fn </span>outgoing_traffic_single_request_enabled(<span class="attr">#[future] </span>service: KubeService) {
         <span class="kw">let </span>service = service.<span class="kw">await</span>;
@@ -576,7 +599,8 @@
         <span class="macro">assert!</span>(res.success());
     }
 
-    <span class="attr">#[rstest]
+    <span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;job&quot;</span>), ignore)]
+    #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[should_panic]
     </span><span class="kw">pub async fn </span>outgoing_traffic_single_request_ipv6(<span class="attr">#[future] </span>service: KubeService) {
@@ -592,7 +616,8 @@
         <span class="macro">assert!</span>(res.success());
     }
 
-    <span class="attr">#[rstest]
+    <span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;job&quot;</span>), ignore)]
+    #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     </span><span class="kw">pub async fn </span>outgoing_traffic_single_request_disabled(<span class="attr">#[future] </span>service: KubeService) {
         <span class="kw">let </span>service = service.<span class="kw">await</span>;
@@ -614,7 +639,8 @@
         <span class="macro">assert!</span>(res.success());
     }
 
-    <span class="attr">#[rstest]
+    <span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;job&quot;</span>), ignore)]
+    #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     </span><span class="kw">pub async fn </span>outgoing_traffic_make_request_after_listen(<span class="attr">#[future] </span>service: KubeService) {
         <span class="kw">let </span>service = service.<span class="kw">await</span>;
@@ -628,7 +654,8 @@
         <span class="macro">assert!</span>(res.success());
     }
 
-    <span class="attr">#[rstest]
+    <span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;job&quot;</span>), ignore)]
+    #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     </span><span class="kw">pub async fn </span>outgoing_traffic_make_request_localhost(<span class="attr">#[future] </span>service: KubeService) {
         <span class="kw">let </span>service = service.<span class="kw">await</span>;
@@ -645,7 +672,8 @@
     <span class="doccomment">/// Currently, mirrord only intercepts and forwards outgoing udp traffic if the application
     /// binds a non-0 port and calls `connect`. This test runs with mirrord a node app that does
     /// that and verifies that mirrord intercepts and forwards the outgoing udp message.
-    </span><span class="attr">#[rstest]
+    </span><span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;job&quot;</span>), ignore)]
+    #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">240</span>))]
     </span><span class="kw">pub async fn </span>outgoing_traffic_udp_with_connect(
@@ -728,7 +756,8 @@
 
     <span class="doccomment">/// Very similar to [`outgoing_traffic_udp_with_connect`], but it uses the outgoing traffic
     /// filter to resolve the remote host names.
-    </span><span class="attr">#[rstest]
+    </span><span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;job&quot;</span>), ignore)]
+    #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">240</span>))]
     </span><span class="kw">pub async fn </span>outgoing_traffic_filter_udp_with_connect(
@@ -844,7 +873,8 @@
 
     <span class="doccomment">/// Test that the process does not crash and messages are sent out normally when the
     /// application calls `connect` on a UDP socket with outgoing traffic disabled on mirrord.
-    </span><span class="attr">#[rstest]
+    </span><span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;job&quot;</span>), ignore)]
+    #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">30</span>))]
     </span><span class="kw">pub async fn </span>outgoing_disabled_udp(<span class="attr">#[future] </span>service: KubeService) {
@@ -886,21 +916,24 @@
         <span class="macro">assert!</span>(res.success());
     }
 
-    <span class="attr">#[rstest]
+    <span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;job&quot;</span>), ignore)]
+    #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     </span><span class="kw">pub async fn </span>go18_outgoing_traffic_single_request_enabled(<span class="attr">#[future] </span>service: KubeService) {
         <span class="kw">let </span>command = <span class="macro">vec!</span>[<span class="string">&quot;go-e2e-outgoing/18.go_test_app&quot;</span>];
         test_go(service, command).<span class="kw">await</span>;
     }
 
-    <span class="attr">#[rstest]
+    <span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;job&quot;</span>), ignore)]
+    #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     </span><span class="kw">pub async fn </span>go19_outgoing_traffic_single_request_enabled(<span class="attr">#[future] </span>service: KubeService) {
         <span class="kw">let </span>command = <span class="macro">vec!</span>[<span class="string">&quot;go-e2e-outgoing/19.go_test_app&quot;</span>];
         test_go(service, command).<span class="kw">await</span>;
     }
 
-    <span class="attr">#[rstest]
+    <span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;job&quot;</span>), ignore)]
+    #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">60</span>))]
     </span><span class="kw">pub async fn </span>go20_outgoing_traffic_single_request_enabled(<span class="attr">#[future] </span>service: KubeService) {
@@ -908,7 +941,8 @@
         test_go(service, command).<span class="kw">await</span>;
     }
 
-    <span class="attr">#[rstest]
+    <span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;job&quot;</span>), ignore)]
+    #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">60</span>))]
     </span><span class="kw">pub async fn </span>go18_dns_lookup(<span class="attr">#[future] </span>service: KubeService) {
@@ -916,7 +950,8 @@
         test_go(service, command).<span class="kw">await</span>;
     }
 
-    <span class="attr">#[rstest]
+    <span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;job&quot;</span>), ignore)]
+    #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">60</span>))]
     </span><span class="kw">pub async fn </span>go19_dns_lookup(<span class="attr">#[future] </span>service: KubeService) {
@@ -924,7 +959,8 @@
         test_go(service, command).<span class="kw">await</span>;
     }
 
-    <span class="attr">#[rstest]
+    <span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;job&quot;</span>), ignore)]
+    #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">60</span>))]
     </span><span class="kw">pub async fn </span>go20_dns_lookup(<span class="attr">#[future] </span>service: KubeService) {
@@ -932,7 +968,8 @@
         test_go(service, command).<span class="kw">await</span>;
     }
 
-    <span class="attr">#[rstest]
+    <span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;job&quot;</span>), ignore)]
+    #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     </span><span class="kw">pub async fn </span>listen_localhost(<span class="attr">#[future] </span>service: KubeService) {
         <span class="kw">let </span>service = service.<span class="kw">await</span>;
@@ -943,7 +980,8 @@
         <span class="macro">assert!</span>(res.success());
     }
 
-    <span class="attr">#[rstest]
+    <span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;job&quot;</span>), ignore)]
+    #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">120</span>))]
     </span><span class="kw">pub async fn </span>gethostname_remote_result(<span class="attr">#[future] </span>hostname_service: KubeService) {
@@ -963,7 +1001,8 @@
     /// 2. Run with mirrord a client application that connects to that socket, sends data, verifies
     /// its echo and panics if anything went wrong
     /// 3. Verify the client app did not panic.
-    </span><span class="attr">#[rstest]
+    </span><span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;job&quot;</span>), ignore)]
+    #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">60</span>))]
     </span><span class="kw">pub async fn </span>outgoing_unix_stream_pathname(
@@ -999,7 +1038,8 @@
     <span class="doccomment">/// Verify that mirrord does not interfere with ignored unix sockets and connecting to a unix
     /// socket that is NOT configured to happen remotely works fine locally (testing the Bypass
     /// case of connections to unix sockets).
-    </span><span class="attr">#[rstest]
+    </span><span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;job&quot;</span>), ignore)]
+    #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">240</span>))]
     </span><span class="kw">pub async fn </span>outgoing_bypassed_unix_stream_pathname(<span class="attr">#[future] </span>service: KubeService) {

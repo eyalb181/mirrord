@@ -442,6 +442,9 @@
 <a href="#442" id="442">442</a>
 <a href="#443" id="443">443</a>
 <a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>base64::{engine::general_purpose, Engine <span class="kw">as _</span>};
 <span class="kw">use </span>futures::{SinkExt, StreamExt};
 <span class="kw">use </span>http::request::Request;
@@ -634,18 +637,21 @@
     </span><span class="kw">pub async fn </span>connect(
         config: <span class="kw-2">&amp;</span>LayerConfig,
         session_information: <span class="kw-2">&amp;</span>OperatorSessionInformation,
-        analytics: <span class="kw-2">&amp;mut </span>AnalyticsReporter,
+        analytics: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>AnalyticsReporter&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(mpsc::Sender&lt;ClientMessage&gt;, mpsc::Receiver&lt;DaemonMessage&gt;)&gt; {
-        analytics.set_operator_properties(AnalyticsOperatorProperties {
-            client_hash: session_information
-                .client_certificate
-                .as_ref()
-                .and_then(|certificate| certificate.sha256_fingerprint().ok())
-                .map(|fingerprint| AnalyticsHash::from_bytes(fingerprint.as_ref())),
-            license_hash: session_information
-                .fingerprint
-                .as_deref()
-                .map(AnalyticsHash::from_base64),
+        analytics.map(|analytics| {
+            analytics.set_operator_properties(AnalyticsOperatorProperties {
+                client_hash: session_information
+                    .client_certificate
+                    .as_ref()
+                    .and_then(|certificate| certificate.sha256_fingerprint().ok())
+                    .map(|fingerprint| AnalyticsHash::from_bytes(fingerprint.as_ref())),
+                license_hash: session_information
+                    .fingerprint
+                    .as_deref()
+                    .map(AnalyticsHash::from_base64),
+            });
+            analytics
         });
 
         OperatorApi::new(config)

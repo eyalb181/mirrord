@@ -85,6 +85,11 @@
 <a href="#85" id="85">85</a>
 <a href="#86" id="86">86</a>
 <a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{collections::HashMap, sync::Arc};
 
 <span class="kw">use </span>tokio::sync::RwLock;
@@ -105,6 +110,8 @@
     </span>raw_env: HashMap&lt;String, String&gt;,
     <span class="doccomment">/// Whether the container is paused.
     </span>paused: RwLock&lt;bool&gt;,
+    <span class="doccomment">/// Watch for using in the drop
+    </span>watch: drain::Watch,
 }
 
 <span class="doccomment">/// This is to make sure we don&#39;t leave the target container paused when the agent exits.
@@ -112,12 +119,14 @@
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// use try_read to avoid deadlocks
         </span><span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>) = <span class="self">self</span>.paused.try_read().as_deref() {
+            <span class="kw">let </span>watch = <span class="self">self</span>.watch.clone();
             <span class="kw">let </span>container = <span class="self">self</span>.container.clone();
             tokio::spawn(<span class="kw">async move </span>{
                 <span class="macro">info!</span>(<span class="string">&quot;Agent exiting with target container paused. Unpausing target container.&quot;</span>);
                 <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = container.unpause().<span class="kw">await </span>{
                     <span class="macro">error!</span>(<span class="string">&quot;Could not unpause target container while exiting, got error: {err:?}&quot;</span>);
                 }
+                drop(watch);
             });
         }
     }
@@ -132,13 +141,14 @@
 <span class="kw">impl </span>ContainerHandle {
     <span class="doccomment">/// Retrieve info about the container and initialize this struct.
     </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>new(container: Container) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>new(container: Container, watch: drain::Watch) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>ContainerInfo { pid, env: raw_env } = container.get_info().<span class="kw">await</span><span class="question-mark">?</span>;
 
         <span class="kw">let </span>inner = Inner {
             container,
             pid,
             raw_env,
+            watch,
             paused: Default::default(),
         };
 

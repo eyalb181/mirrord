@@ -680,14 +680,8 @@
 <a href="#680" id="680">680</a>
 <a href="#681" id="681">681</a>
 <a href="#682" id="682">682</a>
-<a href="#683" id="683">683</a>
-<a href="#684" id="684">684</a>
-<a href="#685" id="685">685</a>
-<a href="#686" id="686">686</a>
-<a href="#687" id="687">687</a>
-<a href="#688" id="688">688</a>
-<a href="#689" id="689">689</a>
-</pre></div><pre class="rust"><code><span class="attr">#[cfg(test)]
+</pre></div><pre class="rust"><code><span class="attr">#![allow(dead_code, unused)]
+#[cfg(test)]
 </span><span class="kw">mod </span>steal {
     <span class="kw">use </span>std::{
         io::{BufRead, BufReader, Read, Write},
@@ -703,11 +697,12 @@
 
     <span class="kw">use </span><span class="kw">crate</span>::utils::{
         config_dir, get_service_host_and_port, get_service_url, http2_service, kube_client,
-        send_request, send_requests, service, tcp_echo_service, websocket_service, Agent,
-        Application, KubeService,
+        send_request, send_requests, service, tcp_echo_service, websocket_service, Application,
+        KubeService,
     };
 
-    <span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+    <span class="attr">#[cfg_attr(not(any(feature = <span class="string">&quot;ephemeral&quot;</span>, feature = <span class="string">&quot;job&quot;</span>)), ignore)]
+    #[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
     #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">240</span>))]
@@ -720,15 +715,16 @@
             Application::NodeHTTP
         )]
         </span>application: Application,
-        <span class="attr">#[values(Agent::Ephemeral, Agent::Job)] </span>agent: Agent,
     ) {
         <span class="kw">let </span>service = service.<span class="kw">await</span>;
         <span class="kw">let </span>kube_client = kube_client.<span class="kw">await</span>;
         <span class="kw">let </span>url = get_service_url(kube_client.clone(), <span class="kw-2">&amp;</span>service).<span class="kw">await</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>flags = <span class="macro">vec!</span>[<span class="string">&quot;--steal&quot;</span>];
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(flag) = agent.flag() {
-            flags.extend(flag)
+
+        <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;ephemeral&quot;</span>) {
+            flags.extend([<span class="string">&quot;-e&quot;</span>].into_iter());
         }
+
         <span class="kw">let </span><span class="kw-2">mut </span>process = application
             .run(<span class="kw-2">&amp;</span>service.target, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>service.namespace), <span class="prelude-val">Some</span>(flags), <span class="prelude-val">None</span>)
             .<span class="kw">await</span>;
@@ -744,7 +740,8 @@
         application.assert(<span class="kw-2">&amp;</span>process).<span class="kw">await</span>;
     }
 
-    <span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+    <span class="attr">#[cfg_attr(not(any(feature = <span class="string">&quot;ephemeral&quot;</span>, feature = <span class="string">&quot;job&quot;</span>)), ignore)]
+    #[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
     #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">240</span>))]
@@ -757,15 +754,16 @@
             Application::NodeHTTP
         )]
         </span>application: Application,
-        <span class="attr">#[values(Agent::Ephemeral, Agent::Job)] </span>agent: Agent,
     ) {
         <span class="kw">let </span>service = service.<span class="kw">await</span>;
         <span class="kw">let </span>kube_client = kube_client.<span class="kw">await</span>;
         <span class="kw">let </span>url = get_service_url(kube_client.clone(), <span class="kw-2">&amp;</span>service).<span class="kw">await</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>flags = <span class="macro">vec!</span>[<span class="string">&quot;--steal&quot;</span>];
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(flag) = agent.flag() {
-            flags.extend(flag)
+
+        <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;ephemeral&quot;</span>) {
+            flags.extend([<span class="string">&quot;-e&quot;</span>].into_iter());
         }
+
         <span class="kw">let </span><span class="kw-2">mut </span>process = application
             .run(
                 <span class="kw-2">&amp;</span>service.target,
@@ -788,22 +786,21 @@
 
     <span class="doccomment">/// Test the app continues running with mirrord and traffic is no longer stolen after the app
     /// closes a socket.
-    </span><span class="attr">#[rstest]
+    </span><span class="attr">#[cfg_attr(not(any(feature = <span class="string">&quot;ephemeral&quot;</span>, feature = <span class="string">&quot;job&quot;</span>)), ignore)]
+    #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">240</span>))]
-    </span><span class="kw">async fn </span>close_socket(
-        <span class="attr">#[future] </span>service: KubeService,
-        <span class="attr">#[future] </span>kube_client: Client,
-        <span class="attr">#[values(Agent::Ephemeral, Agent::Job)] </span>agent: Agent,
-    ) {
+    </span><span class="kw">async fn </span>close_socket(<span class="attr">#[future] </span>service: KubeService, <span class="attr">#[future] </span>kube_client: Client) {
         <span class="kw">let </span>application = Application::PythonCloseSocket;
         <span class="comment">// Start the test app with mirrord
         </span><span class="kw">let </span>service = service.<span class="kw">await</span>;
         <span class="kw">let </span>kube_client = kube_client.<span class="kw">await</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>flags = <span class="macro">vec!</span>[<span class="string">&quot;--steal&quot;</span>];
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(flag) = agent.flag() {
-            flags.extend(flag)
+
+        <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;ephemeral&quot;</span>) {
+            flags.extend([<span class="string">&quot;-e&quot;</span>].into_iter());
         }
+
         <span class="kw">let </span><span class="kw-2">mut </span>process = application
             .run(<span class="kw-2">&amp;</span>service.target, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>service.namespace), <span class="prelude-val">Some</span>(flags), <span class="prelude-val">None</span>)
             .<span class="kw">await</span>;
@@ -875,16 +872,17 @@
     </span><span class="kw">async fn </span>close_socket_keep_connection(
         <span class="attr">#[future] </span>service: KubeService,
         <span class="attr">#[future] </span>kube_client: Client,
-        <span class="attr">#[values(Agent::Ephemeral, Agent::Job)] </span>agent: Agent,
     ) {
         <span class="kw">let </span>application = Application::PythonCloseSocketKeepConnection;
         <span class="comment">// Start the test app with mirrord
         </span><span class="kw">let </span>service = service.<span class="kw">await</span>;
         <span class="kw">let </span>kube_client = kube_client.<span class="kw">await</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>flags = <span class="macro">vec!</span>[<span class="string">&quot;--steal&quot;</span>];
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(flag) = agent.flag() {
-            flags.extend(flag)
+
+        <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;ephemeral&quot;</span>) {
+            flags.extend([<span class="string">&quot;-e&quot;</span>].into_iter());
         }
+
         <span class="kw">let </span><span class="kw-2">mut </span>process = application
             .run(
                 <span class="kw-2">&amp;</span>service.target,
@@ -946,7 +944,8 @@
 
     <span class="doccomment">/// To run on mac, first build universal binary: (from repo root) `scripts/build_fat_mac.sh`
     /// then run test with MIRRORD_TESTS_USE_BINARY=../target/universal-apple-darwin/debug/mirrord
-    </span><span class="attr">#[rstest]
+    </span><span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;job&quot;</span>), ignore)]
+    #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">120</span>))]
     </span><span class="kw">async fn </span>filter_with_single_client_and_only_matching_requests(
@@ -958,15 +957,11 @@
             Application::NodeHTTP
         )]
         </span>application: Application,
-        <span class="attr">#[values(Agent::Job)] </span>agent: Agent,
     ) {
         <span class="kw">let </span>service = service.<span class="kw">await</span>;
         <span class="kw">let </span>kube_client = kube_client.<span class="kw">await</span>;
         <span class="kw">let </span>url = get_service_url(kube_client.clone(), <span class="kw-2">&amp;</span>service).<span class="kw">await</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>flags = <span class="macro">vec!</span>[<span class="string">&quot;--steal&quot;</span>];
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(flag) = agent.flag() {
-            flags.extend(flag)
-        }
+        <span class="kw">let </span>flags = <span class="macro">vec!</span>[<span class="string">&quot;--steal&quot;</span>];
 
         <span class="kw">let </span><span class="kw-2">mut </span>client = application
             .run(
@@ -992,7 +987,8 @@
         application.assert(<span class="kw-2">&amp;</span>client).<span class="kw">await</span>;
     }
 
-    <span class="attr">#[rstest]
+    <span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;job&quot;</span>), ignore)]
+    #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">120</span>))]
     </span><span class="kw">async fn </span>filter_with_single_client_and_only_matching_requests_new(
@@ -1000,7 +996,6 @@
         <span class="attr">#[future] </span>service: KubeService,
         <span class="attr">#[future] </span>kube_client: Client,
         <span class="attr">#[values(Application::NodeHTTP)] </span>application: Application,
-        <span class="attr">#[values(Agent::Job)] </span>agent: Agent,
     ) {
         <span class="kw">let </span>service = service.<span class="kw">await</span>;
         <span class="kw">let </span>kube_client = kube_client.<span class="kw">await</span>;
@@ -1013,7 +1008,7 @@
             .run(
                 <span class="kw-2">&amp;</span>service.target,
                 <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>service.namespace),
-                agent.flag(),
+                <span class="prelude-val">None</span>,
                 <span class="prelude-val">Some</span>(<span class="macro">vec!</span>[(<span class="string">&quot;MIRRORD_CONFIG_FILE&quot;</span>, config_path.to_str().unwrap())]),
             )
             .<span class="kw">await</span>;
@@ -1033,7 +1028,8 @@
         application.assert(<span class="kw-2">&amp;</span>client).<span class="kw">await</span>;
     }
 
-    <span class="attr">#[rstest]
+    <span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;job&quot;</span>), ignore)]
+    #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">120</span>))]
     </span><span class="kw">async fn </span>filter_with_single_client_requests_by_path(
@@ -1041,7 +1037,6 @@
         <span class="attr">#[future] </span>service: KubeService,
         <span class="attr">#[future] </span>kube_client: Client,
         <span class="attr">#[values(Application::NodeHTTP)] </span>application: Application,
-        <span class="attr">#[values(Agent::Job)] </span>agent: Agent,
     ) {
         <span class="kw">let </span>service = service.<span class="kw">await</span>;
         <span class="kw">let </span>kube_client = kube_client.<span class="kw">await</span>;
@@ -1054,7 +1049,7 @@
             .run(
                 <span class="kw-2">&amp;</span>service.target,
                 <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>service.namespace),
-                agent.flag(),
+                <span class="prelude-val">None</span>,
                 <span class="prelude-val">Some</span>(<span class="macro">vec!</span>[(<span class="string">&quot;MIRRORD_CONFIG_FILE&quot;</span>, config_path.to_str().unwrap())]),
             )
             .<span class="kw">await</span>;
@@ -1089,22 +1084,19 @@
         application.assert(<span class="kw-2">&amp;</span>client).<span class="kw">await</span>;
     }
 
-    <span class="attr">#[rstest]
+    <span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;job&quot;</span>), ignore)]
+    #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">120</span>))]
     </span><span class="kw">async fn </span>test_filter_with_single_client_and_only_matching_requests_http2(
         <span class="attr">#[future] </span>http2_service: KubeService,
         <span class="attr">#[future] </span>kube_client: Client,
         <span class="attr">#[values(Application::NodeHTTP2)] </span>application: Application,
-        <span class="attr">#[values(Agent::Job)] </span>agent: Agent,
     ) {
         <span class="kw">let </span>service = http2_service.<span class="kw">await</span>;
         <span class="kw">let </span>kube_client = kube_client.<span class="kw">await</span>;
         <span class="kw">let </span>url = get_service_url(kube_client.clone(), <span class="kw-2">&amp;</span>service).<span class="kw">await</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>flags = <span class="macro">vec!</span>[<span class="string">&quot;--steal&quot;</span>, <span class="string">&quot;--fs-mode=local&quot;</span>];
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(flag) = agent.flag() {
-            flags.extend(flag)
-        }
+        <span class="kw">let </span>flags = <span class="macro">vec!</span>[<span class="string">&quot;--steal&quot;</span>, <span class="string">&quot;--fs-mode=local&quot;</span>];
 
         <span class="kw">let </span><span class="kw-2">mut </span>mirrored_process = application
             .run(
@@ -1157,7 +1149,8 @@
 
     <span class="doccomment">/// To run on mac, first build universal binary: (from repo root) `scripts/build_fat_mac.sh`
     /// then run test with MIRRORD_TESTS_USE_BINARY=../target/universal-apple-darwin/debug/mirrord
-    </span><span class="attr">#[rstest]
+    </span><span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;job&quot;</span>), ignore)]
+    #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">120</span>))]
     </span><span class="kw">async fn </span>filter_with_single_client_and_some_matching_requests(
@@ -1169,16 +1162,13 @@
             Application::NodeHTTP
         )]
         </span>application: Application,
-        <span class="attr">#[values(Agent::Job)] </span>agent: Agent,
     ) {
         <span class="kw">let </span>service = service.<span class="kw">await</span>;
         <span class="kw">let </span>kube_client = kube_client.<span class="kw">await</span>;
         <span class="kw">let </span>url = get_service_url(kube_client.clone(), <span class="kw-2">&amp;</span>service).<span class="kw">await</span>;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>flags = <span class="macro">vec!</span>[<span class="string">&quot;--steal&quot;</span>];
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(flag) = agent.flag() {
-            flags.extend(flag)
-        }
+        <span class="kw">let </span>flags = <span class="macro">vec!</span>[<span class="string">&quot;--steal&quot;</span>];
+
         <span class="kw">let </span><span class="kw-2">mut </span>mirrorded_process = application
             .run(
                 <span class="kw-2">&amp;</span>service.target,
@@ -1228,13 +1218,13 @@
     /// connection of an unsupported protocol.
     /// We verify that the traffic is forwarded to- and handled by the deployed app, and the local
     /// app does not see the traffic.
-    </span><span class="attr">#[rstest]
+    </span><span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;job&quot;</span>), ignore)]
+    #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">120</span>))]
     </span><span class="kw">async fn </span>complete_passthrough(
         <span class="attr">#[future] </span>tcp_echo_service: KubeService,
         <span class="attr">#[future] </span>kube_client: Client,
-        <span class="attr">#[values(Agent::Job)] </span>agent: Agent,
         <span class="attr">#[values(Application::PythonFastApiHTTP, Application::NodeHTTP)] </span>application: Application,
         <span class="attr">#[values(<span class="string">&quot;THIS IS NOT HTTP!\n&quot;</span>, <span class="string">&quot;short.\n&quot;</span>)] </span>tcp_data: <span class="kw-2">&amp;</span>str,
     ) {
@@ -1242,10 +1232,8 @@
         <span class="kw">let </span>kube_client = kube_client.<span class="kw">await</span>;
         <span class="kw">let </span>(host, port) = get_service_host_and_port(kube_client.clone(), <span class="kw-2">&amp;</span>service).<span class="kw">await</span>;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>flags = <span class="macro">vec!</span>[<span class="string">&quot;--steal&quot;</span>];
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(flag) = agent.flag() {
-            flags.extend(flag)
-        }
+        <span class="kw">let </span>flags = <span class="macro">vec!</span>[<span class="string">&quot;--steal&quot;</span>];
+
         <span class="kw">let </span><span class="kw-2">mut </span>mirrorded_process = application
             .run(
                 <span class="kw-2">&amp;</span>service.target,
@@ -1295,13 +1283,13 @@
     ///
     /// We verify that the traffic is forwarded to- and handled by the deployed app, and the local
     /// app does not see the traffic.
-    </span><span class="attr">#[rstest]
+    </span><span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;job&quot;</span>), ignore)]
+    #[rstest]
     #[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>, worker_threads = <span class="number">2</span>)]
     #[timeout(Duration::from_secs(<span class="number">60</span>))]
     </span><span class="kw">async fn </span>websocket_upgrade(
         <span class="attr">#[future] </span>websocket_service: KubeService,
         <span class="attr">#[future] </span>kube_client: Client,
-        <span class="attr">#[values(Agent::Job)] </span>agent: Agent,
         <span class="attr">#[values(Application::PythonFastApiHTTP, Application::NodeHTTP)] </span>application: Application,
         <span class="attr">#[values(
             <span class="string">&quot;Hello, websocket!\n&quot;</span>.to_string(),
@@ -1315,10 +1303,8 @@
         <span class="kw">let </span>kube_client = kube_client.<span class="kw">await</span>;
         <span class="kw">let </span>(host, port) = get_service_host_and_port(kube_client.clone(), <span class="kw-2">&amp;</span>service).<span class="kw">await</span>;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>flags = <span class="macro">vec!</span>[<span class="string">&quot;--steal&quot;</span>];
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(flag) = agent.flag() {
-            flags.extend(flag)
-        }
+        <span class="kw">let </span>flags = <span class="macro">vec!</span>[<span class="string">&quot;--steal&quot;</span>];
+
         <span class="kw">let </span><span class="kw-2">mut </span>mirrorded_process = application
             .run(
                 <span class="kw-2">&amp;</span>service.target,
