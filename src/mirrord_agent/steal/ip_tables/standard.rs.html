@@ -128,7 +128,7 @@
     },
 };
 
-<span class="kw">pub struct </span>StandardRedirect&lt;IPT: IPTables&gt; {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>StandardRedirect&lt;IPT: IPTables&gt; {
     preroute: PreroutingRedirect&lt;IPT&gt;,
     managed: IPTableChain&lt;IPT&gt;,
     own_packet_filter: String,

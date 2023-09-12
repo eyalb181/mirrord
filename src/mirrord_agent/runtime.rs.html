@@ -288,12 +288,15 @@
 <a href="#288" id="288">288</a>
 <a href="#289" id="289">289</a>
 <a href="#290" id="290">290</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::{
-    collections::HashMap,
-    fs::File,
-    os::unix::io::{IntoRawFd, RawFd},
-    path::PathBuf,
-};
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
 
 <span class="kw">use </span>bollard::{container::InspectContainerOptions, Docker, API_DEFAULT_VERSION};
 <span class="kw">use </span>containerd_client::{
@@ -305,14 +308,13 @@
     with_namespace,
 };
 <span class="kw">use </span>enum_dispatch::enum_dispatch;
-<span class="kw">use </span>nix::sched::setns;
 <span class="kw">use </span>oci_spec::runtime::Spec;
 <span class="kw">use </span>tokio::net::UnixStream;
 <span class="kw">use </span>tonic::transport::{Endpoint, Uri};
 <span class="kw">use </span>tower::service_fn;
-<span class="kw">use </span>tracing::{trace, warn};
 
 <span class="kw">use crate</span>::{
+    cgroup::Cgroup,
     env::parse_raw_env,
     error::{AgentError, <span class="prelude-ty">Result</span>},
     runtime::crio::CriOContainer,
@@ -365,6 +367,7 @@
     Docker(DockerContainer),
     Containerd(ContainerdContainer),
     CriO(CriOContainer),
+    Ephemeral(EphemeralContainer),
 }
 
 <span class="doccomment">/// get a container object according to args.
@@ -570,12 +573,25 @@
     }
 }
 
-<span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
-</span><span class="kw">pub fn </span>set_namespace(ns_path: PathBuf) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>fd: RawFd = File::open(ns_path)<span class="question-mark">?</span>.into_raw_fd();
-    <span class="macro">trace!</span>(<span class="string">&quot;set_namespace -&gt; fd {:#?}&quot;</span>, fd);
+<span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>EphemeralContainer;
 
-    setns(fd, nix::sched::CloneFlags::CLONE_NEWNET)<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>(())
+<span class="kw">impl </span>ContainerRuntime <span class="kw">for </span>EphemeralContainer {
+    <span class="doccomment">/// When running on ephemeral, root pid is always 1 and env is the current process&#39; env. (we
+    /// copy it from the k8s spec)
+    </span><span class="kw">async fn </span>get_info(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;ContainerInfo&gt; {
+        <span class="prelude-val">Ok</span>(ContainerInfo::new(<span class="number">1</span>, std::env::vars().collect()))
+    }
+
+    <span class="doccomment">/// Pause requires root privileges, so if it fails on permission we send a message.
+    </span><span class="kw">async fn </span>pause(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="kw">let </span>cgroup = Cgroup::new().<span class="kw">await</span><span class="question-mark">?</span>;
+        cgroup.pause().<span class="kw">await</span>.map_err(From::from)
+    }
+
+    <span class="kw">async fn </span>unpause(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="kw">let </span>cgroup = Cgroup::new().<span class="kw">await</span><span class="question-mark">?</span>;
+        cgroup.unpause().<span class="kw">await</span>.map_err(From::from)
+    }
 }
 </code></pre></div></section></main></body></html>

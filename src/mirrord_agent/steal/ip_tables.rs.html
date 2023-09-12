@@ -615,8 +615,8 @@
     })
 });
 
-<span class="kw">pub static </span>IPTABLE_MESH_ENV: <span class="kw-2">&amp;</span>str = <span class="string">&quot;MIRRORD_IPTABLE_MESH_NAME&quot;</span>;
-<span class="kw">pub static </span>IPTABLE_MESH: LazyLock&lt;String&gt; = LazyLock::new(|| {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>IPTABLE_MESH_ENV: <span class="kw-2">&amp;</span>str = <span class="string">&quot;MIRRORD_IPTABLE_MESH_NAME&quot;</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>IPTABLE_MESH: LazyLock&lt;String&gt; = LazyLock::new(|| {
     std::env::var(IPTABLE_MESH_ENV).unwrap_or_else(|<span class="kw">_</span>| {
         <span class="macro">format!</span>(
             <span class="string">&quot;MIRRORD_OUTPUT_{}&quot;</span>,
@@ -625,8 +625,8 @@
     })
 });
 
-<span class="kw">pub static </span>IPTABLE_STANDARD_ENV: <span class="kw-2">&amp;</span>str = <span class="string">&quot;MIRRORD_IPTABLE_STANDARD_NAME&quot;</span>;
-<span class="kw">pub static </span>IPTABLE_STANDARD: LazyLock&lt;String&gt; = LazyLock::new(|| {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>IPTABLE_STANDARD_ENV: <span class="kw-2">&amp;</span>str = <span class="string">&quot;MIRRORD_IPTABLE_STANDARD_NAME&quot;</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>IPTABLE_STANDARD: LazyLock&lt;String&gt; = LazyLock::new(|| {
     std::env::var(IPTABLE_STANDARD_ENV).unwrap_or_else(|<span class="kw">_</span>| {
         <span class="macro">format!</span>(
             <span class="string">&quot;MIRRORD_STANDARD_{}&quot;</span>,
@@ -648,7 +648,7 @@
 <span class="kw">const </span>IPTABLES_TABLE_NAME: <span class="kw-2">&amp;</span>str = <span class="string">&quot;nat&quot;</span>;
 
 <span class="attr">#[cfg_attr(test, mockall::automock)]
-</span><span class="kw">pub trait </span>IPTables {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>IPTables {
     <span class="kw">fn </span>with_table(<span class="kw-2">&amp;</span><span class="self">self</span>, table_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span><span class="self">Self</span>: Sized;
@@ -751,7 +751,7 @@
 }
 
 <span class="attr">#[enum_dispatch(Redirect)]
-</span><span class="kw">pub enum </span>Redirects&lt;IPT: IPTables + Send + Sync&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>Redirects&lt;IPT: IPTables + Send + Sync&gt; {
     Standard(StandardRedirect&lt;IPT&gt;),
     Mesh(MeshRedirect&lt;IPT&gt;),
     FlushConnections(FlushConnections&lt;IPT, Redirects&lt;IPT&gt;&gt;),

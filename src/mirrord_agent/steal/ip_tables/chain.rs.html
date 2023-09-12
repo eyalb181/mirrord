@@ -101,7 +101,7 @@
 };
 
 <span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>IPTableChain&lt;IPT: IPTables&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>IPTableChain&lt;IPT: IPTables&gt; {
     inner: Arc&lt;IPT&gt;,
     chain_name: String,
     chain_size: AtomicI32,

@@ -754,6 +754,7 @@
 <a href="#754" id="754">754</a>
 <a href="#755" id="755">755</a>
 <a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
 </pre></div><pre class="rust"><code><span class="attr">#![feature(slice_concat_trait)]
 #![feature(lazy_cell)]
 #![feature(result_option_inspect)]
@@ -941,7 +942,9 @@
     /// With this feature enabled, the remote container is paused while this layer is connected to
     /// the agent.
     ///
-    /// Defaults to `false`.
+    /// Note: It requires agent configuration to be set to privileged when running with the
+    /// ephemeral agent option. Defaults to `false`.
+    /// Note2: Pause + ephemeral might not work on Docker runtimes.
     </span><span class="attr">#[config(env = <span class="string">&quot;MIRRORD_PAUSE&quot;</span>, default = <span class="bool-val">false</span>, unstable)]
     </span><span class="kw">pub </span>pause: bool,
 
@@ -1059,9 +1062,8 @@
     /// Returns vec of warnings
     </span><span class="kw">pub fn </span>verify(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>ConfigContext) -&gt; <span class="prelude-ty">Result</span>&lt;(), ConfigError&gt; {
         <span class="kw">if </span><span class="self">self</span>.pause {
-            <span class="kw">if </span><span class="self">self</span>.agent.ephemeral {
-                <span class="prelude-val">Err</span>(ConfigError::Conflict(<span class="string">&quot;Pausing is not yet supported together with an ephemeral agent container.
-                Mutually exclusive arguments `--pause` and `--ephemeral-container` passed together.&quot;</span>.to_string()))<span class="question-mark">?</span>;
+            <span class="kw">if </span><span class="self">self</span>.agent.ephemeral &amp;&amp; !<span class="self">self</span>.agent.privileged {
+                context.add_warning(<span class="string">&quot;The target pause feature with ephemeral requires to enable the privileged flag on the agent.&quot;</span>.to_string());
             }
             <span class="kw">if </span>!<span class="self">self</span>.feature.network.incoming.is_steal() {
                 context.add_warning(PAUSE_WITHOUT_STEAL_WARNING.to_string());

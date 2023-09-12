@@ -620,7 +620,7 @@
 };
 
 <span class="attr">#[derive(Debug, Eq, Copy, Clone)]
-</span><span class="kw">pub struct </span>TcpSessionIdentifier {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>TcpSessionIdentifier {
     <span class="doccomment">/// The remote address that is sending a packet to the impersonated pod.
     ///
     /// ## Details
@@ -808,14 +808,14 @@
 }
 
 <span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>SnifferCommand {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SnifferCommand {
     client_id: ClientId,
     command: SnifferCommands,
 }
 
 <span class="doccomment">/// Interface used by clients to interact with the [`TcpConnectionSniffer`].
 /// Multiple instances of this struct operate on a single sniffer instance.
-</span><span class="kw">pub struct </span>TcpSnifferApi {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>TcpSnifferApi {
     <span class="doccomment">/// Id of the client using this struct.
     </span>client_id: ClientId,
     <span class="doccomment">/// Channel used to send commands to the [`TcpConnectionSniffer`].
@@ -896,7 +896,7 @@
     }
 }
 
-<span class="kw">pub struct </span>TcpConnectionSniffer {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>TcpConnectionSniffer {
     port_subscriptions: Subscriptions&lt;Port, ClientId&gt;,
     receiver: Receiver&lt;SnifferCommand&gt;,
     client_senders: HashMap&lt;ClientId, Sender&lt;DaemonTcp&gt;&gt;,

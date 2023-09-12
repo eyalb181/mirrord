@@ -155,7 +155,7 @@
 };
 
 <span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>DnsRequest {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>DnsRequest {
     request: GetAddrInfoRequest,
     tx: oneshot::Sender&lt;GetAddrInfoResponse&gt;,
 }
@@ -193,7 +193,7 @@
 ///
 /// Reads a `DnsRequest` from `rx` and returns the resolved addresses (or `Error`) through
 /// `DnsRequest::tx`.
-</span><span class="kw">pub async fn </span>dns_worker(<span class="kw-2">mut </span>rx: Receiver&lt;DnsRequest&gt;, pid: <span class="prelude-ty">Option</span>&lt;u64&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>dns_worker(<span class="kw-2">mut </span>rx: Receiver&lt;DnsRequest&gt;, pid: <span class="prelude-ty">Option</span>&lt;u64&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">let </span>root_path = pid
         .map(|pid| PathBuf::from(<span class="string">&quot;/proc&quot;</span>).join(pid.to_string()).join(<span class="string">&quot;root&quot;</span>))
         .unwrap_or_else(|| PathBuf::from(<span class="string">&quot;/&quot;</span>));
@@ -221,7 +221,7 @@
 }
 
 <span class="attr">#[derive(Clone)]
-</span><span class="kw">pub struct </span>DnsApi {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>DnsApi {
     task_status: TaskStatus,
     sender: Sender&lt;DnsRequest&gt;,
 }

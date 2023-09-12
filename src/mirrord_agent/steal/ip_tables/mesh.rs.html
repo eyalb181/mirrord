@@ -329,7 +329,7 @@
 <span class="kw">static </span>ISTIO_SKIP_PORTS_LOOKUP_REGEX: LazyLock&lt;Regex&gt; =
     LazyLock::new(|| Regex::new(<span class="string">r&quot;-p tcp -m tcp --dport ([\d:,]+)&quot;</span>).unwrap());
 
-<span class="kw">pub struct </span>MeshRedirect&lt;IPT: IPTables&gt; {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>MeshRedirect&lt;IPT: IPTables&gt; {
     preroute: PreroutingRedirect&lt;IPT&gt;,
     managed: IPTableChain&lt;IPT&gt;,
     own_packet_filter: String,
@@ -470,7 +470,7 @@
     }
 }
 
-<span class="kw">pub enum </span>MeshVendor {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>MeshVendor {
     Linkerd,
     Istio,
 }

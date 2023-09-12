@@ -122,7 +122,7 @@
 
 <span class="doccomment">/// A shared clonable view on a background task&#39;s status.
 </span><span class="attr">#[derive(Debug, Clone)]
-</span><span class="kw">pub struct </span>TaskStatus {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>TaskStatus {
     <span class="doccomment">/// Name of the task.
     </span>task_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
     <span class="doccomment">/// Channel to receive the result of the task.

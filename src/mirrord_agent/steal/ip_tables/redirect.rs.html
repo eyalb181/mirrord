@@ -211,7 +211,7 @@
 
 <span class="attr">#[async_trait]
 #[enum_dispatch]
-</span><span class="kw">pub trait </span>Redirect {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>Redirect {
     <span class="kw">async fn </span>mount_entrypoint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;;
 
     <span class="kw">async fn </span>unmount_entrypoint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;;
@@ -222,7 +222,7 @@
     </span><span class="kw">async fn </span>remove_redirect(<span class="kw-2">&amp;</span><span class="self">self</span>, redirected_port: Port, target_port: Port) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;;
 }
 
-<span class="kw">pub struct </span>PreroutingRedirect&lt;IPT: IPTables&gt; {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>PreroutingRedirect&lt;IPT: IPTables&gt; {
     managed: IPTableChain&lt;IPT&gt;,
 }
 
