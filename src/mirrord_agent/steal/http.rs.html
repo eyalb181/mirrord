@@ -222,6 +222,8 @@
 <a href="#222" id="222">222</a>
 <a href="#223" id="223">223</a>
 <a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Home for most of the HTTP stealer implementation / modules.
 //!
 //! # [`HttpV`]
@@ -246,7 +248,9 @@
 };
 
 <span class="kw">use </span><span class="self">self</span>::{
-    error::HttpTrafficError, filter::MINIMAL_HEADER_SIZE, hyper_handler::RawHyperConnection,
+    error::HttpTrafficError,
+    filter::{H2_PREFACE, MINIMAL_HEADER_SIZE},
+    hyper_handler::RawHyperConnection,
     reversible_stream::ReversibleStream,
 };
 <span class="kw">use crate</span>::{
@@ -327,7 +331,7 @@
 
 <span class="doccomment">/// Identifies a message as being HTTP or not.
 </span><span class="attr">#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-</span><span class="kw">enum </span>HttpVersion {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>HttpVersion {
     <span class="doccomment">/// HTTP/1
     </span><span class="attr">#[default]
     </span>V1,
@@ -344,12 +348,12 @@
     <span class="doccomment">/// Checks if `buffer` contains a valid HTTP/1.x request, or if it could be an HTTP/2 request by
     /// comparing it with a slice of [`H2_PREFACE`].
     </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
-    </span><span class="kw">fn </span>new(buffer: <span class="kw-2">&amp;</span>[u8], h2_preface: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(buffer: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>empty_headers = [httparse::EMPTY_HEADER; <span class="number">0</span>];
 
         <span class="kw">if </span>buffer.len() &lt; MINIMAL_HEADER_SIZE {
             <span class="self">Self</span>::NotHttp
-        } <span class="kw">else if </span>buffer == h2_preface {
+        } <span class="kw">else if </span>buffer == <span class="kw-2">&amp;</span>H2_PREFACE[..MINIMAL_HEADER_SIZE] {
             <span class="self">Self</span>::V2
         } <span class="kw">else if </span><span class="macro">matches!</span>(
             httparse::Request::new(<span class="kw-2">&amp;mut </span>empty_headers).parse(buffer),

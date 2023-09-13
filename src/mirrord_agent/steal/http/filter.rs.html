@@ -308,11 +308,6 @@
 <a href="#308" id="308">308</a>
 <a href="#309" id="309">309</a>
 <a href="#310" id="310">310</a>
-<a href="#311" id="311">311</a>
-<a href="#312" id="312">312</a>
-<a href="#313" id="313">313</a>
-<a href="#314" id="314">314</a>
-<a href="#315" id="315">315</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Contains a couple of handy constants and the [`filter_task`].
 //!
 //! # [`filter_task`]
@@ -346,7 +341,7 @@
 <span class="doccomment">/// Default start of an HTTP/2 request.
 ///
 /// Used by [`HttpVersion`] to check if the connection should be treated as HTTP/2.
-</span><span class="kw">const </span>H2_PREFACE: <span class="kw-2">&amp;</span>[u8; <span class="number">14</span>] = <span class="string">b&quot;PRI * HTTP/2.0&quot;</span>;
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const </span>H2_PREFACE: <span class="kw-2">&amp;</span>[u8; <span class="number">14</span>] = <span class="string">b&quot;PRI * HTTP/2.0&quot;</span>;
 
 <span class="doccomment">/// Timeout value for how long we wait for a stream to contain enough bytes to assert which HTTP
 /// version we&#39;re dealing with.
@@ -532,77 +527,72 @@
     )
     .<span class="kw">await
     </span>{
-        <span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>reversible_stream) =&gt; {
-            <span class="kw">match </span>HttpVersion::new(
-                reversible_stream.get_header(),
-                <span class="kw-2">&amp;</span>H2_PREFACE[..MINIMAL_HEADER_SIZE],
-            ) {
-                HttpVersion::V1 =&gt; {
-                    HttpV1::serve_connection(
-                        reversible_stream,
-                        original_destination,
-                        connection_id,
-                        filters,
-                        matched_tx,
-                        connection_close_sender,
-                    )
-                    .<span class="kw">await
-                </span>}
-                HttpVersion::V2 =&gt; {
-                    HttpV2::serve_connection(
-                        reversible_stream,
-                        original_destination,
-                        connection_id,
-                        filters,
-                        matched_tx,
-                        connection_close_sender,
-                    )
-                    .<span class="kw">await
-                </span>}
-                HttpVersion::NotHttp =&gt; {
-                    <span class="macro">trace!</span>(
-                        <span class="string">&quot;Got a connection with unsupported protocol version, passing it through \
+        <span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>reversible_stream) =&gt; <span class="kw">match </span>HttpVersion::new(reversible_stream.get_header()) {
+            HttpVersion::V1 =&gt; {
+                HttpV1::serve_connection(
+                    reversible_stream,
+                    original_destination,
+                    connection_id,
+                    filters,
+                    matched_tx,
+                    connection_close_sender,
+                )
+                .<span class="kw">await
+            </span>}
+            HttpVersion::V2 =&gt; {
+                HttpV2::serve_connection(
+                    reversible_stream,
+                    original_destination,
+                    connection_id,
+                    filters,
+                    matched_tx,
+                    connection_close_sender,
+                )
+                .<span class="kw">await
+            </span>}
+            HttpVersion::NotHttp =&gt; {
+                <span class="macro">trace!</span>(
+                    <span class="string">&quot;Got a connection with unsupported protocol version, passing it through \
                         to its original destination.&quot;
-                    </span>);
-                    <span class="kw">match </span>TcpStream::connect(original_destination).<span class="kw">await </span>{
-                        <span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>interceptor_to_original) =&gt; {
-                            <span class="kw">match </span>copy_bidirectional(
-                                <span class="kw-2">&amp;mut </span>reversible_stream,
-                                <span class="kw-2">&amp;mut </span>interceptor_to_original,
-                            )
-                            .<span class="kw">await
-                            </span>{
-                                <span class="prelude-val">Ok</span>((incoming, outgoing)) =&gt; {
-                                    <span class="macro">trace!</span>(
-                                        <span class="string">&quot;Forwarded {incoming} incoming bytes and {outgoing} \
+                </span>);
+                <span class="kw">match </span>TcpStream::connect(original_destination).<span class="kw">await </span>{
+                    <span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>interceptor_to_original) =&gt; {
+                        <span class="kw">match </span>copy_bidirectional(
+                            <span class="kw-2">&amp;mut </span>reversible_stream,
+                            <span class="kw-2">&amp;mut </span>interceptor_to_original,
+                        )
+                        .<span class="kw">await
+                        </span>{
+                            <span class="prelude-val">Ok</span>((incoming, outgoing)) =&gt; {
+                                <span class="macro">trace!</span>(
+                                    <span class="string">&quot;Forwarded {incoming} incoming bytes and {outgoing} \
                                         outgoing bytes in passthrough connection&quot;
-                                    </span>);
+                                </span>);
 
-                                    <span class="prelude-val">Ok</span>(())
-                                }
-                                <span class="prelude-val">Err</span>(err) =&gt; {
-                                    <span class="macro">error!</span>(
-                                        <span class="string">&quot;Encountered error while forwarding unsupported \
-                                    connection to its original destination: {err:?}&quot;
-                                    </span>);
-
-                                    <span class="prelude-val">Err</span>(err)<span class="question-mark">?
-                                </span>}
+                                <span class="prelude-val">Ok</span>(())
                             }
+                            <span class="prelude-val">Err</span>(err) =&gt; {
+                                <span class="macro">error!</span>(
+                                    <span class="string">&quot;Encountered error while forwarding unsupported \
+                                    connection to its original destination: {err:?}&quot;
+                                </span>);
+
+                                <span class="prelude-val">Err</span>(err)<span class="question-mark">?
+                            </span>}
                         }
-                        <span class="prelude-val">Err</span>(err) =&gt; {
-                            <span class="macro">error!</span>(
+                    }
+                    <span class="prelude-val">Err</span>(err) =&gt; {
+                        <span class="macro">error!</span>(
                             <span class="string">&quot;Could not connect to original destination {original_destination:?}\
                                  . Received a connection with an unsupported protocol version to a \
                                  filtered HTTP port, but cannot forward the connection because of \
                                  the connection error: {err:?}&quot;
                         </span>);
-                            <span class="prelude-val">Err</span>(err)<span class="question-mark">?
-                        </span>}
-                    }
+                        <span class="prelude-val">Err</span>(err)<span class="question-mark">?
+                    </span>}
                 }
             }
-        }
+        },
 
         <span class="prelude-val">Err</span>(read_error) =&gt; {
             <span class="macro">error!</span>(<span class="string">&quot;Got error while trying to read first bytes of TCP stream: {read_error:?}&quot;</span>);

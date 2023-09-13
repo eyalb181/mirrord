@@ -1075,6 +1075,7 @@
 <a href="#1075" id="1075">1075</a>
 <a href="#1076" id="1076">1076</a>
 <a href="#1077" id="1077">1077</a>
+<a href="#1078" id="1078">1078</a>
 </pre></div><pre class="rust"><code><span class="attr">#![allow(clippy::unused_io_amount)]
 #![allow(clippy::indexing_slicing)]
 
@@ -1089,7 +1090,8 @@
 };
 
 <span class="kw">use </span>chrono::{Timelike, Utc};
-<span class="kw">use </span>fancy_regex::Regex;
+<span class="comment">// use const_format::formatcp;
+</span><span class="kw">use </span>fancy_regex::Regex;
 <span class="kw">use </span>futures::FutureExt;
 <span class="kw">use </span>futures_util::{future::BoxFuture, stream::TryStreamExt};
 <span class="kw">use </span>k8s_openapi::api::{

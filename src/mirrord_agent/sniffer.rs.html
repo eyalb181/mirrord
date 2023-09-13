@@ -586,6 +586,28 @@
 <a href="#586" id="586">586</a>
 <a href="#587" id="587">587</a>
 <a href="#588" id="588">588</a>
+<a href="#589" id="589">589</a>
+<a href="#590" id="590">590</a>
+<a href="#591" id="591">591</a>
+<a href="#592" id="592">592</a>
+<a href="#593" id="593">593</a>
+<a href="#594" id="594">594</a>
+<a href="#595" id="595">595</a>
+<a href="#596" id="596">596</a>
+<a href="#597" id="597">597</a>
+<a href="#598" id="598">598</a>
+<a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
+<a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
+<a href="#605" id="605">605</a>
+<a href="#606" id="606">606</a>
+<a href="#607" id="607">607</a>
+<a href="#608" id="608">608</a>
+<a href="#609" id="609">609</a>
+<a href="#610" id="610">610</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     collections::{HashMap, HashSet},
     hash::{Hash, Hasher},
@@ -615,6 +637,7 @@
 
 <span class="kw">use crate</span>::{
     error::AgentError,
+    steal::http::HttpVersion,
     util::{ClientId, IndexAllocator, Subscriptions},
     watched_task::TaskStatus,
 };
@@ -686,7 +709,7 @@
 
 <span class="kw">type </span>TCPSessionMap = HashMap&lt;TcpSessionIdentifier, TCPSession&gt;;
 
-<span class="kw">fn </span>is_new_connection(flags: u16) -&gt; bool {
+<span class="kw">const fn </span>is_new_connection(flags: u16) -&gt; bool {
     <span class="number">0 </span>!= (flags &amp; TcpFlags::SYN) &amp;&amp; <span class="number">0 </span>== (flags &amp; (TcpFlags::ACK | TcpFlags::RST | TcpFlags::FIN))
 }
 
@@ -957,12 +980,15 @@
         })
     }
 
-    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>, sender))]
+    <span class="doccomment">/// New layer is connecting to this agent sniffer.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, ret, skip(<span class="self">self</span>, sender))]
     </span><span class="kw">fn </span>handle_new_client(<span class="kw-2">&amp;mut </span><span class="self">self</span>, client_id: ClientId, sender: Sender&lt;DaemonTcp&gt;) {
         <span class="self">self</span>.client_senders.insert(client_id, sender);
     }
 
-    <span class="kw">async fn </span>handle_subscribe(
+    <span class="doccomment">/// layer with `client_id` wants to sniff on `port`.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, ret, skip(<span class="self">self</span>))]
+    </span><span class="kw">async fn </span>handle_subscribe(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         client_id: ClientId,
         port: Port,
@@ -981,7 +1007,10 @@
         <span class="self">self</span>.update_sniffer()
     }
 
-    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    <span class="doccomment">/// Updates the sniffer&#39;s internal state.
+    ///
+    /// Called when the sniffer receives a new command.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, ret, skip(<span class="self">self</span>))]
     </span><span class="kw">fn </span>update_sniffer(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), AgentError&gt; {
         <span class="kw">let </span>ports = <span class="self">self</span>.port_subscriptions.get_subscribed_topics();
 
@@ -1002,7 +1031,8 @@
             .contains(<span class="kw-2">&amp;</span>port)
     }
 
-    <span class="kw">async fn </span>handle_command(<span class="kw-2">&amp;mut </span><span class="self">self</span>, command: SnifferCommand) -&gt; <span class="prelude-ty">Result</span>&lt;(), AgentError&gt; {
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, ret, skip(<span class="self">self</span>))]
+    </span><span class="kw">async fn </span>handle_command(<span class="kw-2">&amp;mut </span><span class="self">self</span>, command: SnifferCommand) -&gt; <span class="prelude-ty">Result</span>&lt;(), AgentError&gt; {
         <span class="kw">match </span>command {
             SnifferCommand {
                 client_id,
@@ -1060,7 +1090,7 @@
     }
 
     <span class="doccomment">/// Sends a [`DaemonTcp`] message back to the client with `client_id`.
-    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>, message))]
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, ret, skip(<span class="self">self</span>, message))]
     </span><span class="kw">async fn </span>send_message_to_client(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         client_id: <span class="kw-2">&amp;</span>ClientId,
@@ -1079,7 +1109,19 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>, eth_packet), fields(bytes = %eth_packet.len()))]
+    <span class="doccomment">/// First it checks the `tcp_flags` with [`is_new_connection`], if that&#39;s not the case, meaning
+    /// we have traffic from some existing connection from before mirrord started, then it tries to
+    /// see if `bytes` contains an HTTP request (HTTP/1) of some sort. When an HTTP request is
+    /// detected, then the agent should start mirroring as if it was a new connection.
+    ///
+    /// tl;dr: checks packet flags, or if it&#39;s an HTTP packet, then begins a new sniffing session.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, ret, skip(bytes))]
+    </span><span class="kw">fn </span>treat_as_new_session(tcp_flags: u16, bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; bool {
+        is_new_connection(tcp_flags)
+            || <span class="macro">matches!</span>(HttpVersion::new(bytes), HttpVersion::V1 | HttpVersion::V2)
+    }
+
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, ret, skip(<span class="self">self</span>, eth_packet), fields(bytes = %eth_packet.len()))]
     </span><span class="kw">async fn </span>handle_packet(<span class="kw-2">&amp;mut </span><span class="self">self</span>, eth_packet: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), AgentError&gt; {
         <span class="kw">let </span>(identifier, tcp_packet) = <span class="kw">match </span>get_tcp_packet(eth_packet) {
             <span class="prelude-val">Some</span>(res) =&gt; res,
@@ -1101,9 +1143,12 @@
         <span class="kw">let </span>session = <span class="kw">match </span><span class="self">self</span>.sessions.remove(<span class="kw-2">&amp;</span>identifier) {
             <span class="prelude-val">Some</span>(session) =&gt; session,
             <span class="prelude-val">None </span>=&gt; {
-                <span class="kw">if </span>!is_new_connection(tcp_flags) {
-                    <span class="macro">debug!</span>(<span class="string">&quot;not new connection {tcp_flags:?}&quot;</span>);
-                    <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+                <span class="comment">// Performs a check on the `tcp_flags` and on the packet contents to see if this
+                // should be treated as a new connection.
+                </span><span class="kw">if </span>!<span class="self">Self</span>::treat_as_new_session(tcp_flags, <span class="kw-2">&amp;</span>tcp_packet.bytes) {
+                    <span class="comment">// Either it&#39;s an existing session, or some sort of existing traffic we don&#39;t
+                    // care to start mirroring.
+                    </span><span class="kw">return </span><span class="prelude-val">Ok</span>(());
                 }
 
                 <span class="kw">if </span>!is_client_packet {
@@ -1170,7 +1215,6 @@
             <span class="self">self</span>.sessions.insert(identifier, session);
         }
 
-        <span class="macro">trace!</span>(<span class="string">&quot;TcpConnectionSniffer::handle_packet -&gt; finished&quot;</span>);
         <span class="prelude-val">Ok</span>(())
     }
 }
