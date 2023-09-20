@@ -569,6 +569,23 @@
 <a href="#569" id="569">569</a>
 <a href="#570" id="570">570</a>
 <a href="#571" id="571">571</a>
+<a href="#572" id="572">572</a>
+<a href="#573" id="573">573</a>
+<a href="#574" id="574">574</a>
+<a href="#575" id="575">575</a>
+<a href="#576" id="576">576</a>
+<a href="#577" id="577">577</a>
+<a href="#578" id="578">578</a>
+<a href="#579" id="579">579</a>
+<a href="#580" id="580">580</a>
+<a href="#581" id="581">581</a>
+<a href="#582" id="582">582</a>
+<a href="#583" id="583">583</a>
+<a href="#584" id="584">584</a>
+<a href="#585" id="585">585</a>
+<a href="#586" id="586">586</a>
+<a href="#587" id="587">587</a>
+<a href="#588" id="588">588</a>
 </pre></div><pre class="rust"><code><span class="attr">#![feature(let_chains)]
 #![feature(lazy_cell)]
 #![feature(result_option_inspect)]
@@ -576,7 +593,8 @@
 
 </span><span class="kw">use </span>std::{collections::HashMap, time::Duration};
 
-<span class="kw">use </span>clap::Parser;
+<span class="kw">use </span>clap::{CommandFactory, Parser};
+<span class="kw">use </span>clap_complete::generate;
 <span class="kw">use </span>config::<span class="kw-2">*</span>;
 <span class="kw">use </span>email_address::EmailAddress;
 <span class="kw">use </span>exec::execvp;
@@ -992,7 +1010,7 @@
     <span class="doccomment">/// Invalid config was detected, mirrord cannot run.
     ///
     /// May be triggered by extra/lacking `,`, or invalid fields, etc.
-    </span>Failed(Vec&lt;String&gt;),
+    </span>Fail { errors: Vec&lt;String&gt; },
 }
 
 <span class="doccomment">/// Verifies a config file specified by `path`.
@@ -1006,7 +1024,7 @@
 /// - Example:
 ///
 /// ```sh
-/// mirrord verify-config ./config.json
+/// mirrord verify-config ./valid-config.json
 ///
 ///
 /// {
@@ -1018,6 +1036,16 @@
 ///     &quot;namespace&quot;: null
 ///   },
 ///   &quot;warnings&quot;: []
+/// }
+/// ```
+///
+/// ```sh
+/// mirrord verify-config ./broken-config.json
+///
+///
+/// {
+///   &quot;type&quot;: &quot;Fail&quot;,
+///   &quot;errors&quot;: [&quot;mirrord-config: IO operation failed with `No such file or directory (os error 2)`&quot;]
 /// }
 /// ```
 </span><span class="kw">async fn </span>verify_config(VerifyConfigArgs { path }: VerifyConfigArgs) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
@@ -1033,7 +1061,9 @@
             config: config.target,
             warnings: config_context.get_warnings().to_owned(),
         },
-        <span class="prelude-val">Err</span>(fail) =&gt; VerifiedConfig::Failed(<span class="macro">vec!</span>[fail.to_string()]),
+        <span class="prelude-val">Err</span>(fail) =&gt; VerifiedConfig::Fail {
+            errors: <span class="macro">vec!</span>[fail.to_string()],
+        },
     };
 
     <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, serde_json::to_string_pretty(<span class="kw-2">&amp;</span>verified)<span class="question-mark">?</span>);
@@ -1079,6 +1109,10 @@
             Commands::InternalProxy =&gt; internal_proxy::proxy(watch).<span class="kw">await</span><span class="question-mark">?</span>,
             Commands::Waitlist(args) =&gt; register_to_waitlist(args.email).<span class="kw">await</span><span class="question-mark">?</span>,
             Commands::VerifyConfig(config_path) =&gt; verify_config(config_path).<span class="kw">await</span><span class="question-mark">?</span>,
+            Commands::Completions(args) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>cmd: clap::Command = Cli::command();
+                generate(args.shell, <span class="kw-2">&amp;mut </span>cmd, <span class="string">&quot;mirrord&quot;</span>, <span class="kw-2">&amp;mut </span>std::io::stdout());
+            }
         };
         <span class="prelude-val">Ok</span>(())
     });

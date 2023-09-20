@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Commands","Format","FsMode","OperatorCommand"],"fn":["email_parse"],"struct":["Cli","ExecArgs","ExtensionExecArgs","ListTargetArgs","OperatorArgs","VerifyConfigArgs","WaitlistArgs"]};
+window.SIDEBAR_ITEMS = {"enum":["Commands","Format","FsMode","OperatorCommand"],"fn":["email_parse"],"struct":["Cli","CompletionsArgs","ExecArgs","ExtensionExecArgs","ListTargetArgs","OperatorArgs","VerifyConfigArgs","WaitlistArgs"]};
