@@ -755,6 +755,8 @@
 <a href="#755" id="755">755</a>
 <a href="#756" id="756">756</a>
 <a href="#757" id="757">757</a>
+<a href="#758" id="758">758</a>
+<a href="#759" id="759">759</a>
 </pre></div><pre class="rust"><code><span class="attr">#![feature(slice_concat_trait)]
 #![feature(lazy_cell)]
 #![feature(result_option_inspect)]
@@ -1058,8 +1060,10 @@
     }
 
     <span class="doccomment">/// Verify that there are no conflicting settings.
+    ///
     /// We don&#39;t call it from `from_env` since we want to verify it only once (from cli)
-    /// Returns vec of warnings
+    ///
+    /// Fills `context` with the warnings.
     </span><span class="kw">pub fn </span>verify(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>ConfigContext) -&gt; <span class="prelude-ty">Result</span>&lt;(), ConfigError&gt; {
         <span class="kw">if </span><span class="self">self</span>.pause {
             <span class="kw">if </span><span class="self">self</span>.agent.ephemeral &amp;&amp; !<span class="self">self</span>.agent.privileged {
@@ -1125,7 +1129,7 @@
                 <span class="prelude-val">Err</span>(ConfigError::TargetNamespaceWithoutTarget)<span class="question-mark">?</span>;
             }
             <span class="kw">if </span><span class="self">self</span>.feature.network.incoming.is_steal() {
-                <span class="prelude-val">Err</span>(ConfigError::Conflict(<span class="string">&quot;Steal mode is not compatible with a targetless agent, please either disable this option or specify a target.&quot;</span>.into()))<span class="question-mark">?</span>;
+                context.add_warning(<span class="string">&quot;Steal mode is not compatible with a targetless agent, please either disable this option or specify a target.&quot;</span>.into());
             }
             <span class="kw">if </span><span class="self">self</span>.agent.ephemeral {
                 <span class="prelude-val">Err</span>(ConfigError::Conflict(
