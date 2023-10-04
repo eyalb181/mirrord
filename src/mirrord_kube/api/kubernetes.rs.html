@@ -419,7 +419,7 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Checks if any [`ContainerStatus`] matches a mesh/sidecar name from our `MESH_LIST`, and the
+    <span class="doccomment">/// Checks if any `ContainerStatus` matches a mesh/sidecar name from our `MESH_LIST`, and the
     /// user is running incoming traffic in `IncomigMode::Mirror` mode, printing a warning if it
     /// does.
     </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, ret, skip(<span class="self">self</span>, progress))]
@@ -542,7 +542,7 @@
 
         <span class="kw">let </span>is_mesh = runtime_data
             .as_ref()
-            .map(|runtime| runtime.is_mesh)
+            .map(|runtime| runtime.mesh.is_some())
             .unwrap_or_default();
 
         <span class="kw">if </span><span class="self">self
